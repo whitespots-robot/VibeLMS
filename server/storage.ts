@@ -121,10 +121,15 @@ export class MemStorage implements IStorage {
   }
 
   // Course operations
-  async getCourses(): Promise<CourseWithStats[]> {
+  async getCourses(status?: string): Promise<CourseWithStats[]> {
     const coursesWithStats: CourseWithStats[] = [];
     
-    for (const course of this.courses.values()) {
+    for (const course of Array.from(this.courses.values())) {
+      // Filter by status if provided
+      if (status && course.status !== status) {
+        continue;
+      }
+      
       const chapters = Array.from(this.chapters.values()).filter(c => c.courseId === course.id);
       const lessonsCount = chapters.reduce((count, chapter) => {
         return count + Array.from(this.lessons.values()).filter(l => l.chapterId === chapter.id).length;
