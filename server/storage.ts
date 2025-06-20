@@ -296,8 +296,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCourse(id: number): Promise<boolean> {
-    const result = await db.delete(courses).where(eq(courses.id, id));
-    return (result.rowCount || 0) > 0;
+    try {
+      // Delete in correct order due to foreign key constraints
+      
+      // 1. Delete student progress for lessons in this course
+      const courseChapters = await db.select().from(chapters).where(eq(chapters.courseId, id));
+      for (const chapter of courseChapters) {
+        const chapterLessons = await db.select().from(lessons).where(eq(lessons.chapterId, chapter.id));
+        for (const lesson of chapterLessons) {
+          await db.delete(studentProgress).where(eq(studentProgress.lessonId, lesson.id));
+          await db.delete(questions).where(eq(questions.lessonId, lesson.id));
+          await db.delete(lessonMaterials).where(eq(lessonMaterials.lessonId, lesson.id));
+        }
+        await db.delete(lessons).where(eq(lessons.chapterId, chapter.id));
+      }
+      
+      // 2. Delete enrollments
+      await db.delete(enrollments).where(eq(enrollments.courseId, id));
+      
+      // 3. Delete chapters
+      await db.delete(chapters).where(eq(chapters.courseId, id));
+      
+      // 4. Finally delete the course
+      const result = await db.delete(courses).where(eq(courses.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      throw error;
+    }
   }
 
   async getChaptersByCourse(courseId: number): Promise<Chapter[]> {
@@ -460,8 +486,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMaterial(id: number): Promise<boolean> {
-    const result = await db.delete(materials).where(eq(materials.id, id));
-    return (result.rowCount || 0) > 0;
+    try {
+      // First delete all lesson-material links
+      await db.delete(lessonMaterials).where(eq(lessonMaterials.materialId, id));
+      
+      // Then delete the material
+      const result = await db.delete(materials).where(eq(materials.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting material:', error);
+      throw error;
+    }
   }
 
   async getEnrollmentsByCourse(courseId: number): Promise<Enrollment[]> {
