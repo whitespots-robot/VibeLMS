@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
 import { X, Play, FileText, Code, BookOpen, Eye, HelpCircle, CheckCircle2 } from "lucide-react";
 import type { Lesson, LessonWithDetails } from "@shared/schema";
-import DOMPurify from 'dompurify';
 
 interface LessonPreviewModalProps {
   lesson: Lesson | null;

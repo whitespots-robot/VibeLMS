@@ -13,7 +13,6 @@ import {
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
   ChevronLeft, Clock, Award, FileText, HelpCircle, Download, Trophy, PartyPopper
 } from "lucide-react";
-import DOMPurify from 'dompurify';
 import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question } from "@shared/schema";
 
 export default function CourseLearning() {
@@ -388,13 +387,7 @@ export default function CourseLearning() {
                     <CardContent>
                       <div 
                         className="prose prose-lg max-w-none text-slate-700"
-                        dangerouslySetInnerHTML={{ 
-                          __html: DOMPurify.sanitize(currentLesson.content, {
-                            ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'code', 'pre', 'blockquote', 'div', 'span'],
-                            ALLOWED_ATTR: ['href', 'title', 'class', 'id'],
-                            ALLOW_DATA_ATTR: false
-                          })
-                        }}
+                        dangerouslySetInnerHTML={{ __html: currentLesson.content }}
                       />
                     </CardContent>
                   </Card>
