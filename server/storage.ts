@@ -107,8 +107,8 @@ export class MemStorage implements IStorage {
     // Create demo course
     const demoCourse: Course = {
       id: 1,
-      title: "🎯 Demo Course - Web Development Basics",
-      description: "Learn the fundamentals of web development with HTML, CSS, and JavaScript. This demo course shows all LMS features.",
+      title: "Demo Django for Beginners: Build a Blog",
+      description: "Learn Django web development by building a complete blog application from scratch. Master models, views, templates, authentication, and deployment.",
       instructorId: 1,
       status: "published",
       createdAt: new Date(),
@@ -120,8 +120,8 @@ export class MemStorage implements IStorage {
     // Create demo chapter
     const demoChapter: Chapter = {
       id: 1,
-      title: "Introduction to Web Development",
-      description: "Getting started with the basics of web development",
+      title: "Django Setup & Fundamentals",
+      description: "Install Django, understand project structure, and create your first Django project",
       courseId: 1,
       orderIndex: 0,
       createdAt: new Date(),
