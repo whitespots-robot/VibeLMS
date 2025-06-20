@@ -161,13 +161,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/lessons/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const lesson = await storage.getLessonWithDetails(id);
+      const lesson = await storage.getLesson(id);
       if (!lesson) {
         return res.status(404).json({ message: "Lesson not found" });
       }
       res.json(lesson);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch lesson" });
+    }
+  });
+
+  app.get("/api/lessons/:id/details", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lesson = await storage.getLessonWithDetails(id);
+      if (!lesson) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      res.json(lesson);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lesson details" });
     }
   });
 

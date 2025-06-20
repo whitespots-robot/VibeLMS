@@ -234,6 +234,25 @@ export default function CourseLearning() {
               {/* Lesson Content */}
               <div className="space-y-8">
                 
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && (
+                  <Card className="bg-gray-50 border-gray-200">
+                    <CardContent className="p-4">
+                      <h4 className="font-semibold mb-2">Debug Info:</h4>
+                      <pre className="text-xs text-gray-600">
+                        {JSON.stringify({
+                          hasVideoUrl: !!currentLesson.videoUrl,
+                          hasContent: !!currentLesson.content,
+                          hasCodeExample: !!currentLesson.codeExample,
+                          hasAssignment: !!currentLesson.assignment,
+                          questionsCount: currentLesson.questions?.length || 0,
+                          embedUrl: !!embedUrl
+                        }, null, 2)}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                )}
+                
                 {/* Empty lesson warning */}
                 {!embedUrl && !currentLesson.content && !currentLesson.codeExample && !currentLesson.assignment && (!currentLesson.questions || currentLesson.questions.length === 0) && (
                   <Card className="bg-yellow-50 border-yellow-200">
