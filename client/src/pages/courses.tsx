@@ -51,6 +51,32 @@ export default function Courses() {
     },
   });
 
+  const deleteCourseMutation = useMutation({
+    mutationFn: async (courseId: number) => {
+      await apiRequest("DELETE", `/api/courses/${courseId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
+      toast({
+        title: "Success",
+        description: "Course deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete course",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteCourse = (courseId: number) => {
+    if (confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+      deleteCourseMutation.mutate(courseId);
+    }
+  };
+
   const form = useForm({
     resolver: zodResolver(insertCourseSchema),
     defaultValues: {
@@ -116,6 +142,7 @@ export default function Courses() {
               courses={filteredCourses} 
               isLoading={isLoading}
               onEditCourse={(courseId) => setLocation(`/courses/${courseId}/edit`)}
+              onDeleteCourse={handleDeleteCourse}
             />
           </Card>
         </div>

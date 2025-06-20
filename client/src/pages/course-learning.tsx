@@ -20,6 +20,8 @@ export default function CourseLearning() {
   const courseId = params?.id ? parseInt(params.id) : null;
   const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const [questionAnswers, setQuestionAnswers] = useState<Record<number, number>>({});
+  const [showResults, setShowResults] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
@@ -38,6 +40,14 @@ export default function CourseLearning() {
       setCurrentLessonId(course.chapters[0].lessons[0].id);
     }
   }, [course, currentLessonId]);
+
+  // Reset quiz state when lesson changes
+  useEffect(() => {
+    if (currentLessonId) {
+      setQuestionAnswers({});
+      setShowResults({});
+    }
+  }, [currentLessonId]);
 
   const markLessonComplete = useMutation({
     mutationFn: async (lessonId: number) => {
@@ -330,28 +340,77 @@ export default function CourseLearning() {
                                 .filter((option, index) => option && option.trim() !== '')
                                 .map((option, optIndex) => {
                                   const originalIndex = (question.options as string[]).indexOf(option);
+                                  const isSelected = questionAnswers[question.id] === originalIndex;
+                                  const showResults = showResults[question.id];
+                                  const isCorrect = originalIndex === question.correctAnswer;
+                                  
+                                  let bgClass = 'bg-slate-50 border-slate-200 hover:bg-slate-100';
+                                  if (showResults) {
+                                    if (isCorrect) {
+                                      bgClass = 'bg-green-50 border-green-200';
+                                    } else if (isSelected && !isCorrect) {
+                                      bgClass = 'bg-red-50 border-red-200';
+                                    }
+                                  } else if (isSelected) {
+                                    bgClass = 'bg-blue-50 border-blue-200';
+                                  }
+                                  
                                   return (
-                                    <div 
+                                    <button 
                                       key={optIndex}
-                                      className={`p-3 rounded-lg border transition-colors ${
-                                        originalIndex === question.correctAnswer 
-                                          ? 'bg-green-50 border-green-200' 
-                                          : 'bg-slate-50 border-slate-200'
+                                      disabled={showResults}
+                                      onClick={() => {
+                                        if (!showResults) {
+                                          setQuestionAnswers(prev => ({
+                                            ...prev,
+                                            [question.id]: originalIndex
+                                          }));
+                                        }
+                                      }}
+                                      className={`w-full p-3 rounded-lg border transition-colors text-left ${bgClass} ${
+                                        !showResults ? 'cursor-pointer' : 'cursor-default'
                                       }`}
                                     >
                                       <div className="flex items-center space-x-2">
-                                        {originalIndex === question.correctAnswer && (
+                                        {showResults && isCorrect && (
                                           <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                        )}
+                                        {showResults && isSelected && !isCorrect && (
+                                          <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
+                                            <span className="text-white text-xs">✕</span>
+                                          </div>
                                         )}
                                         <span className="font-medium">
                                           {String.fromCharCode(65 + optIndex)}.
                                         </span>
                                         <span>{option}</span>
+                                        {!showResults && isSelected && (
+                                          <div className="ml-auto w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                                            <span className="text-white text-xs">✓</span>
+                                          </div>
+                                        )}
                                       </div>
-                                    </div>
+                                    </button>
                                   );
                                 })
                               }
+                              
+                              {/* Submit Answer Button */}
+                              {questionAnswers[question.id] !== undefined && !showResults[question.id] && (
+                                <Button 
+                                  onClick={() => {
+                                    setShowResults(prev => ({
+                                      ...prev,
+                                      [question.id]: true
+                                    }));
+                                  }}
+                                  className="mt-3"
+                                  size="sm"
+                                >
+                                  Submit Answer
+                                </Button>
+                              )}
+                              
                               {(question.options as string[]).filter(option => option && option.trim() !== '').length === 0 && (
                                 <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-200">
                                   <p className="text-sm text-yellow-700">No answer options provided for this question.</p>
