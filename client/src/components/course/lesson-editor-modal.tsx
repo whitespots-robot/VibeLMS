@@ -254,19 +254,14 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={saveLesson}
-                disabled={updateLessonMutation.isPending}
-                className="btn-primary"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button 
+              onClick={saveLesson}
+              disabled={updateLessonMutation.isPending}
+              className="btn-primary"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </DialogHeader>
 
