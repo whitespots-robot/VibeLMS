@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
-import { X, Play, FileText, Code, BookOpen, Eye } from "lucide-react";
-import type { Lesson } from "@shared/schema";
+import { X, Play, FileText, Code, BookOpen, Eye, HelpCircle, CheckCircle2 } from "lucide-react";
+import type { Lesson, LessonWithDetails } from "@shared/schema";
 
 interface LessonPreviewModalProps {
   lesson: Lesson | null;
