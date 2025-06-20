@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -15,8 +15,7 @@ import {
 import type { CourseWithStats, Enrollment } from "@shared/schema";
 
 export default function Learning() {
-  const [selectedCourse, setSelectedCourse] = useState<CourseWithStats | null>(null);
-  const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
+  const [, navigate] = useLocation();
   const { toast } = useToast();
 
   // Fetch published courses available for learning
@@ -38,27 +37,25 @@ export default function Learning() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, courseId) => {
       queryClient.invalidateQueries({ queryKey: ["/api/enrollments"] });
-      setIsEnrollDialogOpen(false);
-      toast({
-        title: "Enrollment Successful!",
-        description: "You have successfully enrolled in the course. Start learning now!",
-      });
+      // Immediately navigate to learning interface
+      navigate(`/learning/${courseId}`);
     },
   });
 
   const publishedCourses = courses.filter(course => course.status === 'published');
   const enrolledCourseIds = new Set(enrollments.map(e => e.courseId));
 
-  const handleEnroll = (course: CourseWithStats) => {
-    setSelectedCourse(course);
-    setIsEnrollDialogOpen(true);
-  };
-
-  const confirmEnrollment = () => {
-    if (selectedCourse?.id) {
-      enrollMutation.mutate(selectedCourse.id);
+  const handleStartLearning = (courseId: number) => {
+    const isEnrolled = enrolledCourseIds.has(courseId);
+    
+    if (isEnrolled) {
+      // Go directly to learning
+      navigate(`/learning/${courseId}`);
+    } else {
+      // Auto-enroll and then navigate
+      enrollMutation.mutate(courseId);
     }
   };
 
@@ -191,20 +188,14 @@ export default function Learning() {
                           </div>
                         </div>
                         
-                        {isEnrolled ? (
-                          <Button disabled className="w-full bg-slate-100 text-slate-500">
-                            <Award className="w-4 h-4 mr-2" />
-                            Already Enrolled
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => handleEnroll(course)}
-                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                          >
-                            <Star className="w-4 h-4 mr-2" />
-                            Enroll Now
-                          </Button>
-                        )}
+                        <Button 
+                          onClick={() => handleStartLearning(course.id)}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                          disabled={enrollMutation.isPending}
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          {enrollMutation.isPending ? "Starting..." : isEnrolled ? "Continue Learning" : "Start Learning"}
+                        </Button>
                       </CardContent>
                     </Card>
                   );
