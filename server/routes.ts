@@ -327,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(chapter);
     } catch (error) {
       console.error("Chapter creation error:", error);
-      res.status(400).json({ message: "Invalid chapter data", error: error.message });
+      res.status(400).json({ message: "Invalid chapter data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
