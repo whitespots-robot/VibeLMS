@@ -16,6 +16,9 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<User | undefined>;
+  authenticateUser(username: string, password: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
 
   // Course operations
   getCourses(status?: string): Promise<CourseWithStats[]>;
@@ -88,12 +91,12 @@ export class MemStorage implements IStorage {
   private currentProgressId = 1;
 
   constructor() {
-    // Initialize with demo instructor
+    // Initialize with default teacher account
     this.users.set(1, {
       id: 1,
-      username: "instructor",
-      password: "password",
-      email: "instructor@example.com",
+      username: "teacher",
+      password: this.hashPassword("teacher"),
+      email: "teacher@example.com",
       role: "instructor",
       createdAt: new Date(),
     });
