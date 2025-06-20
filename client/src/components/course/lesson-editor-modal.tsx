@@ -405,7 +405,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <Label className="text-sm font-medium text-neutral-700">Assessment Questions</Label>
-                    <Button onClick={addQuestion} size="sm" className="text-primary hover:text-blue-600">
+                    <Button onClick={addQuestion} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md">
                       <Plus className="w-4 h-4 mr-1" />
                       Add Question
                     </Button>
@@ -422,6 +422,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                                 size="sm"
                                 onClick={() => saveQuestion(index)}
                                 disabled={!question.question.trim()}
+                                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 shadow-md disabled:opacity-50"
                               >
                                 <Save className="w-4 h-4 mr-1" />
                                 Save
