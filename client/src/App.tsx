@@ -29,6 +29,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!currentUser && location !== "/login" && location !== "/register") {
       setLocation("/login");
     }
+    // Redirect students away from dashboard
+    if (currentUser && currentUser.role === "student" && (location === "/" || location === "/dashboard")) {
+      setLocation("/learning");
+    }
   }, [currentUser, location, setLocation]);
 
   if (!currentUser && location !== "/login" && location !== "/register") {

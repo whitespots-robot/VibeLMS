@@ -8,13 +8,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const getNavigation = (userRole: string | null) => {
-  const baseNavigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  ];
-
   if (userRole === 'instructor') {
     return [
-      ...baseNavigation,
+      { name: 'Dashboard', href: '/', icon: LayoutDashboard },
       { name: 'My Courses', href: '/courses', icon: BookOpen },
       { name: 'Students', href: '/students', icon: Users },
       { name: 'Materials', href: '/materials', icon: FolderOpen },
@@ -24,8 +20,7 @@ const getNavigation = (userRole: string | null) => {
     ];
   } else {
     return [
-      ...baseNavigation,
-      { name: 'Start Learning', href: '/learning', icon: Play },
+      { name: 'My Learning', href: '/learning', icon: Play },
     ];
   }
 };
