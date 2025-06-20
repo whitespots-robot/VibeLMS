@@ -105,14 +105,25 @@ export default function CourseLearning() {
     },
   });
 
-  if (!match || !courseId) {
+  if ((!match && !previewMatch) || !courseId) {
     return <div>Course not found</div>;
   }
 
   if (isLoading) {
     return (
       <>
-        <Topbar title="Loading..." />
+        {isPreviewMode ? (
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white text-lg font-bold">V</span>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Loading...</h1>
+            </div>
+          </div>
+        ) : (
+          <Topbar title="Loading..." />
+        )}
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="text-center">Loading course...</div>
@@ -125,7 +136,23 @@ export default function CourseLearning() {
   if (!course) {
     return (
       <>
-        <Topbar title="Course Not Found" />
+        {isPreviewMode ? (
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-lg font-bold">V</span>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">Course Not Found</h1>
+              </div>
+              <Button variant="outline" onClick={() => setLocation("/")}>
+                Back to Courses
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Topbar title="Course Not Found" />
+        )}
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="text-center">Course not found</div>
