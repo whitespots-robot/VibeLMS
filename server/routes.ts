@@ -25,10 +25,17 @@ function sanitizeFilename(filename: string): string {
 function isValidPath(filePath: string): boolean {
   const normalizedPath = path.normalize(filePath);
   const uploadsDir = path.resolve('./uploads');
-  const resolvedPath = path.resolve(normalizedPath);
   
-  // Ensure the path is within the uploads directory
-  return resolvedPath.startsWith(uploadsDir);
+  // Handle both absolute and relative paths
+  let resolvedPath: string;
+  if (path.isAbsolute(normalizedPath)) {
+    resolvedPath = normalizedPath;
+  } else {
+    resolvedPath = path.resolve('.', normalizedPath);
+  }
+  
+  // Ensure the path is within the uploads directory or is a demo file
+  return resolvedPath.startsWith(uploadsDir) || normalizedPath.includes('uploads/');
 }
 
 // Configure multer for file uploads
@@ -502,85 +509,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied: Invalid file path" });
       }
 
-      // For demo material, generate a sample PDF content
-      if (material.fileName === "web-dev-cheatsheet.pdf") {
-        const pdfContent = `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
+      // Generate demo content for materials
+      if (material.fileName.endsWith('.pdf')) {
+        let pdfTitle = material.title;
+        let pdfContent = '';
+        
+        switch (material.fileName) {
+          case "web-dev-cheatsheet.pdf":
+            pdfContent = "Web Development Cheat Sheet\n\nHTML - Structure\nCSS - Styling\nJavaScript - Functionality";
+            break;
+          case "html-reference.pdf":
+            pdfContent = "HTML Reference Guide\n\nBasic Elements:\n<html>, <head>, <body>\n<h1>-<h6>, <p>, <div>\n<a>, <img>, <ul>, <li>\n\nSemantic Elements:\n<header>, <nav>, <main>\n<article>, <section>, <footer>";
+            break;
+          case "css-cheatsheet.pdf":
+            pdfContent = "CSS Cheat Sheet\n\nSelectors:\n.class, #id, element\n\nLayout:\ndisplay: flex, grid\nposition: relative, absolute\n\nBox Model:\nmargin, border, padding, content";
+            break;
+          case "js-reference.pdf":
+            pdfContent = "JavaScript Quick Reference\n\nVariables:\nlet, const, var\n\nFunctions:\nfunction name() {}\n() => {}\n\nDOM:\ndocument.querySelector()\nelement.addEventListener()";
+            break;
+          default:
+            pdfContent = `${pdfTitle}\n\nThis is a reference document for web development learning.`;
+        }
 
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
->>
->>
->>
-endobj
-
-4 0 obj
-<<
-/Length 100
->>
-stream
-BT
-/F1 12 Tf
-100 700 Td
-(Web Development Cheat Sheet) Tj
-100 650 Td
-(HTML - Structure) Tj
-100 600 Td
-(CSS - Styling) Tj
-100 550 Td
-(JavaScript - Functionality) Tj
-ET
-endstream
-endobj
-
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-
-xref
-0 6
+        const simplePdf = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length ${pdfContent.length + 50}>>stream
+BT/F1 12 Tf 50 750 Td(${pdfTitle})Tj 0 -30 Td(${pdfContent.replace(/\n/g, ')Tj 0 -20 Td(')})Tj ET
+endstream endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+xref 0 6
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000274 00000 n 
-0000000423 00000 n 
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-489
+0000000400 00000 n 
+trailer<</Size 6/Root 1 0 R>>
+startxref 467
 %%EOF`;
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
-        res.send(Buffer.from(pdfContent));
+        res.send(Buffer.from(simplePdf));
+        return;
+      }
+      
+      if (material.fileName === "starter-files.zip") {
+        const JSZip = require('jszip');
+        const zip = new JSZip();
+        
+        // Add HTML starter file
+        zip.file("index.html", `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Your Name</h1>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="about">
+            <h2>About Me</h2>
+            <p>Write your introduction here...</p>
+        </section>
+        
+        <section id="skills">
+            <h2>Skills</h2>
+            <ul>
+                <li>HTML</li>
+                <li>CSS</li>
+                <li>JavaScript</li>
+            </ul>
+        </section>
+        
+        <section id="contact">
+            <h2>Contact</h2>
+            <p>Email: your.email@example.com</p>
+        </section>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>`);
+
+        // Add CSS starter file
+        zip.file("style.css", `/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Header Styles */
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 1rem 0;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 2rem;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Main Content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+section {
+    margin: 3rem 0;
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}`);
+
+        // Add JavaScript starter file
+        zip.file("script.js", `// Smooth scrolling for navigation links
+document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Add your JavaScript functionality here
+console.log('Portfolio loaded successfully!');`);
+
+        const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+        
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
+        res.send(zipBuffer);
         return;
       }
 
