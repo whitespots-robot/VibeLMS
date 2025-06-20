@@ -18,14 +18,24 @@ import type { User } from "@shared/schema";
 const teacherRegistrationSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
 });
 
 const passwordChangeSchema = z.object({
   userId: z.number(),
   currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(6, "New password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Please confirm new password"),
+  newPassword: z.string()
+    .min(8, "New password must be at least 8 characters")
+    .regex(/[A-Z]/, "New password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "New password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "New password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "New password must contain at least one special character"),
+  confirmPassword: z.string().min(8, "Please confirm new password"),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -279,8 +289,11 @@ export default function UserManagement() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Temporary password" {...field} />
+                      <Input type="password" placeholder="Teacher password" {...field} />
                     </FormControl>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Must be 8+ characters with uppercase, lowercase, number, and special character
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -338,6 +351,9 @@ export default function UserManagement() {
                     <FormControl>
                       <Input type="password" placeholder="Enter new password" {...field} />
                     </FormControl>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Must be 8+ characters with uppercase, lowercase, number, and special character
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

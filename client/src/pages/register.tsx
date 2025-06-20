@@ -14,8 +14,13 @@ import { UserPlus, LogIn } from "lucide-react";
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Please confirm your password"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  confirmPassword: z.string().min(8, "Please confirm your password"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -120,6 +125,9 @@ export default function Register() {
                     <FormControl>
                       <Input type="password" placeholder="Create a password" {...field} />
                     </FormControl>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Password must contain at least 8 characters, including uppercase, lowercase, number, and special character
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
