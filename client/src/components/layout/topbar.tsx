@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bell, Menu, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface TopbarProps {
   title: string;
