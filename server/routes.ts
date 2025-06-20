@@ -387,6 +387,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const progressData = insertStudentProgressSchema.parse(req.body);
       const progress = await storage.updateStudentProgress(progressData);
+      
+      // If lesson was completed, check if course should be marked as complete
+      if (progressData.completed) {
+        const lesson = await storage.getLesson(progressData.lessonId);
+        if (lesson) {
+          // Get the chapter to find the courseId
+          const chapter = await storage.getChapter(lesson.chapterId);
+          if (chapter) {
+            const courseId = chapter.courseId;
+            
+            // Get all lessons in the course
+            const course = await storage.getCourseWithChapters(courseId);
+            if (course) {
+              const allLessons = course.chapters.flatMap(chap => chap.lessons);
+              const completedLessons = await storage.getStudentProgressByCourse(progressData.studentId, courseId);
+              const completedLessonIds = completedLessons.filter(p => p.completed).map(p => p.lessonId);
+              
+              // Calculate completion percentage
+              const completionPercentage = (completedLessonIds.length / allLessons.length) * 100;
+              
+              // Update enrollment progress
+              const enrollments = await storage.getEnrollmentsByCourse(courseId);
+              const enrollment = enrollments.find(e => e.studentId === progressData.studentId);
+              if (enrollment) {
+                await storage.updateEnrollmentProgress(enrollment.id, completionPercentage);
+              }
+            }
+          }
+        }
+      }
+      
       res.json(progress);
     } catch (error) {
       res.status(400).json({ message: "Invalid progress data" });
