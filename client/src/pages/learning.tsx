@@ -206,60 +206,7 @@ export default function Learning() {
         </div>
       </main>
 
-      {/* Enrollment Confirmation Dialog */}
-      <Dialog open={isEnrollDialogOpen} onOpenChange={setIsEnrollDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <GraduationCap className="w-5 h-5 mr-2 text-blue-600" />
-              Enroll in Course
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {selectedCourse && (
-              <div>
-                <h3 className="font-semibold text-lg mb-2">{selectedCourse.title}</h3>
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center justify-between">
-                    <span>Chapters:</span>
-                    <span>{selectedCourse.chaptersCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Lessons:</span>
-                    <span>{selectedCourse.lessonsCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Students:</span>
-                    <span>{selectedCourse.studentsCount}</span>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    You're about to enroll in this course. You'll be able to access all lessons and track your progress.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="flex space-x-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsEnrollDialogOpen(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={confirmEnrollment}
-              disabled={enrollMutation.isPending}
-              className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-            >
-              {enrollMutation.isPending ? "Enrolling..." : "Confirm Enrollment"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </>
   );
 }
