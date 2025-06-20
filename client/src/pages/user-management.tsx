@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Users, Key, Shield } from "lucide-react";
@@ -237,24 +239,21 @@ export default function UserManagement() {
                     <h4 className="font-medium text-neutral-800">Global Student Registration</h4>
                     <p className="text-sm text-neutral-600">Disable this to prevent ALL new student account registrations system-wide</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
+                  <div className="flex items-center space-x-3">
+                    <Switch
                       id="allowStudentReg"
                       checked={allowStudentRegistration}
-                      onChange={(e) => {
-                        const newValue = e.target.checked;
-                        setAllowStudentRegistration(newValue);
+                      onCheckedChange={(checked) => {
+                        setAllowStudentRegistration(checked);
                         updateSettingMutation.mutate({
                           key: "allow_student_registration",
-                          value: newValue.toString()
+                          value: checked.toString()
                         });
                       }}
-                      className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
                     />
-                    <label htmlFor="allowStudentReg" className="text-sm font-medium text-neutral-700">
+                    <Label htmlFor="allowStudentReg" className="text-sm font-medium text-neutral-700">
                       {allowStudentRegistration ? "Allow New Students" : "Block New Students"}
-                    </label>
+                    </Label>
                   </div>
                 </div>
               </div>
