@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Users, Clock, Eye, X } from "lucide-react";
+import { BookOpen, Users, Clock, Eye, X, Search } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { CourseWithStats } from "@shared/schema";
@@ -38,6 +38,7 @@ export default function PublicCourses() {
   const [, setLocation] = useLocation();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
@@ -127,6 +128,12 @@ export default function PublicCourses() {
     registerMutation.mutate(data);
   };
 
+  // Filter courses based on search query
+  const filteredCourses = courses.filter(course => 
+    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (course.description && course.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -167,20 +174,38 @@ export default function PublicCourses() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
             Explore Public Courses
           </h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-600 max-w-2xl mx-auto mb-8">
             Browse our collection of free courses. No registration required to view content.
           </p>
+          
+          {/* Search Input */}
+          <div className="max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-3 w-full border-neutral-300 focus:border-purple-500 focus:ring-purple-500"
+              />
+            </div>
+          </div>
         </div>
 
-        {courses.length === 0 ? (
+        {filteredCourses.length === 0 ? (
           <div className="text-center py-16">
             <BookOpen className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-neutral-600 mb-2">No Public Courses Available</h3>
-            <p className="text-neutral-500">Check back later for new courses.</p>
+            <h3 className="text-xl font-semibold text-neutral-600 mb-2">
+              {searchQuery ? "No courses found" : "No Public Courses Available"}
+            </h3>
+            <p className="text-neutral-500">
+              {searchQuery ? "Try adjusting your search terms" : "Check back later for new courses."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
+            {filteredCourses.map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow duration-200">
                 <CardHeader>
                   <div className="flex items-start justify-between">
