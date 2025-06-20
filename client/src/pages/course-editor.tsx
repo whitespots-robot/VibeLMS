@@ -334,17 +334,30 @@ export default function CourseEditor() {
                 <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-neutral-700">Title</label>
-                    <Input value={course.title} readOnly className="mt-1" />
+                    <Input 
+                      value={courseInfo.title} 
+                      onChange={(e) => setCourseInfo(prev => ({ ...prev, title: e.target.value }))}
+                      className="mt-1" 
+                      placeholder="Enter course title..."
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-neutral-700">Description</label>
-                    <Textarea value={course.description || ""} readOnly className="mt-1" rows={3} />
+                    <Textarea 
+                      value={courseInfo.description} 
+                      onChange={(e) => setCourseInfo(prev => ({ ...prev, description: e.target.value }))}
+                      className="mt-1" 
+                      rows={3}
+                      placeholder="Enter course description..."
+                    />
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-neutral-700">Course Status</Label>
                     <Select
-                      value={course.status}
-                      onValueChange={(value) => updateCourseMutation.mutate({ status: value })}
+                      value={courseInfo.status}
+                      onValueChange={(value: "draft" | "published" | "archived") => 
+                        setCourseInfo(prev => ({ ...prev, status: value }))
+                      }
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -370,6 +383,16 @@ export default function CourseEditor() {
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  <div className="pt-2 border-t">
+                    <Button 
+                      onClick={handleSaveCourseInfo}
+                      disabled={updateCourseMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateCourseMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
