@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
@@ -340,28 +341,13 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                 {/* Text Content */}
                 {contentTypes.text && (
                   <div>
-                    <Label className="text-sm font-medium text-neutral-700">Lesson Description</Label>
-                    <div className="mt-1 border border-neutral-300 rounded-lg">
-                      <div className="px-3 py-2 border-b border-neutral-300 bg-neutral-50 flex items-center space-x-2">
-                        <Button size="sm" variant="ghost" className="p-1">
-                          <Bold className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="p-1">
-                          <Italic className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="p-1">
-                          <List className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="p-1">
-                          <Image className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <Textarea
-                        rows={6}
-                        className="border-none resize-none focus:ring-0"
-                        placeholder="Write your lesson content here..."
-                        value={lessonData.content}
-                        onChange={(e) => setLessonData({ ...lessonData, content: e.target.value })}
+                    <Label className="text-sm font-medium text-neutral-700">Lesson Content</Label>
+                    <div className="mt-1">
+                      <RichTextEditor
+                        content={lessonData.content || ''}
+                        onChange={(content) => setLessonData({ ...lessonData, content })}
+                        placeholder="Write your lesson content here... Use the toolbar above for formatting options."
+                        className="min-h-[300px]"
                       />
                     </div>
                   </div>

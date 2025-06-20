@@ -275,13 +275,10 @@ export default function CourseLearning() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-lg max-w-none">
-                        {currentLesson.content.split('\n').map((paragraph, index) => (
-                          <p key={index} className="mb-4 last:mb-0 text-slate-700 leading-relaxed">
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
+                      <div 
+                        className="prose prose-lg max-w-none text-slate-700"
+                        dangerouslySetInnerHTML={{ __html: currentLesson.content }}
+                      />
                     </CardContent>
                   </Card>
                 )}
