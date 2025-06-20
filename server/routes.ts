@@ -192,6 +192,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public course details (no auth required)
+  app.get("/api/public/courses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const course = await storage.getCourseWithChapters(id);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      // Only return public courses
+      if (course.status !== "published") {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      res.json(course);
+    } catch (error) {
+      console.error("Error fetching public course:", error);
+      res.status(500).json({ error: "Failed to fetch course" });
+    }
+  });
+
   // System settings routes
   app.get("/api/settings/:key", async (req, res) => {
     try {

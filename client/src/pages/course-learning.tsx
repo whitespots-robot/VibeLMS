@@ -17,7 +17,9 @@ import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question } 
 
 export default function CourseLearning() {
   const [match, params] = useRoute("/learning/:id");
-  const courseId = params?.id ? parseInt(params.id) : null;
+  const [previewMatch, previewParams] = useRoute("/courses/:id/preview");
+  const courseId = params?.id ? parseInt(params.id) : previewParams?.id ? parseInt(previewParams.id) : null;
+  const isPreviewMode = !!previewMatch;
   const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [questionAnswers, setQuestionAnswers] = useState<Record<number, number>>({});
@@ -28,7 +30,7 @@ export default function CourseLearning() {
   const [, setLocation] = useLocation();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
-    queryKey: [`/api/courses/${courseId}`],
+    queryKey: isPreviewMode ? [`/api/public/courses/${courseId}`] : [`/api/courses/${courseId}`],
     enabled: !!courseId,
   });
 
@@ -135,7 +137,31 @@ export default function CourseLearning() {
 
   return (
     <>
-      <Topbar title={`Learning: ${course.title}`} />
+      {isPreviewMode ? (
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white text-lg font-bold">V</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Course Preview: {course.title}</h1>
+                <p className="text-sm text-gray-600">Public preview mode - Register to access full course</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setLocation("/")}>
+                Back to Courses
+              </Button>
+              <Button className="btn-primary" onClick={() => setLocation("/")}>
+                Register to Enroll
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <Topbar title={`Learning: ${course.title}`} />
+      )}
       <main className="flex h-full overflow-hidden">
         
         {/* Sidebar - Course Navigation */}
