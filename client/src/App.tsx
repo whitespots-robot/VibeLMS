@@ -49,11 +49,12 @@ function Router() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 
   // Public routes that don't need authentication
-  if (location === "/login" || location === "/register") {
+  if (location === "/login" || location === "/register" || location === "/public") {
     return (
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/public" component={PublicCourses} />
       </Switch>
     );
   }

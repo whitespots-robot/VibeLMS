@@ -228,6 +228,42 @@ export default function UserManagement() {
             </Card>
           </div>
 
+          {/* System Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>System Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-neutral-800">Student Registration</h4>
+                    <p className="text-sm text-neutral-600">Control whether new students can register for accounts</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="allowStudentReg"
+                      checked={allowStudentRegistration}
+                      onChange={(e) => {
+                        const newValue = e.target.checked;
+                        setAllowStudentRegistration(newValue);
+                        updateSettingMutation.mutate({
+                          key: "allow_student_registration",
+                          value: newValue.toString()
+                        });
+                      }}
+                      className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
+                    />
+                    <label htmlFor="allowStudentReg" className="text-sm font-medium text-neutral-700">
+                      {allowStudentRegistration ? "Enabled" : "Disabled"}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Users Table */}
           <Card>
             <CardHeader>
