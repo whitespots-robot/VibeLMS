@@ -406,21 +406,7 @@ export default function CourseEditor() {
                       Allow anyone to view this course without registration
                     </p>
                     
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="allowRegistration"
-                        checked={courseInfo.allowRegistration}
-                        onChange={(e) => setCourseInfo(prev => ({ ...prev, allowRegistration: e.target.checked }))}
-                        className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
-                      />
-                      <label htmlFor="allowRegistration" className="text-sm font-medium text-neutral-700">
-                        Allow Student Registration
-                      </label>
-                    </div>
-                    <p className="text-xs text-neutral-500 ml-6">
-                      Allow students to register for this course
-                    </p>
+
                   </div>
                   
                   <div className="pt-2 border-t">

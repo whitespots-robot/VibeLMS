@@ -237,8 +237,8 @@ export default function UserManagement() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-neutral-800">Student Registration</h4>
-                    <p className="text-sm text-neutral-600">Control whether new students can register for accounts</p>
+                    <h4 className="font-medium text-neutral-800">Global Student Registration</h4>
+                    <p className="text-sm text-neutral-600">Disable this to prevent ALL new student account registrations system-wide</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
@@ -256,7 +256,7 @@ export default function UserManagement() {
                       className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
                     />
                     <label htmlFor="allowStudentReg" className="text-sm font-medium text-neutral-700">
-                      {allowStudentRegistration ? "Enabled" : "Disabled"}
+                      {allowStudentRegistration ? "Allow New Students" : "Block New Students"}
                     </label>
                   </div>
                 </div>
