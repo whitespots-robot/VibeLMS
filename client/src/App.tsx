@@ -16,6 +16,7 @@ import Analytics from "@/pages/analytics";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import UserManagement from "@/pages/user-management";
+import PublicCourses from "@/pages/public-courses";
 import Sidebar from "@/components/layout/sidebar";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
