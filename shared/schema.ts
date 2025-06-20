@@ -19,6 +19,8 @@ export const courses = pgTable("courses", {
   description: text("description"),
   instructorId: integer("instructor_id").references(() => users.id).notNull(),
   status: text("status").notNull().default("draft"), // draft, published, archived
+  isPublic: boolean("is_public").default(false), // can be viewed without registration
+  allowRegistration: boolean("allow_registration").default(true), // teachers can disable student registration
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -94,6 +96,14 @@ export const studentProgress = pgTable("student_progress", {
   completed: boolean("completed").default(false),
   completedAt: timestamp("completed_at"),
   score: integer("score"), // quiz score if applicable
+});
+
+// System settings table
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Schema definitions for validation

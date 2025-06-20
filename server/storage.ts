@@ -22,11 +22,16 @@ export interface IStorage {
 
   // Course operations
   getCourses(status?: string): Promise<CourseWithStats[]>;
+  getPublicCourses(): Promise<CourseWithStats[]>;
   getCourse(id: number): Promise<Course | undefined>;
   getCourseWithChapters(id: number): Promise<Course & { chapters: ChapterWithLessons[] } | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
   updateCourse(id: number, course: Partial<InsertCourse>): Promise<Course | undefined>;
   deleteCourse(id: number): Promise<boolean>;
+
+  // System settings
+  getSystemSetting(key: string): Promise<string | undefined>;
+  setSystemSetting(key: string, value: string): Promise<void>;
 
   // Chapter operations
   getChaptersByCourse(courseId: number): Promise<Chapter[]>;
@@ -80,6 +85,7 @@ export class MemStorage implements IStorage {
   private lessonMaterialLinks = new Map<string, { lessonId: number; materialId: number }>();
   private enrollments = new Map<number, Enrollment>();
   private studentProgressMap = new Map<number, StudentProgress>();
+  private systemSettings = new Map<string, string>();
 
   private currentUserId = 1;
   private currentCourseId = 1;
@@ -104,6 +110,9 @@ export class MemStorage implements IStorage {
     
     // Create demo course
     this.createDemoCourse();
+    
+    // Initialize default system settings
+    this.systemSettings.set("allow_student_registration", "true");
   }
 
   private hashPassword(password: string): string {
@@ -123,6 +132,8 @@ export class MemStorage implements IStorage {
       description: "Learn the fundamentals of web development with HTML, CSS, and JavaScript. This demo course shows all LMS features.",
       instructorId: 1,
       status: "published",
+      isPublic: true,
+      allowRegistration: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
