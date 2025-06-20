@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import Topbar from "@/components/layout/topbar";
@@ -31,12 +31,28 @@ export default function CourseEditor() {
   const [previewingLesson, setPreviewingLesson] = useState<Lesson | null>(null);
   const [newChapterTitle, setNewChapterTitle] = useState("");
   const [newChapterDescription, setNewChapterDescription] = useState("");
+  const [courseInfo, setCourseInfo] = useState({
+    title: "",
+    description: "",
+    status: "draft" as "draft" | "published" | "archived"
+  });
   const { toast } = useToast();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
     queryKey: [`/api/courses/${courseId}`],
     enabled: !!courseId,
   });
+
+  // Initialize course info when course data loads
+  useEffect(() => {
+    if (course) {
+      setCourseInfo({
+        title: course.title,
+        description: course.description || "",
+        status: course.status as "draft" | "published" | "archived"
+      });
+    }
+  }, [course]);
 
   const updateCourseMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -45,12 +61,24 @@ export default function CourseEditor() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
       toast({
         title: "Course Updated",
-        description: "Course status has been updated successfully.",
+        description: "Course information has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update course",
+        variant: "destructive",
       });
     },
   });
+
+  const handleSaveCourseInfo = () => {
+    updateCourseMutation.mutate(courseInfo);
+  };
 
   const createChapterMutation = useMutation({
     mutationFn: async (data: any) => {
