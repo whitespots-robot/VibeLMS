@@ -491,11 +491,10 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
 
               {/* Content Preview */}
               {contentTypes.text && lessonData.content && (
-                <div className="text-sm text-neutral-700 leading-relaxed rich-text-content">
-                  {lessonData.content.split('\n').map((line, index) => (
-                    <p key={index} className="mb-2">{line}</p>
-                  ))}
-                </div>
+                <div 
+                  className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: lessonData.content }}
+                />
               )}
 
 
