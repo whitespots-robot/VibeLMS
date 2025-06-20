@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import Topbar from "@/components/layout/topbar";
@@ -33,14 +33,11 @@ export default function CourseLearning() {
   });
 
   // Auto-select first lesson when course loads
-  useState(() => {
-    if (course && !currentLessonId) {
-      const firstLesson = course.chapters[0]?.lessons[0];
-      if (firstLesson) {
-        setCurrentLessonId(firstLesson.id);
-      }
+  useEffect(() => {
+    if (course?.chapters?.[0]?.lessons?.[0] && !currentLessonId) {
+      setCurrentLessonId(course.chapters[0].lessons[0].id);
     }
-  });
+  }, [course, currentLessonId]);
 
   const markLessonComplete = useMutation({
     mutationFn: async (lessonId: number) => {
