@@ -87,17 +87,24 @@ export default function CourseEditor() {
   const handleCreateChapter = () => {
     if (!courseId || !newChapterTitle.trim()) return;
     
+    const chapterOrderIndex = course?.chapters?.length || 0;
+    
     createChapterMutation.mutate({
       title: newChapterTitle,
       description: newChapterDescription,
       courseId,
-      orderIndex: course?.chapters?.length || 0,
+      orderIndex: chapterOrderIndex,
     });
   };
 
   const handleCreateLesson = (chapterId: number) => {
     const chapter = course?.chapters.find(c => c.id === chapterId);
     if (!chapter) return;
+
+    // Expand the chapter to show the new lesson
+    const newExpanded = new Set(expandedChapters);
+    newExpanded.add(chapterId);
+    setExpandedChapters(newExpanded);
 
     createLessonMutation.mutate({
       title: "New Lesson",
