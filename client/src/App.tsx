@@ -27,16 +27,16 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
   
   useEffect(() => {
-    if (!currentUser && location !== "/login" && location !== "/register") {
+    if (!currentUser) {
       setLocation("/login");
     }
-    // Redirect students away from dashboard
-    if (currentUser && currentUser.role === "student" && (location === "/" || location === "/dashboard")) {
+    // Redirect students away from dashboard to learning
+    if (currentUser && currentUser.role === "student" && location === "/dashboard") {
       setLocation("/learning");
     }
   }, [currentUser, location, setLocation]);
 
-  if (!currentUser && location !== "/login" && location !== "/register") {
+  if (!currentUser) {
     return null;
   }
 
@@ -49,12 +49,13 @@ function Router() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 
   // Public routes that don't need authentication
-  if (location === "/login" || location === "/register" || location === "/public") {
+  if (location === "/login" || location === "/register" || location === "/public" || location === "/") {
     return (
       <Switch>
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/public" component={PublicCourses} />
+        <Route path="/" component={PublicCourses} />
       </Switch>
     );
   }

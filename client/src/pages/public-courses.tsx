@@ -24,12 +24,30 @@ export default function PublicCourses() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
+        {/* Header with Login Button */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-lg font-bold">V</span>
+            </div>
+            <span className="ml-3 text-2xl font-bold text-gray-900">Vibe LMS</span>
+          </div>
+          <div className="flex gap-3">
+            <Button asChild variant="outline">
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild className="btn-primary">
+              <Link href="/register">Sign Up</Link>
+            </Button>
+          </div>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            Vibe LMS - Public Courses
+            Explore Public Courses
           </h1>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Explore our collection of free courses. No registration required to browse.
+            Browse our collection of free courses. No registration required to view content.
           </p>
         </div>
 
@@ -95,16 +113,7 @@ export default function PublicCourses() {
           </div>
         )}
 
-        <div className="text-center mt-12">
-          <div className="inline-flex gap-4">
-            <Button asChild variant="outline">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild className="btn-primary">
-              <Link href="/register">Create Account</Link>
-            </Button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
