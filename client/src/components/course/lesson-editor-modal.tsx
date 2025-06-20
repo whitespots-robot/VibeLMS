@@ -253,15 +253,20 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
       <DialogContent className="max-w-7xl w-full max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
-            <Button 
-              onClick={saveLesson}
-              disabled={updateLessonMutation.isPending}
-              className="btn-primary"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex items-center gap-4">
+              <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
+              <Button 
+                onClick={saveLesson}
+                disabled={updateLessonMutation.isPending}
+                className="btn-primary"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+            <div className="pr-8">
+              {/* This empty div creates space from the close button */}
+            </div>
           </div>
         </DialogHeader>
 
