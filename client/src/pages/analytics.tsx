@@ -3,6 +3,7 @@ import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart3, 
   Users, 
@@ -11,7 +12,8 @@ import {
   Clock, 
   Award,
   Eye,
-  Download
+  Download,
+  RefreshCw
 } from "lucide-react";
 
 interface AnalyticsData {
@@ -35,7 +37,7 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
-  const { data: analytics, isLoading } = useQuery<AnalyticsData>({
+  const { data: analytics, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ['/api/analytics'],
     queryFn: async () => {
       // For demo purposes, return mock data
@@ -67,6 +69,10 @@ export default function Analytics() {
     }
   });
 
+  const handleResetAnalytics = () => {
+    refetch();
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -86,7 +92,19 @@ export default function Analytics() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Topbar title="Analytics" />
+      <div className="border-b border-slate-200 bg-white px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
+          <Button 
+            onClick={handleResetAnalytics}
+            variant="outline"
+            className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Reset Analytics
+          </Button>
+        </div>
+      </div>
       <div className="flex-1 overflow-auto p-6 space-y-6">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
