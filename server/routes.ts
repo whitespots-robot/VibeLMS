@@ -75,6 +75,12 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+
+  // Health check endpoint for Docker
+  app.get('/api/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
   
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
@@ -969,6 +975,5 @@ console.log('Portfolio loaded successfully!');`);
     }
   });
 
-  const httpServer = createServer(app);
   return httpServer;
 }
