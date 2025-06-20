@@ -655,26 +655,26 @@ export default function CourseLearning() {
                 <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trophy className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Поздравляем!</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Congratulations!</h2>
                 <div className="flex items-center justify-center mb-4">
                   <PartyPopper className="w-5 h-5 text-orange-500 mr-2" />
-                  <span className="text-lg font-semibold text-orange-700">Курс завершен!</span>
+                  <span className="text-lg font-semibold text-orange-700">Course Complete!</span>
                   <PartyPopper className="w-5 h-5 text-orange-500 ml-2" />
                 </div>
               </div>
               
               <div className="space-y-3 mb-6">
                 <p className="text-gray-700">
-                  Вы успешно завершили курс <strong>"{course?.title}"</strong>!
+                  You have successfully completed <strong>"{course?.title}"</strong>!
                 </p>
                 <p className="text-gray-600 text-sm">
-                  Отличная работа! Теперь вы можете применить полученные знания на практике.
+                  Great work! You can now apply your knowledge in practice.
                 </p>
               </div>
               
               <div className="flex items-center justify-center space-x-2 text-green-600 mb-4">
                 <CheckCircle2 className="w-5 h-5" />
-                <span className="font-medium">100% завершено</span>
+                <span className="font-medium">100% Complete</span>
               </div>
               
               <Button
@@ -684,7 +684,7 @@ export default function CourseLearning() {
                 }}
                 className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white"
               >
-                Перейти к курсам
+                Go to Courses
               </Button>
             </CardContent>
           </Card>
