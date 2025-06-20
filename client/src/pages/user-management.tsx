@@ -152,7 +152,7 @@ export default function UserManagement() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg">
                     <Shield className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">

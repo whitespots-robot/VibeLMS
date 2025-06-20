@@ -585,7 +585,7 @@ export default function CourseLearning() {
             {[...Array(15)].map((_, i) => (
               <div
                 key={`tl-${i}`}
-                className="absolute w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping"
+                className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-ping"
                 style={{
                   left: `${Math.random() * 100}px`,
                   top: `${Math.random() * 100}px`,
@@ -617,7 +617,7 @@ export default function CourseLearning() {
             {[...Array(15)].map((_, i) => (
               <div
                 key={`bl-${i}`}
-                className="absolute w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full animate-ping"
+                className="absolute w-2 h-2 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full animate-ping"
                 style={{
                   left: `${Math.random() * 100}px`,
                   top: `${Math.random() * 100}px`,
@@ -633,7 +633,7 @@ export default function CourseLearning() {
             {[...Array(15)].map((_, i) => (
               <div
                 key={`br-${i}`}
-                className="absolute w-2 h-2 bg-gradient-to-r from-pink-400 to-red-500 rounded-full animate-ping"
+                className="absolute w-2 h-2 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full animate-ping"
                 style={{
                   left: `${Math.random() * 100}px`,
                   top: `${Math.random() * 100}px`,
@@ -672,7 +672,7 @@ export default function CourseLearning() {
                 </p>
               </div>
               
-              <div className="flex items-center justify-center space-x-2 text-green-600 mb-4">
+              <div className="flex items-center justify-center space-x-2 text-purple-600 mb-4">
                 <CheckCircle2 className="w-5 h-5" />
                 <span className="font-medium">100% Complete</span>
               </div>
