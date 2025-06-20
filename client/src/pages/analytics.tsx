@@ -70,11 +70,14 @@ export default function Analytics() {
       avgProgress: course.averageProgress || 0,
       completionRate: 85
     })),
-    studentActivity: Array.from({length: 7}, (_, i) => ({
-      date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      activeUsers: Math.max(0, ((enrollments as any)?.length || 0) + i),
-      newEnrollments: i % 3
-    }))
+    studentActivity: Array.from({length: 7}, (_, i) => {
+      const date = new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000);
+      return {
+        date: date.toISOString().split('T')[0],
+        activeUsers: i === 6 ? ((enrollments as any)?.length || 0) : 0, // Only show current enrollments on today
+        newEnrollments: i === 6 ? ((enrollments as any)?.length || 0) : 0 // Only show enrollments on today
+      };
+    })
   } : undefined;
 
   const isLoading = !dashboardStats || !courses;
