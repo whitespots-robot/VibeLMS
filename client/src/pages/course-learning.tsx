@@ -315,7 +315,7 @@ export default function CourseLearning() {
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <HelpCircle className="w-5 h-5 mr-2 text-green-600" />
-                        Knowledge Check
+                        Knowledge Check ({currentLesson.questions.length} questions)
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -326,26 +326,37 @@ export default function CourseLearning() {
                               Question {index + 1}: {question.question}
                             </h4>
                             <div className="space-y-2">
-                              {(question.options as string[]).map((option, optIndex) => (
-                                <div 
-                                  key={optIndex}
-                                  className={`p-3 rounded-lg border transition-colors ${
-                                    optIndex === question.correctAnswer 
-                                      ? 'bg-green-50 border-green-200' 
-                                      : 'bg-slate-50 border-slate-200'
-                                  }`}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    {optIndex === question.correctAnswer && (
-                                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                    )}
-                                    <span className="font-medium">
-                                      {String.fromCharCode(65 + optIndex)}.
-                                    </span>
-                                    <span>{option}</span>
-                                  </div>
+                              {(question.options as string[])
+                                .filter((option, index) => option && option.trim() !== '')
+                                .map((option, optIndex) => {
+                                  const originalIndex = (question.options as string[]).indexOf(option);
+                                  return (
+                                    <div 
+                                      key={optIndex}
+                                      className={`p-3 rounded-lg border transition-colors ${
+                                        originalIndex === question.correctAnswer 
+                                          ? 'bg-green-50 border-green-200' 
+                                          : 'bg-slate-50 border-slate-200'
+                                      }`}
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        {originalIndex === question.correctAnswer && (
+                                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                        )}
+                                        <span className="font-medium">
+                                          {String.fromCharCode(65 + optIndex)}.
+                                        </span>
+                                        <span>{option}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              }
+                              {(question.options as string[]).filter(option => option && option.trim() !== '').length === 0 && (
+                                <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-200">
+                                  <p className="text-sm text-yellow-700">No answer options provided for this question.</p>
                                 </div>
-                              ))}
+                              )}
                             </div>
                             {question.explanation && (
                               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
