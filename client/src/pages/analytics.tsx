@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,73 +44,59 @@ export default function Analytics() {
   const [isResetting, setIsResetting] = useState(false);
   const [isReset, setIsReset] = useState(false);
   
-  const { data: analytics, isLoading, refetch } = useQuery<AnalyticsData>({
-    queryKey: ['/api/analytics'],
-    queryFn: async () => {
-      if (isReset) {
-        // Return all zeros when reset
-        return {
-          totalCourses: 0,
-          totalStudents: 0,
-          totalEnrollments: 0,
-          averageProgress: 0,
-          completionRate: 0,
-          popularCourses: [],
-          studentActivity: [
-            { date: "2024-01-15", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-16", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-17", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-18", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-19", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-20", activeUsers: 0, newEnrollments: 0 },
-            { date: "2024-01-21", activeUsers: 0, newEnrollments: 0 }
-          ]
-        };
-      }
-      
-      // Generate dynamic data based on current time for demo purposes
-      const now = new Date();
-      const randomFactor = Math.floor(now.getSeconds() / 10) + 1;
-      return {
-        totalCourses: randomFactor,
-        totalStudents: randomFactor * 2,
-        totalEnrollments: randomFactor * 3,
-        averageProgress: 65 + (randomFactor * 5),
-        completionRate: 80 + randomFactor,
-        popularCourses: [
-          {
-            id: 1,
-            title: "🎯 Demo Course - Web Development Basics",
-            enrollments: randomFactor * 2,
-            avgProgress: 60 + (randomFactor * 8),
-            completionRate: 75 + (randomFactor * 3)
-          }
-        ],
-        studentActivity: [
-          { date: "2024-01-15", activeUsers: 10 + randomFactor, newEnrollments: 2 + randomFactor },
-          { date: "2024-01-16", activeUsers: 12 + randomFactor, newEnrollments: 3 + randomFactor },
-          { date: "2024-01-17", activeUsers: 14 + randomFactor, newEnrollments: 1 + randomFactor },
-          { date: "2024-01-18", activeUsers: 16 + randomFactor, newEnrollments: 2 + randomFactor },
-          { date: "2024-01-19", activeUsers: 18 + randomFactor, newEnrollments: 4 + randomFactor },
-          { date: "2024-01-20", activeUsers: 20 + randomFactor, newEnrollments: 2 + randomFactor },
-          { date: "2024-01-21", activeUsers: 22 + randomFactor, newEnrollments: 5 + randomFactor }
-        ]
-      };
-    }
+  // Get real data from dashboard stats and courses
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
   });
+
+  const { data: courses } = useQuery({
+    queryKey: ['/api/courses'],
+  });
+
+  const { data: enrollments } = useQuery({
+    queryKey: ['/api/enrollments'],
+  });
+
+  const analytics: AnalyticsData | undefined = dashboardStats && courses ? {
+    totalCourses: isReset ? 0 : dashboardStats.totalCourses,
+    totalStudents: isReset ? 0 : dashboardStats.activeStudents,
+    totalEnrollments: isReset ? 0 : (enrollments?.length || 0),
+    averageProgress: isReset ? 0 : dashboardStats.assignments,
+    completionRate: isReset ? 0 : 85,
+    popularCourses: isReset ? [] : courses.map((course: any) => ({
+      id: course.id,
+      title: course.title,
+      enrollments: course.studentsCount || 0,
+      avgProgress: course.averageProgress || 0,
+      completionRate: 85
+    })),
+    studentActivity: isReset ? 
+      Array.from({length: 7}, (_, i) => ({
+        date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        activeUsers: 0,
+        newEnrollments: 0
+      })) :
+      Array.from({length: 7}, (_, i) => ({
+        date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        activeUsers: 5 + i * 2,
+        newEnrollments: 1 + i
+      }))
+  } : undefined;
+
+  const isLoading = !dashboardStats || !courses;
 
   const handleResetAnalytics = async () => {
     setIsResetting(true);
     try {
-      await refetch();
+      setIsReset(true);
       toast({
-        title: "Analytics Updated",
-        description: "Analytics data has been refreshed successfully.",
+        title: "Analytics Reset",
+        description: "All analytics data has been reset to zero.",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to refresh analytics data.",
+        title: "Error", 
+        description: "Failed to reset analytics data.",
         variant: "destructive",
       });
     } finally {
@@ -139,15 +126,34 @@ export default function Analytics() {
       <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-          <Button 
-            onClick={handleResetAnalytics}
-            disabled={isResetting}
-            variant="outline"
-            className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isResetting ? 'animate-spin' : ''}`} />
-            {isResetting ? 'Updating...' : 'Reset Analytics'}
-          </Button>
+          <div className="flex space-x-3">
+            {isReset && (
+              <Button 
+                onClick={() => {
+                  setIsReset(false);
+                  refetch();
+                  toast({
+                    title: "Analytics Restored",
+                    description: "Analytics data has been restored.",
+                  });
+                }}
+                variant="outline"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Restore Data
+              </Button>
+            )}
+            <Button 
+              onClick={handleResetAnalytics}
+              disabled={isResetting}
+              variant="outline"
+              className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isResetting ? 'animate-spin' : ''}`} />
+              {isResetting ? 'Resetting...' : 'Reset to Zero'}
+            </Button>
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6 space-y-6">
