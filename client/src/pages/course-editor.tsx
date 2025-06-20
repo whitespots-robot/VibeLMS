@@ -66,7 +66,7 @@ export default function CourseEditor() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", courseId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
       toast({
         title: "Success",
         description: "Lesson created successfully",
