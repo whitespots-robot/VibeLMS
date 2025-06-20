@@ -235,8 +235,6 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
       title: lessonData.title,
       content: contentTypes.text ? lessonData.content : null,
       videoUrl: contentTypes.video ? lessonData.videoUrl : null,
-      codeExample: contentTypes.code ? lessonData.codeExample : null,
-      codeLanguage: contentTypes.code ? lessonData.codeLanguage : null,
       assignment: lessonData.assignment || null,
     };
     
@@ -252,11 +250,11 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
           <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex h-full max-h-[80vh]">
+        <div className="flex flex-col h-full max-h-[80vh]">
           {/* Content Editor */}
           <div className="flex-1 overflow-y-auto pr-4">
             <ScrollArea className="h-full">
-              <div className="space-y-6 pb-6">
+              <div className="space-y-6 pb-20">
                 {/* Basic Info */}
                 <div className="space-y-4">
                   <div>
@@ -500,14 +498,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                 </div>
               )}
 
-              {/* Code Preview */}
-              {contentTypes.code && lessonData.codeExample && (
-                <div className="bg-neutral-900 rounded-lg p-3 text-xs">
-                  <pre className="text-green-400 font-mono whitespace-pre-wrap">
-                    {lessonData.codeExample}
-                  </pre>
-                </div>
-              )}
+
 
               {/* Assignment Preview */}
               {lessonData.assignment && (
@@ -520,8 +511,8 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200 bg-white">
+        {/* Fixed Modal Footer */}
+        <div className="sticky bottom-0 left-0 right-0 flex items-center justify-between px-6 py-4 border-t border-neutral-200 bg-white shadow-lg z-10">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
