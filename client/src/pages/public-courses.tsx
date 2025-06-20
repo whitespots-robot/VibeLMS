@@ -44,6 +44,11 @@ export default function PublicCourses() {
     queryKey: ["/api/public/courses"],
   });
 
+  const { data: registrationAllowed = true } = useQuery({
+    queryKey: ["/api/settings/allow_student_registration"],
+    select: (data: { value: string | null }) => data.value !== "false",
+  });
+
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -90,6 +95,9 @@ export default function PublicCourses() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterForm) => {
+      if (!registrationAllowed) {
+        throw new Error("Student registration is currently disabled");
+      }
       const response = await apiRequest("POST", "/api/auth/register", data);
       return response.json();
     },
@@ -144,7 +152,12 @@ export default function PublicCourses() {
             <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
               Login
             </Button>
-            <Button className="btn-primary" onClick={() => setIsRegisterOpen(true)}>
+            <Button 
+              className="btn-primary" 
+              onClick={() => setIsRegisterOpen(true)}
+              disabled={!registrationAllowed}
+              title={!registrationAllowed ? "Student registration is currently disabled" : undefined}
+            >
               Sign Up
             </Button>
           </div>
@@ -286,69 +299,87 @@ export default function PublicCourses() {
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-center">Create Account</DialogTitle>
             </DialogHeader>
-            <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
-                <FormField
-                  control={registerForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Choose a username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={registerForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="Enter your email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={registerForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Create a password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  type="submit" 
-                  className="w-full btn-primary" 
-                  disabled={registerMutation.isPending}
-                >
-                  {registerMutation.isPending ? "Creating account..." : "Create Account"}
-                </Button>
-                <div className="text-center text-sm text-neutral-600">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsRegisterOpen(false);
-                      setIsLoginOpen(true);
-                    }}
-                    className="text-primary hover:underline"
-                  >
-                    Sign in
-                  </button>
+            {!registrationAllowed ? (
+              <div className="text-center p-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-red-800 font-medium">Registration Disabled</p>
+                  <p className="text-red-600 text-sm mt-1">
+                    Student registration is currently disabled by the administrator.
+                  </p>
                 </div>
-              </form>
-            </Form>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsRegisterOpen(false)}
+                  className="w-full"
+                >
+                  Close
+                </Button>
+              </div>
+            ) : (
+              <Form {...registerForm}>
+                <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                  <FormField
+                    control={registerForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Choose a username" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Enter your email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Create a password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-primary" 
+                    disabled={registerMutation.isPending}
+                  >
+                    {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                  </Button>
+                  <div className="text-center text-sm text-neutral-600">
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterOpen(false);
+                        setIsLoginOpen(true);
+                      }}
+                      className="text-primary hover:underline"
+                    >
+                      Sign in
+                    </button>
+                  </div>
+                </form>
+              </Form>
+            )}
           </DialogContent>
         </Dialog>
 
