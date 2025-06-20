@@ -30,7 +30,7 @@ export default function CourseEditor() {
   const { toast } = useToast();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
-    queryKey: ["/api/courses", courseId],
+    queryKey: [`/api/courses/${courseId}`],
     enabled: !!courseId,
   });
 
@@ -41,7 +41,7 @@ export default function CourseEditor() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", courseId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
       setIsChapterDialogOpen(false);
       setNewChapterTitle("");
       setNewChapterDescription("");
