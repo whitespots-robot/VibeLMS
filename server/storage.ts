@@ -160,7 +160,7 @@ export class DatabaseStorage implements IStorage {
     const [material] = await db.insert(materials).values({
       title: "Web Development Cheat Sheet",
       fileName: "web-dev-cheatsheet.pdf",
-      filePath: "/uploads/web-dev-cheatsheet.pdf",
+      filePath: "uploads/web-dev-cheatsheet.pdf",
       fileSize: 1024000,
       fileType: "application/pdf",
       uploadedBy: teacher.id,
