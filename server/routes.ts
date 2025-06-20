@@ -107,11 +107,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/chapters", async (req, res) => {
     try {
+      console.log("Chapter creation request body:", req.body);
       const chapterData = insertChapterSchema.parse(req.body);
+      console.log("Parsed chapter data:", chapterData);
       const chapter = await storage.createChapter(chapterData);
+      console.log("Created chapter:", chapter);
       res.status(201).json(chapter);
     } catch (error) {
-      res.status(400).json({ message: "Invalid chapter data" });
+      console.error("Chapter creation error:", error);
+      res.status(400).json({ message: "Invalid chapter data", error: error.message });
     }
   });
 

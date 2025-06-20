@@ -36,6 +36,7 @@ export default function CourseEditor() {
 
   const createChapterMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Creating chapter with data:", data);
       const response = await apiRequest("POST", "/api/chapters", data);
       return response.json();
     },
@@ -47,6 +48,14 @@ export default function CourseEditor() {
       toast({
         title: "Success",
         description: "Chapter created successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Chapter creation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create chapter: " + (error.message || "Unknown error"),
+        variant: "destructive",
       });
     },
   });
