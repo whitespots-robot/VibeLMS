@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,40 +39,82 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
+  const { toast } = useToast();
+  const [isResetting, setIsResetting] = useState(false);
+  const [isReset, setIsReset] = useState(false);
+  
   const { data: analytics, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ['/api/analytics'],
     queryFn: async () => {
-      // For demo purposes, return mock data
+      if (isReset) {
+        // Return all zeros when reset
+        return {
+          totalCourses: 0,
+          totalStudents: 0,
+          totalEnrollments: 0,
+          averageProgress: 0,
+          completionRate: 0,
+          popularCourses: [],
+          studentActivity: [
+            { date: "2024-01-15", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-16", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-17", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-18", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-19", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-20", activeUsers: 0, newEnrollments: 0 },
+            { date: "2024-01-21", activeUsers: 0, newEnrollments: 0 }
+          ]
+        };
+      }
+      
+      // Generate dynamic data based on current time for demo purposes
+      const now = new Date();
+      const randomFactor = Math.floor(now.getSeconds() / 10) + 1;
       return {
-        totalCourses: 1,
-        totalStudents: 1,
-        totalEnrollments: 1,
-        averageProgress: 75,
-        completionRate: 85,
+        totalCourses: randomFactor,
+        totalStudents: randomFactor * 2,
+        totalEnrollments: randomFactor * 3,
+        averageProgress: 65 + (randomFactor * 5),
+        completionRate: 80 + randomFactor,
         popularCourses: [
           {
             id: 1,
             title: "🎯 Demo Course - Web Development Basics",
-            enrollments: 1,
-            avgProgress: 75,
-            completionRate: 85
+            enrollments: randomFactor * 2,
+            avgProgress: 60 + (randomFactor * 8),
+            completionRate: 75 + (randomFactor * 3)
           }
         ],
         studentActivity: [
-          { date: "2024-01-15", activeUsers: 12, newEnrollments: 3 },
-          { date: "2024-01-16", activeUsers: 15, newEnrollments: 5 },
-          { date: "2024-01-17", activeUsers: 18, newEnrollments: 2 },
-          { date: "2024-01-18", activeUsers: 20, newEnrollments: 4 },
-          { date: "2024-01-19", activeUsers: 22, newEnrollments: 6 },
-          { date: "2024-01-20", activeUsers: 25, newEnrollments: 3 },
-          { date: "2024-01-21", activeUsers: 28, newEnrollments: 7 }
+          { date: "2024-01-15", activeUsers: 10 + randomFactor, newEnrollments: 2 + randomFactor },
+          { date: "2024-01-16", activeUsers: 12 + randomFactor, newEnrollments: 3 + randomFactor },
+          { date: "2024-01-17", activeUsers: 14 + randomFactor, newEnrollments: 1 + randomFactor },
+          { date: "2024-01-18", activeUsers: 16 + randomFactor, newEnrollments: 2 + randomFactor },
+          { date: "2024-01-19", activeUsers: 18 + randomFactor, newEnrollments: 4 + randomFactor },
+          { date: "2024-01-20", activeUsers: 20 + randomFactor, newEnrollments: 2 + randomFactor },
+          { date: "2024-01-21", activeUsers: 22 + randomFactor, newEnrollments: 5 + randomFactor }
         ]
       };
     }
   });
 
-  const handleResetAnalytics = () => {
-    refetch();
+  const handleResetAnalytics = async () => {
+    setIsResetting(true);
+    try {
+      await refetch();
+      toast({
+        title: "Analytics Updated",
+        description: "Analytics data has been refreshed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh analytics data.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   if (isLoading) {
@@ -97,11 +141,12 @@ export default function Analytics() {
           <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
           <Button 
             onClick={handleResetAnalytics}
+            disabled={isResetting}
             variant="outline"
-            className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0"
+            className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0 disabled:opacity-50"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Reset Analytics
+            <RefreshCw className={`w-4 h-4 mr-2 ${isResetting ? 'animate-spin' : ''}`} />
+            {isResetting ? 'Updating...' : 'Reset Analytics'}
           </Button>
         </div>
       </div>
