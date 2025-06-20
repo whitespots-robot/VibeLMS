@@ -242,7 +242,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
       assignment: lessonData.assignment || null,
     };
     
-    updateLessonMutation.mutate({ id: lesson.id, data: updateData });
+    updateLessonMutation.mutate(updateData);
   };
 
   const embedUrl = lessonData.videoUrl ? getYouTubeEmbedUrl(lessonData.videoUrl) : null;
