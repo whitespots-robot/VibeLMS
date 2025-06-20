@@ -557,7 +557,6 @@ startxref 467
       }
       
       if (material.fileName === "starter-files.zip") {
-        const JSZip = require('jszip');
         const zip = new JSZip();
         
         // Add HTML starter file
