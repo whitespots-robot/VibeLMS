@@ -187,6 +187,23 @@ export class MemStorage implements IStorage {
     this.questions.set(2, demoQuestion2);
     this.currentQuestionId = 3;
 
+    // Create demo material
+    const demoMaterial: Material = {
+      id: 1,
+      title: "Web Development Cheat Sheet",
+      fileName: "web-dev-cheatsheet.txt",
+      filePath: "./demo/web-dev-cheatsheet.txt",
+      fileType: "text/plain",
+      fileSize: 512,
+      createdAt: new Date(),
+    };
+    this.materials.set(1, demoMaterial);
+    this.currentMaterialId = 2;
+
+    // Link material to demo lesson
+    const linkKey = `${1}-${1}`; // lessonId-materialId
+    this.lessonMaterialLinks.set(linkKey, { lessonId: 1, materialId: 1 });
+
     // Create demo enrollment
     const demoEnrollment: Enrollment = {
       id: 1,

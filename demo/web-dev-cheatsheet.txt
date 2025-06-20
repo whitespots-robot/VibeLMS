@@ -1,0 +1,24 @@
+Web Development Cheat Sheet
+
+HTML Basics:
+- <html>, <head>, <body>
+- <div>, <p>, <h1>-<h6>
+- <a>, <img>, <ul>, <li>
+
+CSS Basics:
+- color, background
+- margin, padding
+- display, position
+- flexbox, grid
+
+JavaScript Basics:
+- variables (let, const, var)
+- functions
+- events
+- DOM manipulation
+
+Best Practices:
+- Semantic HTML
+- Responsive design
+- Clean code
+- Version control with Git

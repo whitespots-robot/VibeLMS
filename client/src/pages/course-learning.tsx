@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
-  ChevronLeft, Clock, Award, FileText, HelpCircle
+  ChevronLeft, Clock, Award, FileText, HelpCircle, Download
 } from "lucide-react";
 import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question } from "@shared/schema";
 
@@ -423,6 +423,51 @@ export default function CourseLearning() {
                                 <p className="text-blue-800">{question.explanation}</p>
                               </div>
                             )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Materials */}
+                {currentLesson.materials && currentLesson.materials.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="w-5 h-5 mr-2 text-purple-600" />
+                        Downloadable Materials
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {currentLesson.materials.map((material) => (
+                          <div key={material.id} className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <FileText className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-slate-900">{material.title}</h4>
+                                <p className="text-sm text-slate-600">{material.fileName}</p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `/api/materials/${material.id}/download`;
+                                link.download = material.fileName;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white border-0"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </Button>
                           </div>
                         ))}
                       </div>
