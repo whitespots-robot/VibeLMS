@@ -18,6 +18,7 @@ import {
   Download,
   RefreshCw
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface AnalyticsData {
   totalCourses: number;
@@ -209,39 +210,88 @@ export default function Analytics() {
           </CardContent>
         </Card>
 
-        {/* Student Activity */}
+        {/* Student Activity Chart */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center text-slate-800">
-              <Eye className="w-5 h-5 mr-2 text-blue-600" />
+              <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
               Student Activity (Last 7 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analytics?.studentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{activity.date}</p>
-                      <p className="text-sm text-slate-600">Daily activity</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-900">{activity.activeUsers}</p>
-                      <p className="text-xs text-blue-600">Active Users</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-900">{activity.newEnrollments}</p>
-                      <p className="text-xs text-green-600">New Enrollments</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics?.studentActivity} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#64748b"
+                    fontSize={12}
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                    }}
+                  />
+                  <YAxis stroke="#64748b" fontSize={12} />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '14px'
+                    }}
+                    formatter={(value, name) => [
+                      value,
+                      name === 'activeUsers' ? 'Active Users' : 'New Enrollments'
+                    ]}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return date.toLocaleDateString('en', { 
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      });
+                    }}
+                  />
+                  <Bar 
+                    dataKey="activeUsers" 
+                    name="activeUsers"
+                    fill="url(#activeUsersGradient)" 
+                    radius={[4, 4, 0, 0]}
+                    stroke="#3b82f6"
+                    strokeWidth={1}
+                  />
+                  <Bar 
+                    dataKey="newEnrollments" 
+                    name="newEnrollments"
+                    fill="url(#newEnrollmentsGradient)" 
+                    radius={[4, 4, 0, 0]}
+                    stroke="#10b981"
+                    strokeWidth={1}
+                  />
+                  <defs>
+                    <linearGradient id="activeUsersGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    </linearGradient>
+                    <linearGradient id="newEnrollmentsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.3}/>
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center space-x-6 mt-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <span className="text-sm text-slate-600">Active Users</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded"></div>
+                <span className="text-sm text-slate-600">New Enrollments</span>
+              </div>
             </div>
           </CardContent>
         </Card>
