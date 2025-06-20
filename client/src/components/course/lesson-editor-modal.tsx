@@ -250,8 +250,8 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
           <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-full max-h-[80vh]">
-          {/* Content Editor */}
+        <div className="flex h-full max-h-[80vh]">
+          {/* Content Editor - Left Side */}
           <div className="flex-1 overflow-y-auto pr-4">
             <ScrollArea className="h-full">
               <div className="space-y-6 pb-20">
@@ -469,7 +469,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
             </ScrollArea>
           </div>
 
-          {/* Preview Panel */}
+          {/* Preview Panel - Right Side */}
           <div className="w-80 border-l border-neutral-200 bg-neutral-50 p-6 overflow-y-auto">
             <h4 className="text-sm font-semibold text-neutral-700 mb-4">Preview</h4>
             <div className="space-y-4">
