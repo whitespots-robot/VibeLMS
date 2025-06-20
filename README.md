@@ -1,63 +1,63 @@
 # Vibe LMS - Learning Management System
 
-Современная система управления обучением с иерархической структурой курсов, поддержкой видео YouTube, богатым текстовым контентом и отслеживанием прогресса студентов.
+A modern Learning Management System with hierarchical course structure, YouTube video support, rich text content, and student progress tracking.
 
-## Особенности
+## Features
 
-- 🎯 Иерархическая структура: Курс → Глава → Урок
-- 📹 Интеграция с YouTube видео
-- 📝 Богатый текстовый редактор с форматированием
-- 🖼️ Поддержка изображений и примеров кода
-- ❓ Интерактивные вопросы и задания
-- 📊 Отслеживание прогресса студентов
-- 📁 Система материалов с загрузкой файлов
-- 📦 Экспорт курсов в ZIP архивы
-- 🔒 Аутентификация с ролями преподавателей и студентов
-- 🌐 Публичные курсы без регистрации
+- 🎯 Hierarchical structure: Course → Chapter → Lesson
+- 📹 YouTube video integration
+- 📝 Rich text editor with formatting
+- 🖼️ Image and code example support
+- ❓ Interactive questions and assignments
+- 📊 Student progress tracking
+- 📁 File upload and materials system
+- 📦 Course export to ZIP archives
+- 🔒 Authentication with teacher and student roles
+- 🌐 Public courses without registration
 
-## Технологии
+## Technologies
 
 - **Frontend**: React 18, Tailwind CSS, Shadcn/ui
 - **Backend**: Node.js, Express, TypeScript
-- **База данных**: PostgreSQL
+- **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
-- **Аутентификация**: Passport.js
-- **Сборка**: Vite
+- **Authentication**: Passport.js
+- **Build**: Vite
 
-## Установка и запуск
+## Installation and Setup
 
-### Разработка
+### Development
 
-1. Клонируйте репозиторий
-2. Установите зависимости:
+1. Clone the repository
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Создайте файл `.env` с переменными окружения (см. раздел "Переменные окружения")
-4. Запустите приложение:
+3. Create a `.env` file with environment variables (see "Environment Variables" section)
+4. Start the application:
    ```bash
    npm run dev
    ```
 
-### Продакшн с Docker
+### Production with Docker
 
-1. Создайте файл `.env` с переменными окружения
-2. Запустите через Docker Compose:
+1. Create a `.env` file with environment variables
+2. Start with Docker Compose:
    ```bash
    docker-compose up -d
    ```
 
-Приложение будет доступно на порту 80.
+The application will be available on port 80.
 
-## Переменные окружения
+## Environment Variables
 
-Создайте файл `.env` в корне проекта со следующими переменными:
+Create a `.env` file in the project root with the following variables:
 
 ```env
-# Пароль для базы данных PostgreSQL (ОБЯЗАТЕЛЬНО)
+# PostgreSQL database password (REQUIRED)
 POSTGRES_PASSWORD=your_secure_password_here
 
-# Дополнительные переменные для разработки (опционально)
+# Additional variables for development (optional)
 DATABASE_URL=postgresql://username:password@localhost:5432/vibelms
 PGHOST=localhost
 PGPORT=5432
@@ -66,88 +66,88 @@ PGPASSWORD=password
 PGDATABASE=vibelms
 ```
 
-### Обязательные переменные
+### Required Variables
 
-- `POSTGRES_PASSWORD` - Пароль для базы данных PostgreSQL. Используйте сложный пароль для безопасности.
+- `POSTGRES_PASSWORD` - PostgreSQL database password. Use a strong password for security.
 
-### Переменные для разработки
+### Development Variables
 
-Если вы используете локальную базу данных для разработки, добавьте:
+If you're using a local database for development, add:
 
-- `DATABASE_URL` - Полная строка подключения к PostgreSQL
-- `PGHOST` - Хост базы данных (обычно localhost)
-- `PGPORT` - Порт базы данных (обычно 5432)
-- `PGUSER` - Имя пользователя базы данных
-- `PGPASSWORD` - Пароль пользователя базы данных
-- `PGDATABASE` - Имя базы данных
+- `DATABASE_URL` - Full PostgreSQL connection string
+- `PGHOST` - Database host (usually localhost)
+- `PGPORT` - Database port (usually 5432)
+- `PGUSER` - Database username
+- `PGPASSWORD` - Database user password
+- `PGDATABASE` - Database name
 
-## Структура проекта
+## Project Structure
 
 ```
-├── client/               # Frontend приложение
+├── client/               # Frontend application
 │   ├── src/
-│   │   ├── components/   # React компоненты
-│   │   ├── pages/        # Страницы приложения
-│   │   ├── hooks/        # Пользовательские хуки
-│   │   └── lib/          # Утилиты и настройки
-├── server/               # Backend приложение
-│   ├── index.ts          # Точка входа сервера
-│   ├── routes.ts         # API маршруты
-│   ├── storage.ts        # Слой работы с данными
-│   └── db.ts             # Конфигурация базы данных
-├── shared/               # Общие типы и схемы
-│   └── schema.ts         # Схемы базы данных
-├── uploads/              # Загруженные файлы
-├── Dockerfile            # Конфигурация Docker
-├── docker-compose.yml    # Конфигурация Docker Compose
-└── init-db.sql          # Скрипт инициализации БД
+│   │   ├── components/   # React components
+│   │   ├── pages/        # Application pages
+│   │   ├── hooks/        # Custom hooks
+│   │   └── lib/          # Utilities and configurations
+├── server/               # Backend application
+│   ├── index.ts          # Server entry point
+│   ├── routes.ts         # API routes
+│   ├── storage.ts        # Data access layer
+│   └── db.ts             # Database configuration
+├── shared/               # Shared types and schemas
+│   └── schema.ts         # Database schemas
+├── uploads/              # Uploaded files
+├── Dockerfile            # Docker configuration
+├── docker-compose.yml    # Docker Compose configuration
+└── init-db.sql          # Database initialization script
 ```
 
-## База данных
+## Database
 
-Приложение использует PostgreSQL с автоматическими миграциями через Drizzle ORM. При запуске в Docker структура базы данных создается автоматически.
+The application uses PostgreSQL with automatic migrations through Drizzle ORM. When running in Docker, the database structure is created automatically.
 
-### Команды для работы с БД
+### Database Commands
 
 ```bash
-# Применить изменения схемы к базе данных
+# Apply schema changes to the database
 npm run db:push
 
-# Открыть Drizzle Studio для просмотра данных
+# Open Drizzle Studio for data viewing
 npm run db:studio
 ```
 
 ## API Endpoints
 
-Основные API маршруты:
+Main API routes:
 
-- `GET /api/public/courses` - Публичные курсы
-- `GET /api/courses` - Курсы (требует аутентификации)
-- `GET /api/courses/:id/chapters` - Главы курса
-- `GET /api/lessons/:id` - Урок с деталями
-- `POST /api/auth/login` - Вход в систему
-- `POST /api/auth/register` - Регистрация
-- `GET /api/materials` - Материалы курсов
-- `GET /api/materials/:id/download` - Скачать материал
+- `GET /api/public/courses` - Public courses
+- `GET /api/courses` - Courses (requires authentication)
+- `GET /api/courses/:id/chapters` - Course chapters
+- `GET /api/lessons/:id` - Lesson with details
+- `POST /api/auth/login` - Login
+- `POST /api/auth/register` - Registration
+- `GET /api/materials` - Course materials
+- `GET /api/materials/:id/download` - Download material
 
-## Роли пользователей
+## User Roles
 
-- **Администратор** - Полный доступ к системе
-- **Преподаватель** - Создание и управление курсами
-- **Студент** - Просмотр курсов и отслеживание прогресса
+- **Administrator** - Full system access
+- **Teacher** - Course creation and management
+- **Student** - Course viewing and progress tracking
 
-## Безопасность
+## Security
 
-- Валидация путей к файлам предотвращает атаки directory traversal
-- Санитизация имен файлов при загрузке
-- Аутентификация через сессии
-- Хеширование паролей
-- Защищенные API endpoints
+- File path validation prevents directory traversal attacks
+- Filename sanitization on upload
+- Session-based authentication
+- Password hashing
+- Protected API endpoints
 
-## Поддержка
+## Support
 
-Для получения поддержки создайте issue в репозитории проекта.
+For support, please create an issue in the project repository.
 
-## Лицензия
+## License
 
 MIT License
