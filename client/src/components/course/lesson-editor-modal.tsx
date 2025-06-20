@@ -85,8 +85,15 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lessons", lesson.id] });
+      // Invalidate all course-related queries to ensure updates are reflected
+      queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
       queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          typeof query.queryKey[0] === 'string' && 
+          query.queryKey[0].includes('/api/courses/')
+      });
+      
       toast({
         title: "Success",
         description: "Lesson updated successfully",
@@ -225,6 +232,19 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
+  const saveLesson = () => {
+    const updateData = {
+      title: lessonData.title,
+      content: contentTypes.text ? lessonData.content : null,
+      videoUrl: contentTypes.video ? lessonData.videoUrl : null,
+      codeExample: contentTypes.code ? lessonData.codeExample : null,
+      codeLanguage: contentTypes.code ? lessonData.codeLanguage : null,
+      assignment: lessonData.assignment || null,
+    };
+    
+    updateLessonMutation.mutate({ id: lesson.id, data: updateData });
+  };
+
   const embedUrl = lessonData.videoUrl ? getYouTubeEmbedUrl(lessonData.videoUrl) : null;
 
   return (
@@ -233,9 +253,19 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={saveLesson}
+                disabled={updateLessonMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 

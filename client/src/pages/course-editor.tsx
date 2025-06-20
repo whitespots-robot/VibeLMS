@@ -222,7 +222,17 @@ export default function CourseEditor() {
                                         {badge.label}
                                       </Badge>
                                     ))}
+                                    {(!lesson.content && !lesson.videoUrl && !lesson.codeExample) && (
+                                      <Badge variant="outline" className="text-xs text-orange-600 bg-orange-50">
+                                        Empty - Click Edit to add content
+                                      </Badge>
+                                    )}
                                   </div>
+                                  {lesson.content && (
+                                    <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
+                                      {lesson.content.substring(0, 100)}...
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-center space-x-1">
