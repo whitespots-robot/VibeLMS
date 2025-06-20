@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
-  ChevronLeft, Clock, Award, FileText, HelpCircle, Download
+  ChevronLeft, Clock, Award, FileText, HelpCircle, Download, Trophy, PartyPopper
 } from "lucide-react";
 import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question } from "@shared/schema";
 
@@ -22,7 +22,10 @@ export default function CourseLearning() {
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [questionAnswers, setQuestionAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState<Record<number, boolean>>({});
+  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
     queryKey: [`/api/courses/${courseId}`],
@@ -61,11 +64,34 @@ export default function CourseLearning() {
       return response.json();
     },
     onSuccess: (_, lessonId) => {
-      setCompletedLessons(prev => new Set([...Array.from(prev), lessonId]));
-      toast({
-        title: "Lesson Completed!",
-        description: "Great job! You've completed this lesson.",
-      });
+      const newCompletedLessons = new Set([...Array.from(completedLessons), lessonId]);
+      setCompletedLessons(newCompletedLessons);
+      
+      // Check if course is now complete
+      if (course) {
+        const allLessons = course.chapters.flatMap(chapter => chapter.lessons);
+        const isComplete = newCompletedLessons.size === allLessons.length;
+        
+        if (isComplete) {
+          // Show confetti animation
+          setShowConfetti(true);
+          setShowCongratulations(true);
+          
+          // Remove confetti after 3 seconds
+          setTimeout(() => {
+            setShowConfetti(false);
+            // Redirect to learning page after congratulations
+            setTimeout(() => {
+              setLocation("/learning");
+            }, 2000);
+          }, 3000);
+        } else {
+          toast({
+            title: "Lesson Completed!",
+            description: "Great job! You've completed this lesson.",
+          });
+        }
+      }
     },
   });
 
@@ -550,6 +576,120 @@ export default function CourseLearning() {
           )}
         </div>
       </main>
+
+      {/* Confetti Animation */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {/* Top-left confetti */}
+          <div className="absolute top-4 left-4 animate-bounce">
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`tl-${i}`}
+                className="absolute w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping"
+                style={{
+                  left: `${Math.random() * 100}px`,
+                  top: `${Math.random() * 100}px`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${1 + Math.random()}s`
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Top-right confetti */}
+          <div className="absolute top-4 right-4 animate-bounce">
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`tr-${i}`}
+                className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-ping"
+                style={{
+                  left: `${Math.random() * 100}px`,
+                  top: `${Math.random() * 100}px`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${1 + Math.random()}s`
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Bottom-left confetti */}
+          <div className="absolute bottom-4 left-4 animate-bounce">
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`bl-${i}`}
+                className="absolute w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full animate-ping"
+                style={{
+                  left: `${Math.random() * 100}px`,
+                  top: `${Math.random() * 100}px`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${1 + Math.random()}s`
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Bottom-right confetti */}
+          <div className="absolute bottom-4 right-4 animate-bounce">
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`br-${i}`}
+                className="absolute w-2 h-2 bg-gradient-to-r from-pink-400 to-red-500 rounded-full animate-ping"
+                style={{
+                  left: `${Math.random() * 100}px`,
+                  top: `${Math.random() * 100}px`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${1 + Math.random()}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Congratulations Modal */}
+      {showCongratulations && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+          <Card className="max-w-md mx-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 shadow-2xl">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trophy className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Поздравляем!</h2>
+                <div className="flex items-center justify-center mb-4">
+                  <PartyPopper className="w-5 h-5 text-orange-500 mr-2" />
+                  <span className="text-lg font-semibold text-orange-700">Курс завершен!</span>
+                  <PartyPopper className="w-5 h-5 text-orange-500 ml-2" />
+                </div>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <p className="text-gray-700">
+                  Вы успешно завершили курс <strong>"{course?.title}"</strong>!
+                </p>
+                <p className="text-gray-600 text-sm">
+                  Отличная работа! Теперь вы можете применить полученные знания на практике.
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-center space-x-2 text-green-600 mb-4">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="font-medium">100% завершено</span>
+              </div>
+              
+              <Button
+                onClick={() => {
+                  setShowCongratulations(false);
+                  setLocation("/learning");
+                }}
+                className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white"
+              >
+                Перейти к курсам
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </>
   );
 }
