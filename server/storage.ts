@@ -65,9 +65,6 @@ export interface IStorage {
   getStudentProgress(studentId: number, lessonId: number): Promise<StudentProgress | undefined>;
   updateStudentProgress(progress: InsertStudentProgress): Promise<StudentProgress>;
   getStudentProgressByCourse(studentId: number, courseId: number): Promise<StudentProgress[]>;
-
-  // Analytics reset
-  resetAnalyticsData(): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -600,22 +597,6 @@ export class MemStorage implements IStorage {
 
     return Array.from(this.studentProgressMap.values())
       .filter(p => p.studentId === studentId && lessonIds.includes(p.lessonId));
-  }
-
-  async resetAnalyticsData(): Promise<boolean> {
-    try {
-      // Clear all enrollments
-      this.enrollments.clear();
-      this.currentEnrollmentId = 1;
-
-      // Clear all student progress
-      this.studentProgressMap.clear();
-      this.currentProgressId = 1;
-
-      return true;
-    } catch (error) {
-      return false;
-    }
   }
 }
 

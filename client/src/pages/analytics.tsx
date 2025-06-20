@@ -55,27 +55,7 @@ export default function Analytics() {
     queryKey: ['/api/enrollments'],
   });
 
-  const resetAnalyticsMutation = useMutation({
-    mutationFn: () => apiRequest('/api/analytics/reset', 'POST'),
-    onSuccess: () => {
-      // Refresh all data after reset
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/enrollments'] });
-      
-      toast({
-        title: "Analytics Reset",
-        description: "All historical analytics data has been cleared successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to reset analytics data.",
-        variant: "destructive",
-      });
-    }
-  });
+
 
   const analytics: AnalyticsData | undefined = dashboardStats && courses ? {
     totalCourses: (dashboardStats as any).totalCourses || 0,
@@ -121,15 +101,6 @@ export default function Analytics() {
       <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-          <Button 
-            onClick={() => resetAnalyticsMutation.mutate()}
-            disabled={resetAnalyticsMutation.isPending}
-            variant="outline"
-            className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white border-0 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${resetAnalyticsMutation.isPending ? 'animate-spin' : ''}`} />
-            {resetAnalyticsMutation.isPending ? 'Clearing...' : 'Clear Analytics History'}
-          </Button>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6 space-y-6">

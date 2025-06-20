@@ -393,16 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics reset
-  app.post("/api/analytics/reset", async (req, res) => {
-    try {
-      // Clear all progress data, enrollments, and reset course stats
-      await storage.resetAnalyticsData();
-      res.json({ message: "Analytics data has been reset successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to reset analytics data" });
-    }
-  });
+
 
   // Export functionality
   app.get("/api/courses/:id/export", async (req, res) => {
