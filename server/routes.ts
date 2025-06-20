@@ -219,13 +219,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/courses/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`Attempting to delete course with ID: ${id}`);
       const deleted = await storage.deleteCourse(id);
       if (!deleted) {
         return res.status(404).json({ message: "Course not found" });
       }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete course" });
+      console.error("Course deletion error:", error);
+      res.status(500).json({ message: "Failed to delete course", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -737,20 +739,30 @@ console.log('Portfolio loaded successfully!');`);
   app.delete("/api/materials/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`Attempting to delete material with ID: ${id}`);
       const material = await storage.getMaterial(id);
       if (!material) {
         return res.status(404).json({ message: "Material not found" });
       }
 
-      // Delete file from disk
-      if (fs.existsSync(material.filePath)) {
-        fs.unlinkSync(material.filePath);
+      // Delete file from disk (skip for demo files)
+      if (fs.existsSync(material.filePath) && !material.filePath.includes('demo/')) {
+        try {
+          fs.unlinkSync(material.filePath);
+          console.log(`Deleted file: ${material.filePath}`);
+        } catch (fileError) {
+          console.warn(`Could not delete file ${material.filePath}:`, fileError);
+        }
       }
 
       const deleted = await storage.deleteMaterial(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Material not found in database" });
+      }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete material" });
+      console.error("Material deletion error:", error);
+      res.status(500).json({ message: "Failed to delete material", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
