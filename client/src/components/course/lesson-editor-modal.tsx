@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import SafeHtmlRenderer from "@/components/ui/safe-html-renderer";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
@@ -510,12 +509,10 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                 <div>
                   <h5 className="text-sm font-medium text-neutral-700 mb-2">Text Content</h5>
                   {lessonData.content ? (
-                    <div className="text-sm text-neutral-700 leading-relaxed bg-white p-3 rounded border">
-                      <SafeHtmlRenderer 
-                        content={lessonData.content}
-                        className="prose-sm"
-                      />
-                    </div>
+                    <div 
+                      className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none bg-white p-3 rounded border"
+                      dangerouslySetInnerHTML={{ __html: lessonData.content }}
+                    />
                   ) : (
                     <div className="bg-neutral-100 p-3 rounded border text-center text-neutral-500">
                       <p className="text-xs">Use the rich text editor on the left to add content</p>
