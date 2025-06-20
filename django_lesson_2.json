@@ -1,9 +1,0 @@
-{
-  "title": "Installing Python and Django",
-  "description": "Step-by-step guide to install Python and Django on your system",
-  "chapterId": 2,
-  "orderIndex": 2,
-  "content": "<h2>Installing Python and Django</h2><p>Before we can start building our blog, we need to set up our development environment.</p><h3>Step 1: Install Python</h3><p>Django is a Python web framework, so you need Python installed on your system.</p><h4>Windows:</h4><ol><li>Go to python.org</li><li>Download Python 3.9 or later</li><li>Run the installer and check 'Add Python to PATH'</li><li>Verify installation: <code>python --version</code></li></ol><h4>macOS:</h4><ol><li>Install Homebrew if needed</li><li>Install Python: <code>brew install python3</code></li><li>Verify: <code>python3 --version</code></li></ol><h4>Linux (Ubuntu/Debian):</h4><pre><code>sudo apt update\nsudo apt install python3 python3-pip python3-venv\npython3 --version</code></pre><h3>Step 2: Create Virtual Environment</h3><p>Virtual environments keep your project dependencies isolated:</p><pre><code># Create virtual environment\npython -m venv blog_env\n\n# Activate it\n# Windows:\nblog_env\\Scripts\\activate\n# macOS/Linux:\nsource blog_env/bin/activate\n\n# You should see (blog_env) in your terminal</code></pre><h3>Step 3: Install Django</h3><pre><code>pip install django\ndjango-admin --version</code></pre><h3>Step 4: Install Additional Packages</h3><pre><code>pip install pillow\npip install django-crispy-forms\npip install django-bootstrap5</code></pre><p><strong>Note:</strong> Always activate your virtual environment before working!</p>",
-  "codeExample": "# Verify everything is working\npython --version\ndjango-admin --version\n\n# Create test project\ndjango-admin startproject myblog\ncd myblog\npython manage.py runserver\n\n# Visit http://127.0.0.1:8000/ to see Django welcome page",
-  "codeLanguage": "bash"
-}
