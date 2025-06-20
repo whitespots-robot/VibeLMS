@@ -16,8 +16,10 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Book, FolderOpen, PlayCircle, FileText, Code, 
   ClipboardList, Plus, ChevronDown, ChevronRight,
-  Edit, Eye, Trash2, GripVertical
+  Edit, Eye, Trash2, GripVertical, Settings
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import type { Course, Chapter, Lesson, ChapterWithLessons } from "@shared/schema";
 
 export default function CourseEditor() {
@@ -34,6 +36,20 @@ export default function CourseEditor() {
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
     queryKey: [`/api/courses/${courseId}`],
     enabled: !!courseId,
+  });
+
+  const updateCourseMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PUT", `/api/courses/${courseId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      toast({
+        title: "Course Updated",
+        description: "Course status has been updated successfully.",
+      });
+    },
   });
 
   const createChapterMutation = useMutation({
@@ -297,16 +313,35 @@ export default function CourseEditor() {
                     <Textarea value={course.description || ""} readOnly className="mt-1" rows={3} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-neutral-700">Status</label>
-                    <div className="mt-1">
-                      <Badge className={
-                        course.status === 'published' ? 'bg-secondary/10 text-secondary' :
-                        course.status === 'draft' ? 'bg-accent/10 text-accent' :
-                        'bg-neutral-100 text-neutral-800'
-                      }>
-                        {course.status}
-                      </Badge>
-                    </div>
+                    <Label className="text-sm font-medium text-neutral-700">Course Status</Label>
+                    <Select
+                      value={course.status}
+                      onValueChange={(value) => updateCourseMutation.mutate({ status: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                            Draft
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="published">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            Published
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="archived">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
+                            Archived
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>

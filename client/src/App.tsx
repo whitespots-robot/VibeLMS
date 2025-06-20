@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Courses from "@/pages/courses";
 import CourseEditor from "@/pages/course-editor";
+import Learning from "@/pages/learning";
 import Materials from "@/pages/materials";
 import Students from "@/pages/students";
 import Export from "@/pages/export";
@@ -21,6 +22,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/courses" component={Courses} />
           <Route path="/courses/:id/edit" component={CourseEditor} />
+          <Route path="/learning" component={Learning} />
           <Route path="/materials" component={Materials} />
           <Route path="/students" component={Students} />
           <Route path="/export" component={Export} />
