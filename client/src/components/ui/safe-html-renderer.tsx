@@ -21,8 +21,11 @@ function htmlToMarkdown(html: string): string {
     .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
     .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
     .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
-    .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
+    // Handle code blocks first (before inline code)
+    .replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gi, '```\n$1\n```\n')
     .replace(/<pre[^>]*>(.*?)<\/pre>/gi, '```\n$1\n```\n')
+    // Handle inline code
+    .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
     .replace(/<ul[^>]*>(.*?)<\/ul>/gi, (match, content) => {
       return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
     })
@@ -56,8 +59,15 @@ export default function SafeHtmlRenderer({ content, className = "" }: SafeHtmlRe
           ol: ({children}) => <ol className="mb-4 pl-6 space-y-2">{children}</ol>,
           li: ({children}) => <li className="text-slate-700">{children}</li>,
           strong: ({children}) => <strong className="font-semibold text-slate-800">{children}</strong>,
-          code: ({children}) => <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800">{children}</code>,
-          pre: ({children}) => <pre className="bg-slate-900 text-green-400 p-4 rounded-lg overflow-x-auto mb-4">{children}</pre>,
+          code: ({children, className}) => {
+            // Check if this is inline code or code block
+            const isCodeBlock = className && className.includes('language-');
+            if (isCodeBlock) {
+              return <code className="block bg-slate-900 text-green-400 p-4 rounded-lg overflow-x-auto font-mono text-sm">{children}</code>;
+            }
+            return <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800 border">{children}</code>;
+          },
+          pre: ({children}) => <pre className="bg-slate-900 text-green-400 p-4 rounded-lg overflow-x-auto mb-4 border">{children}</pre>,
         }}
       >
         {markdownContent}
