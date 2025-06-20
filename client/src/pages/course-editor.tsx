@@ -161,7 +161,7 @@ export default function CourseEditor() {
             
             {/* Course Structure Editor */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="card-gradient">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center">
