@@ -835,9 +835,15 @@ startxref
       const totalStudents = courses.reduce((sum, course) => sum + course.studentsCount, 0);
       const totalMaterials = materials.length;
       
-      // Calculate assignments count (lessons with assignments)
-      const allLessons = Array.from((storage as any).lessons.values());
-      const assignmentsCount = allLessons.filter((lesson: any) => lesson.assignment).length;
+      // Calculate assignments count by getting all lessons with assignments
+      let assignmentsCount = 0;
+      for (const course of courses) {
+        const chapters = await storage.getChaptersByCourse(course.id);
+        for (const chapter of chapters) {
+          const lessons = await storage.getLessonsByChapter(chapter.id);
+          assignmentsCount += lessons.filter(lesson => lesson.assignment && lesson.assignment.trim() !== '').length;
+        }
+      }
 
       res.json({
         totalCourses,
@@ -846,6 +852,7 @@ startxref
         materials: totalMaterials,
       });
     } catch (error) {
+      console.error('Dashboard stats error:', error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });

@@ -28,11 +28,16 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     if (!currentUser) {
-      setLocation("/login");
+      setLocation("/");
+      return;
     }
-    // Redirect students away from dashboard to learning
-    if (currentUser && currentUser.role === "student" && location === "/dashboard") {
+    // Redirect students away from dashboard to learning, but don't redirect instructors
+    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
+    }
+    // Redirect instructors from root to dashboard
+    if (currentUser && currentUser.role === "instructor" && location === "/") {
+      setLocation("/dashboard");
     }
   }, [currentUser, location, setLocation]);
 
