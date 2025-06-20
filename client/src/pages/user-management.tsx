@@ -56,16 +56,16 @@ export default function UserManagement() {
   });
 
   const { data: registrationSetting } = useQuery({
-    queryKey: ["/api/settings", "allow_student_registration"],
+    queryKey: ["/api/settings/allow_student_registration"],
     select: (data: { value: string | null }) => data.value !== "false",
   });
 
   // Update local state when setting loads
-  useState(() => {
+  useEffect(() => {
     if (registrationSetting !== undefined) {
       setAllowStudentRegistration(registrationSetting);
     }
-  });
+  }, [registrationSetting]);
 
   const teacherForm = useForm<TeacherRegistrationForm>({
     resolver: zodResolver(teacherRegistrationSchema),
@@ -134,10 +134,7 @@ export default function UserManagement() {
 
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      return apiRequest(`/api/settings/${key}`, {
-        method: "PUT",
-        body: { value },
-      });
+      return apiRequest("PUT", `/api/settings/${key}`, { value });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
