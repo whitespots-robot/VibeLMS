@@ -98,6 +98,105 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     });
     this.currentUserId = 2;
+    
+    // Create demo course
+    this.createDemoCourse();
+  }
+
+  private async createDemoCourse() {
+    // Create demo course
+    const demoCourse: Course = {
+      id: 1,
+      title: "🎯 Demo Course - Web Development Basics",
+      description: "Learn the fundamentals of web development with HTML, CSS, and JavaScript. This demo course shows all LMS features.",
+      instructorId: 1,
+      status: "published",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.courses.set(1, demoCourse);
+    this.currentCourseId = 2;
+
+    // Create demo chapter
+    const demoChapter: Chapter = {
+      id: 1,
+      title: "Introduction to Web Development",
+      description: "Getting started with the basics of web development",
+      courseId: 1,
+      orderIndex: 0,
+      createdAt: new Date(),
+    };
+    this.chapters.set(1, demoChapter);
+    this.currentChapterId = 2;
+
+    // Create demo lesson with rich content
+    const demoLesson: Lesson = {
+      id: 1,
+      title: "Welcome to Web Development",
+      content: `
+        <h2>Welcome to Web Development! 🚀</h2>
+        <p>In this lesson, you'll learn the <strong>fundamentals</strong> of web development.</p>
+        
+        <h3>What you'll learn:</h3>
+        <ul>
+          <li><strong>HTML</strong> - Structure of web pages</li>
+          <li><strong>CSS</strong> - Styling and layout</li>
+          <li><strong>JavaScript</strong> - Interactive functionality</li>
+        </ul>
+        
+        <h3>Key Concepts:</h3>
+        <blockquote>
+          <p><em>"The best way to learn web development is by building projects!"</em></p>
+        </blockquote>
+        
+        <p>Ready to start your journey? Let's begin with the basics!</p>
+      `,
+      videoUrl: "https://www.youtube.com/watch?v=UB1O30fR-EE",
+      codeExample: null,
+      codeLanguage: null,
+      assignment: "Create a simple HTML page with a heading, paragraph, and list. Practice what you learned in the video!",
+      chapterId: 1,
+      orderIndex: 0,
+      createdAt: new Date(),
+    };
+    this.lessons.set(1, demoLesson);
+    this.currentLessonId = 2;
+
+    // Create demo questions
+    const demoQuestion1: Question = {
+      id: 1,
+      lessonId: 1,
+      question: "What does HTML stand for?",
+      options: ["HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Language", "Hyperlink and Text Markup Language"],
+      correctAnswer: 0,
+      explanation: "HTML stands for HyperText Markup Language - it's the standard markup language for creating web pages.",
+      orderIndex: 0,
+    };
+    
+    const demoQuestion2: Question = {
+      id: 2,
+      lessonId: 1,
+      question: "Which of these is used for styling web pages?",
+      options: ["HTML", "CSS", "JavaScript", "Python"],
+      correctAnswer: 1,
+      explanation: "CSS (Cascading Style Sheets) is used to style and layout web pages, including colors, fonts, and positioning.",
+      orderIndex: 1,
+    };
+
+    this.questions.set(1, demoQuestion1);
+    this.questions.set(2, demoQuestion2);
+    this.currentQuestionId = 3;
+
+    // Create demo enrollment
+    const demoEnrollment: Enrollment = {
+      id: 1,
+      courseId: 1,
+      studentId: 1,
+      progress: 0,
+      enrolledAt: new Date(),
+    };
+    this.enrollments.set(1, demoEnrollment);
+    this.currentEnrollmentId = 2;
   }
 
   // User operations
@@ -204,6 +303,36 @@ export class MemStorage implements IStorage {
   }
 
   async deleteCourse(id: number): Promise<boolean> {
+    const course = this.courses.get(id);
+    if (!course) return false;
+
+    // Delete all chapters and their lessons for this course
+    const chapters = Array.from(this.chapters.values()).filter(c => c.courseId === id);
+    for (const chapter of chapters) {
+      // Delete all lessons in this chapter
+      const lessons = Array.from(this.lessons.values()).filter(l => l.chapterId === chapter.id);
+      for (const lesson of lessons) {
+        // Delete questions for this lesson
+        const questions = Array.from(this.questions.values()).filter(q => q.lessonId === lesson.id);
+        questions.forEach(q => this.questions.delete(q.id));
+        
+        // Delete lesson material links
+        const linkKeys = Array.from(this.lessonMaterialLinks.keys())
+          .filter(key => this.lessonMaterialLinks.get(key)?.lessonId === lesson.id);
+        linkKeys.forEach(key => this.lessonMaterialLinks.delete(key));
+        
+        // Delete the lesson
+        this.lessons.delete(lesson.id);
+      }
+      // Delete the chapter
+      this.chapters.delete(chapter.id);
+    }
+
+    // Delete enrollments for this course
+    const enrollments = Array.from(this.enrollments.values()).filter(e => e.courseId === id);
+    enrollments.forEach(e => this.enrollments.delete(e.id));
+
+    // Delete the course
     return this.courses.delete(id);
   }
 
