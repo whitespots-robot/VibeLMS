@@ -171,6 +171,7 @@ export default function CourseEditor() {
                     <Button 
                       onClick={() => setIsChapterDialogOpen(true)}
                       size="sm"
+                      className="btn-primary"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add Chapter
@@ -199,8 +200,8 @@ export default function CourseEditor() {
                         </div>
                         <Button 
                           size="sm" 
-                          variant="outline"
                           onClick={() => handleCreateLesson(chapter.id)}
+                          className="btn-success"
                         >
                           <Plus className="w-4 h-4 mr-1" />
                           Add Lesson

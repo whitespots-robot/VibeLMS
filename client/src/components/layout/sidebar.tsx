@@ -16,14 +16,14 @@ export default function Sidebar() {
 
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
-      <div className="flex flex-col w-64 bg-white border-r border-neutral-200">
+      <div className="flex flex-col w-64 sidebar-gradient">
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 px-4 border-b border-neutral-200">
+        <div className="flex items-center justify-center h-16 px-4 border-b border-slate-700">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-4 h-4 text-white" />
             </div>
-            <span className="ml-2 text-lg font-semibold text-neutral-800">EduCraft LMS</span>
+            <span className="ml-2 text-lg font-semibold text-white">EduCraft LMS</span>
           </div>
         </div>
 
@@ -37,8 +37,8 @@ export default function Sidebar() {
                   className={cn(
                     "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                     isActive
-                      ? "bg-primary text-white"
-                      : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "text-slate-300 hover:bg-slate-700 hover:text-white"
                   )}
                 >
                   <item.icon className="mr-3 w-4 h-4" />
@@ -50,14 +50,14 @@ export default function Sidebar() {
         </nav>
 
         {/* User Profile */}
-        <div className="border-t border-neutral-200 p-4">
+        <div className="border-t border-slate-700 p-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-neutral-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-neutral-600" />
+            <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-neutral-700">John Educator</p>
-              <p className="text-xs text-neutral-500">Instructor</p>
+              <p className="text-sm font-medium text-white">John Educator</p>
+              <p className="text-xs text-slate-300">Instructor</p>
             </div>
           </div>
         </div>

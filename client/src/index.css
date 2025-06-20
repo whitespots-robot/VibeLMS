@@ -67,7 +67,7 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-gradient-to-br from-slate-50 via-white to-blue-50 text-foreground antialiased;
     font-family: 'Inter', sans-serif;
   }
 
@@ -105,6 +105,20 @@
   .gradient-blue { @apply bg-gradient-to-br from-blue-400 to-blue-600; }
   .gradient-green { @apply bg-gradient-to-br from-green-400 to-green-600; }
   .gradient-purple { @apply bg-gradient-to-br from-purple-400 to-purple-600; }
+  
+  /* Button gradients with white text */
+  .btn-primary { @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300; }
+  .btn-secondary { @apply bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300; }
+  .btn-success { @apply bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300; }
+  .btn-danger { @apply bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300; }
+  .btn-warning { @apply bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300; }
+  
+  /* Card gradients */
+  .card-gradient { @apply bg-gradient-to-br from-white via-slate-50 to-blue-50 border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-300; }
+  
+  /* Sidebar and header gradients */
+  .sidebar-gradient { @apply bg-gradient-to-b from-slate-800 via-slate-900 to-black text-white; }
+  .header-gradient { @apply bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 text-white shadow-lg; }
 }
 
 /* Code highlighting styles */
