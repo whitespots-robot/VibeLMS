@@ -112,6 +112,7 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const user: User = {
       ...insertUser,
+      role: insertUser.role || "student",
       id: this.currentUserId++,
       createdAt: new Date(),
     };
@@ -174,6 +175,8 @@ export class MemStorage implements IStorage {
   async createCourse(insertCourse: InsertCourse): Promise<Course> {
     const course: Course = {
       ...insertCourse,
+      description: insertCourse.description || null,
+      status: insertCourse.status || "draft",
       id: this.currentCourseId++,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -213,6 +216,8 @@ export class MemStorage implements IStorage {
   async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
     const chapter: Chapter = {
       ...insertChapter,
+      description: insertChapter.description || null,
+      orderIndex: insertChapter.orderIndex || 0,
       id: this.currentChapterId++,
       createdAt: new Date(),
     };
@@ -270,6 +275,12 @@ export class MemStorage implements IStorage {
   async createLesson(insertLesson: InsertLesson): Promise<Lesson> {
     const lesson: Lesson = {
       ...insertLesson,
+      content: insertLesson.content || null,
+      videoUrl: insertLesson.videoUrl || null,
+      codeExample: insertLesson.codeExample || null,
+      codeLanguage: insertLesson.codeLanguage || null,
+      assignment: insertLesson.assignment || null,
+      orderIndex: insertLesson.orderIndex || 0,
       id: this.currentLessonId++,
       createdAt: new Date(),
     };
@@ -300,6 +311,8 @@ export class MemStorage implements IStorage {
   async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
     const question: Question = {
       ...insertQuestion,
+      explanation: insertQuestion.explanation || null,
+      orderIndex: insertQuestion.orderIndex || 0,
       id: this.currentQuestionId++,
     };
     this.questions.set(question.id, question);
@@ -375,6 +388,7 @@ export class MemStorage implements IStorage {
   async createEnrollment(insertEnrollment: InsertEnrollment): Promise<Enrollment> {
     const enrollment: Enrollment = {
       ...insertEnrollment,
+      progress: insertEnrollment.progress || null,
       id: this.currentEnrollmentId++,
       enrolledAt: new Date(),
     };
@@ -411,6 +425,8 @@ export class MemStorage implements IStorage {
     } else {
       const progress: StudentProgress = {
         ...insertProgress,
+        completed: insertProgress.completed || null,
+        score: insertProgress.score || null,
         id: this.currentProgressId++,
         completedAt: insertProgress.completed ? new Date() : null,
       };
