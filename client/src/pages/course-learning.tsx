@@ -29,13 +29,21 @@ export default function CourseLearning() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
+  const { data: course, isLoading, error } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
     queryKey: isPreviewMode ? [`/api/public/courses/${courseId}`] : [`/api/courses/${courseId}`],
     enabled: !!courseId,
+    retry: false,
   });
 
+  // Redirect to login if course is not public
+  useEffect(() => {
+    if (isPreviewMode && error && (error as any)?.status === 403) {
+      setLocation("/login");
+    }
+  }, [error, isPreviewMode, setLocation]);
+
   const { data: currentLesson } = useQuery<LessonWithDetails>({
-    queryKey: [`/api/lessons/${currentLessonId}/details`],
+    queryKey: isPreviewMode ? [`/api/public/lessons/${currentLessonId}/details`] : [`/api/lessons/${currentLessonId}/details`],
     enabled: !!currentLessonId,
   });
 

@@ -200,14 +200,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!course) {
         return res.status(404).json({ message: "Course not found" });
       }
-      // Only return public courses
+      // Only return published courses
       if (course.status !== "published") {
-        return res.status(404).json({ message: "Course not found" });
+        return res.status(403).json({ message: "Course is not public", redirect: "/login" });
       }
       res.json(course);
     } catch (error) {
       console.error("Error fetching public course:", error);
       res.status(500).json({ error: "Failed to fetch course" });
+    }
+  });
+
+  // Get public lesson details (no auth required)
+  app.get("/api/public/lessons/:id/details", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lesson = await storage.getLessonWithDetails(id);
+      if (!lesson) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      
+      // Get the chapter and verify it belongs to a published course
+      const chapter = await storage.getChapter(lesson.chapterId);
+      if (!chapter) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      
+      const course = await storage.getCourse(chapter.courseId);
+      if (!course || course.status !== "published") {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      
+      res.json(lesson);
+    } catch (error) {
+      console.error("Error fetching public lesson:", error);
+      res.status(500).json({ error: "Failed to fetch lesson" });
     }
   });
 
