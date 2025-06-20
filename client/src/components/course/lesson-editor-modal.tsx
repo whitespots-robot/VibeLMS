@@ -509,10 +509,9 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                 <div>
                   <h5 className="text-sm font-medium text-neutral-700 mb-2">Text Content</h5>
                   {lessonData.content ? (
-                    <div 
-                      className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none bg-white p-3 rounded border"
-                      dangerouslySetInnerHTML={{ __html: lessonData.content }}
-                    />
+                    <div className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none bg-white p-3 rounded border whitespace-pre-wrap">
+                      {lessonData.content}
+                    </div>
                   ) : (
                     <div className="bg-neutral-100 p-3 rounded border text-center text-neutral-500">
                       <p className="text-xs">Use the rich text editor on the left to add content</p>

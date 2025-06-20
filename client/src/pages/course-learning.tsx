@@ -385,10 +385,9 @@ export default function CourseLearning() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div 
-                        className="prose prose-lg max-w-none text-slate-700"
-                        dangerouslySetInnerHTML={{ __html: currentLesson.content }}
-                      />
+                      <div className="prose prose-lg max-w-none text-slate-700 whitespace-pre-wrap">
+                        {currentLesson.content}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
