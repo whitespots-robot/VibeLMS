@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LessonEditorModal from "@/components/course/lesson-editor-modal";
+import LessonPreviewModal from "@/components/course/lesson-preview-modal";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -25,6 +26,7 @@ export default function CourseEditor() {
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
   const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [previewingLesson, setPreviewingLesson] = useState<Lesson | null>(null);
   const [newChapterTitle, setNewChapterTitle] = useState("");
   const [newChapterDescription, setNewChapterDescription] = useState("");
   const { toast } = useToast();
@@ -251,7 +253,11 @@ export default function CourseEditor() {
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
-                                <Button size="sm" variant="ghost">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => setPreviewingLesson(lesson)}
+                                >
                                   <Eye className="w-4 h-4" />
                                 </Button>
                                 <Button size="sm" variant="ghost">
@@ -374,6 +380,7 @@ export default function CourseEditor() {
               <Button 
                 onClick={handleCreateChapter}
                 disabled={!newChapterTitle.trim() || createChapterMutation.isPending}
+                className="btn-primary"
               >
                 {createChapterMutation.isPending ? "Creating..." : "Create Chapter"}
               </Button>
@@ -388,6 +395,15 @@ export default function CourseEditor() {
           lesson={editingLesson}
           isOpen={!!editingLesson}
           onClose={() => setEditingLesson(null)}
+        />
+      )}
+
+      {/* Lesson Preview Modal */}
+      {previewingLesson && (
+        <LessonPreviewModal
+          lesson={previewingLesson}
+          isOpen={!!previewingLesson}
+          onClose={() => setPreviewingLesson(null)}
         />
       )}
     </>
