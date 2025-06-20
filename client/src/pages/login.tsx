@@ -117,18 +117,14 @@ export default function Login() {
             <Button 
               variant="outline" 
               onClick={() => setLocation("/register")}
-              className="w-full"
+              className="w-full hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700"
             >
               <User className="w-4 h-4 mr-2" />
               Register as Student
             </Button>
           </div>
           
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 text-center">
-              Default teacher account: <strong>teacher:teacher</strong>
-            </p>
-          </div>
+
         </CardContent>
       </Card>
     </div>
