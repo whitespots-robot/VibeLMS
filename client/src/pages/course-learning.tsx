@@ -341,11 +341,11 @@ export default function CourseLearning() {
                                 .map((option, optIndex) => {
                                   const originalIndex = (question.options as string[]).indexOf(option);
                                   const isSelected = questionAnswers[question.id] === originalIndex;
-                                  const showResults = showResults[question.id];
+                                  const isShowingResults = showResults[question.id];
                                   const isCorrect = originalIndex === question.correctAnswer;
                                   
                                   let bgClass = 'bg-slate-50 border-slate-200 hover:bg-slate-100';
-                                  if (showResults) {
+                                  if (isShowingResults) {
                                     if (isCorrect) {
                                       bgClass = 'bg-green-50 border-green-200';
                                     } else if (isSelected && !isCorrect) {
@@ -358,9 +358,9 @@ export default function CourseLearning() {
                                   return (
                                     <button 
                                       key={optIndex}
-                                      disabled={showResults}
+                                      disabled={isShowingResults}
                                       onClick={() => {
-                                        if (!showResults) {
+                                        if (!isShowingResults) {
                                           setQuestionAnswers(prev => ({
                                             ...prev,
                                             [question.id]: originalIndex
@@ -368,14 +368,14 @@ export default function CourseLearning() {
                                         }
                                       }}
                                       className={`w-full p-3 rounded-lg border transition-colors text-left ${bgClass} ${
-                                        !showResults ? 'cursor-pointer' : 'cursor-default'
+                                        !isShowingResults ? 'cursor-pointer' : 'cursor-default'
                                       }`}
                                     >
                                       <div className="flex items-center space-x-2">
-                                        {showResults && isCorrect && (
+                                        {isShowingResults && isCorrect && (
                                           <CheckCircle2 className="w-4 h-4 text-green-600" />
                                         )}
-                                        {showResults && isSelected && !isCorrect && (
+                                        {isShowingResults && isSelected && !isCorrect && (
                                           <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
                                             <span className="text-white text-xs">✕</span>
                                           </div>
@@ -384,7 +384,7 @@ export default function CourseLearning() {
                                           {String.fromCharCode(65 + optIndex)}.
                                         </span>
                                         <span>{option}</span>
-                                        {!showResults && isSelected && (
+                                        {!isShowingResults && isSelected && (
                                           <div className="ml-auto w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
                                             <span className="text-white text-xs">✓</span>
                                           </div>
@@ -417,7 +417,7 @@ export default function CourseLearning() {
                                 </div>
                               )}
                             </div>
-                            {question.explanation && (
+                            {question.explanation && showResults[question.id] && (
                               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <p className="text-sm font-medium text-blue-900 mb-1">Explanation:</p>
                                 <p className="text-blue-800">{question.explanation}</p>
