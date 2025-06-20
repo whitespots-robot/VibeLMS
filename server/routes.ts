@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { 
   insertCourseSchema, insertChapterSchema, insertLessonSchema, 
   insertQuestionSchema, insertMaterialSchema, insertEnrollmentSchema,
-  insertStudentProgressSchema 
+  insertStudentProgressSchema, insertUserSchema 
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -34,6 +34,86 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await storage.authenticateUser(username, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword, message: "Login successful" });
+    } catch (error) {
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      const user = await storage.createUser(userData);
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword, message: "Registration successful" });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  app.post("/api/auth/register-teacher", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse({ ...req.body, role: "instructor" });
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      const user = await storage.createUser(userData);
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword, message: "Teacher registration successful" });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid teacher data" });
+    }
+  });
+
+  app.put("/api/auth/change-password", async (req, res) => {
+    try {
+      const { userId, currentPassword, newPassword } = req.body;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const authenticatedUser = await storage.authenticateUser(user.username, currentPassword);
+      if (!authenticatedUser) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+      
+      const updatedUser = await storage.updateUserPassword(userId, newPassword);
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update password" });
+      }
+      
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // Course routes
   app.get("/api/courses", async (req, res) => {
     try {

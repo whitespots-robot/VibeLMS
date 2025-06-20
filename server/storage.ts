@@ -106,6 +106,15 @@ export class MemStorage implements IStorage {
     this.createDemoCourse();
   }
 
+  private hashPassword(password: string): string {
+    // Simple hash for demo purposes - in production use bcrypt
+    return Buffer.from(password).toString('base64');
+  }
+
+  private verifyPassword(password: string, hashedPassword: string): boolean {
+    return this.hashPassword(password) === hashedPassword;
+  }
+
   private async createDemoCourse() {
     // Create demo course
     const demoCourse: Course = {
@@ -232,12 +241,36 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const user: User = {
       ...insertUser,
+      password: this.hashPassword(insertUser.password),
       role: insertUser.role || "student",
       id: this.currentUserId++,
       createdAt: new Date(),
     };
     this.users.set(user.id, user);
     return user;
+  }
+
+  async updateUserPassword(id: number, newPassword: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, password: this.hashPassword(newPassword) };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async authenticateUser(username: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByUsername(username);
+    if (!user) return undefined;
+    
+    if (this.verifyPassword(password, user.password)) {
+      return user;
+    }
+    return undefined;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
 
   // Course operations
