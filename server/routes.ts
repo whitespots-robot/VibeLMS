@@ -175,6 +175,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public courses (no auth required)
+  app.get("/api/public/courses", async (req, res) => {
+    try {
+      const courses = await storage.getPublicCourses();
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching public courses:", error);
+      res.status(500).json({ error: "Failed to fetch public courses" });
+    }
+  });
+
+  // System settings routes
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const value = await storage.getSystemSetting(req.params.key);
+      res.json({ value: value || null });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get setting" });
+    }
+  });
+
+  app.put("/api/settings/:key", async (req, res) => {
+    try {
+      const { value } = req.body;
+      await storage.setSystemSetting(req.params.key, value);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update setting" });
+    }
+  });
+
   // Chapter routes
   app.get("/api/courses/:courseId/chapters", async (req, res) => {
     try {

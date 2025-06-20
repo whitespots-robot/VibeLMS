@@ -34,7 +34,9 @@ export default function CourseEditor() {
   const [courseInfo, setCourseInfo] = useState({
     title: "",
     description: "",
-    status: "draft" as "draft" | "published" | "archived"
+    status: "draft" as "draft" | "published" | "archived",
+    isPublic: false,
+    allowRegistration: true
   });
   const { toast } = useToast();
 
@@ -49,7 +51,9 @@ export default function CourseEditor() {
       setCourseInfo({
         title: course.title,
         description: course.description || "",
-        status: course.status as "draft" | "published" | "archived"
+        status: course.status as "draft" | "published" | "archived",
+        isPublic: course.isPublic || false,
+        allowRegistration: course.allowRegistration !== false
       });
     }
   }, [course]);

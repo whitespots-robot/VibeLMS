@@ -346,6 +346,8 @@ export class MemStorage implements IStorage {
       ...insertCourse,
       description: insertCourse.description || null,
       status: insertCourse.status || "draft",
+      isPublic: insertCourse.isPublic ?? false,
+      allowRegistration: insertCourse.allowRegistration ?? true,
       id: this.currentCourseId++,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -644,6 +646,30 @@ export class MemStorage implements IStorage {
 
     return Array.from(this.studentProgressMap.values())
       .filter(p => p.studentId === studentId && lessonIds.includes(p.lessonId));
+  }
+
+  async getPublicCourses(): Promise<CourseWithStats[]> {
+    const publicCourses = Array.from(this.courses.values())
+      .filter(course => course.isPublic && course.status === 'published');
+    
+    return publicCourses.map(course => ({
+      ...course,
+      chaptersCount: Array.from(this.chapters.values()).filter(c => c.courseId === course.id).length,
+      lessonsCount: Array.from(this.lessons.values()).filter(l => {
+        const chapter = Array.from(this.chapters.values()).find(c => c.id === l.chapterId);
+        return chapter?.courseId === course.id;
+      }).length,
+      studentsCount: Array.from(this.enrollments.values()).filter(e => e.courseId === course.id).length,
+      averageProgress: 0, // Calculate if needed
+    }));
+  }
+
+  async getSystemSetting(key: string): Promise<string | undefined> {
+    return this.systemSettings.get(key);
+  }
+
+  async setSystemSetting(key: string, value: string): Promise<void> {
+    this.systemSettings.set(key, value);
   }
 }
 
