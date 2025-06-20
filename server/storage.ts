@@ -673,4 +673,489 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
+import { 
+  users, courses, chapters, lessons, questions, materials, 
+  lessonMaterials, enrollments, studentProgress, systemSettings 
+} from "@shared/schema";
+
+export class DatabaseStorage implements IStorage {
+  constructor() {
+    // Initialize with demo data if needed
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      // Check if we already have users
+      const existingUsers = await db.select().from(users).limit(1);
+      if (existingUsers.length === 0) {
+        await this.createDemoData();
+      }
+    } catch (error) {
+      console.error("Failed to initialize database:", error);
+    }
+  }
+
+  private async createDemoData() {
+    // Create default teacher account
+    const [teacher] = await db.insert(users).values({
+      username: "teacher",
+      password: this.hashPassword("teacher"),
+      email: "teacher@example.com",
+      role: "instructor",
+    }).returning();
+
+    // Create demo course
+    const [course] = await db.insert(courses).values({
+      title: "🎯 Demo Course - Web Development Basics",
+      description: "Learn the fundamentals of web development with HTML, CSS, and JavaScript. This demo course shows all LMS features.",
+      instructorId: teacher.id,
+      status: "published",
+      isPublic: true,
+      allowRegistration: true,
+    }).returning();
+
+    // Create demo chapter
+    const [chapter] = await db.insert(chapters).values({
+      title: "Introduction to Web Development",
+      description: "Getting started with the basics of web development",
+      courseId: course.id,
+      orderIndex: 0,
+    }).returning();
+
+    // Create demo lesson
+    const [lesson] = await db.insert(lessons).values({
+      title: "Welcome to Web Development",
+      content: `
+        <h2>Welcome to Web Development! 🚀</h2>
+        <p>In this lesson, you'll learn the <strong>fundamentals</strong> of web development.</p>
+        
+        <h3>What you'll learn:</h3>
+        <ul>
+          <li><strong>HTML</strong> - Structure of web pages</li>
+          <li><strong>CSS</strong> - Styling and layout</li>
+          <li><strong>JavaScript</strong> - Interactive functionality</li>
+        </ul>
+        
+        <h3>Key Concepts:</h3>
+        <blockquote>
+          <p><em>"The best way to learn web development is by building projects!"</em></p>
+        </blockquote>
+        
+        <p>Ready to start your journey? Let's begin with the basics!</p>
+      `,
+      videoUrl: "https://www.youtube.com/watch?v=UB1O30fR-EE",
+      assignment: "Create a simple HTML page with a heading, paragraph, and list. Practice what you learned in the video!",
+      chapterId: chapter.id,
+      orderIndex: 0,
+    }).returning();
+
+    // Create demo questions
+    await db.insert(questions).values([
+      {
+        lessonId: lesson.id,
+        question: "What does HTML stand for?",
+        options: ["HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Language", "Hyperlink and Text Markup Language"],
+        correctAnswer: 0,
+        orderIndex: 0,
+      },
+      {
+        lessonId: lesson.id,
+        question: "Which tag is used to create a paragraph in HTML?",
+        options: ["<p>", "<paragraph>", "<para>", "<text>"],
+        correctAnswer: 0,
+        orderIndex: 1,
+      }
+    ]);
+
+    // Create demo material
+    const [material] = await db.insert(materials).values({
+      title: "Web Development Cheat Sheet",
+      description: "A comprehensive cheat sheet for HTML, CSS, and JavaScript basics",
+      fileName: "web-dev-cheatsheet.pdf",
+      filePath: "/uploads/web-dev-cheatsheet.pdf",
+      fileSize: 1024000,
+      fileType: "application/pdf",
+    }).returning();
+
+    // Link material to lesson
+    await db.insert(lessonMaterials).values({
+      lessonId: lesson.id,
+      materialId: material.id,
+    });
+
+    // Set default system settings
+    await db.insert(systemSettings).values({
+      key: "allow_student_registration",
+      value: "true",
+    });
+  }
+
+  private hashPassword(password: string): string {
+    // Simple hash for demo purposes - in production use bcrypt
+    return Buffer.from(password).toString('base64');
+  }
+
+  private verifyPassword(password: string, hashedPassword: string): boolean {
+    return this.hashPassword(password) === hashedPassword;
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      password: this.hashPassword(insertUser.password),
+    }).returning();
+    return user;
+  }
+
+  async updateUserPassword(id: number, newPassword: string): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({ password: this.hashPassword(newPassword) })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async authenticateUser(username: string, password: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    if (user && this.verifyPassword(password, user.password)) {
+      return user;
+    }
+    return undefined;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getCourses(status?: string): Promise<CourseWithStats[]> {
+    const coursesData = await db.select().from(courses);
+    
+    const coursesWithStats: CourseWithStats[] = [];
+    for (const course of coursesData) {
+      const chaptersCount = await db.select().from(chapters).where(eq(chapters.courseId, course.id));
+      const lessonsCount = await db.select().from(lessons)
+        .innerJoin(chapters, eq(lessons.chapterId, chapters.id))
+        .where(eq(chapters.courseId, course.id));
+      const enrollmentsCount = await db.select().from(enrollments).where(eq(enrollments.courseId, course.id));
+      
+      coursesWithStats.push({
+        ...course,
+        chaptersCount: chaptersCount.length,
+        lessonsCount: lessonsCount.length,
+        studentsCount: enrollmentsCount.length,
+        averageProgress: 0, // TODO: Calculate actual average progress
+      });
+    }
+    
+    return status ? coursesWithStats.filter(c => c.status === status) : coursesWithStats;
+  }
+
+  async getPublicCourses(): Promise<CourseWithStats[]> {
+    const allCourses = await this.getCourses();
+    return allCourses.filter(course => course.status === "published" && course.isPublic);
+  }
+
+  async getCourse(id: number): Promise<Course | undefined> {
+    const [course] = await db.select().from(courses).where(eq(courses.id, id));
+    return course || undefined;
+  }
+
+  async getCourseWithChapters(id: number): Promise<Course & { chapters: ChapterWithLessons[] } | undefined> {
+    const course = await this.getCourse(id);
+    if (!course) return undefined;
+
+    const courseChapters = await db.select().from(chapters)
+      .where(eq(chapters.courseId, id))
+      .orderBy(chapters.orderIndex);
+
+    const chaptersWithLessons: ChapterWithLessons[] = [];
+    for (const chapter of courseChapters) {
+      const chapterLessons = await db.select().from(lessons)
+        .where(eq(lessons.chapterId, chapter.id))
+        .orderBy(lessons.orderIndex);
+      
+      chaptersWithLessons.push({
+        ...chapter,
+        lessons: chapterLessons,
+      });
+    }
+
+    return {
+      ...course,
+      chapters: chaptersWithLessons,
+    };
+  }
+
+  async createCourse(insertCourse: InsertCourse): Promise<Course> {
+    const [course] = await db.insert(courses).values(insertCourse).returning();
+    return course;
+  }
+
+  async updateCourse(id: number, updateData: Partial<InsertCourse>): Promise<Course | undefined> {
+    const [course] = await db.update(courses)
+      .set(updateData)
+      .where(eq(courses.id, id))
+      .returning();
+    return course || undefined;
+  }
+
+  async deleteCourse(id: number): Promise<boolean> {
+    const result = await db.delete(courses).where(eq(courses.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getChaptersByCourse(courseId: number): Promise<Chapter[]> {
+    return await db.select().from(chapters)
+      .where(eq(chapters.courseId, courseId))
+      .orderBy(chapters.orderIndex);
+  }
+
+  async getChapter(id: number): Promise<Chapter | undefined> {
+    const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
+    return chapter || undefined;
+  }
+
+  async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
+    const [chapter] = await db.insert(chapters).values(insertChapter).returning();
+    return chapter;
+  }
+
+  async updateChapter(id: number, updateData: Partial<InsertChapter>): Promise<Chapter | undefined> {
+    const [chapter] = await db.update(chapters)
+      .set(updateData)
+      .where(eq(chapters.id, id))
+      .returning();
+    return chapter || undefined;
+  }
+
+  async deleteChapter(id: number): Promise<boolean> {
+    const result = await db.delete(chapters).where(eq(chapters.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getLessonsByChapter(chapterId: number): Promise<Lesson[]> {
+    return await db.select().from(lessons)
+      .where(eq(lessons.chapterId, chapterId))
+      .orderBy(lessons.orderIndex);
+  }
+
+  async getLesson(id: number): Promise<Lesson | undefined> {
+    const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id));
+    return lesson || undefined;
+  }
+
+  async getLessonWithDetails(id: number): Promise<LessonWithDetails | undefined> {
+    const lesson = await this.getLesson(id);
+    if (!lesson) return undefined;
+
+    const lessonQuestions = await db.select().from(questions)
+      .where(eq(questions.lessonId, id))
+      .orderBy(questions.orderIndex);
+
+    const lessonMaterialsList = await db.select({
+      id: materials.id,
+      title: materials.title,
+      description: materials.description,
+      fileName: materials.fileName,
+      filePath: materials.filePath,
+      fileSize: materials.fileSize,
+      fileType: materials.fileType,
+      createdAt: materials.createdAt,
+    })
+    .from(materials)
+    .innerJoin(lessonMaterials, eq(materials.id, lessonMaterials.materialId))
+    .where(eq(lessonMaterials.lessonId, id));
+
+    return {
+      ...lesson,
+      questions: lessonQuestions,
+      materials: lessonMaterialsList,
+    };
+  }
+
+  async createLesson(insertLesson: InsertLesson): Promise<Lesson> {
+    const [lesson] = await db.insert(lessons).values(insertLesson).returning();
+    return lesson;
+  }
+
+  async updateLesson(id: number, updateData: Partial<InsertLesson>): Promise<Lesson | undefined> {
+    const [lesson] = await db.update(lessons)
+      .set(updateData)
+      .where(eq(lessons.id, id))
+      .returning();
+    return lesson || undefined;
+  }
+
+  async deleteLesson(id: number): Promise<boolean> {
+    const result = await db.delete(lessons).where(eq(lessons.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getQuestionsByLesson(lessonId: number): Promise<Question[]> {
+    return await db.select().from(questions)
+      .where(eq(questions.lessonId, lessonId))
+      .orderBy(questions.orderIndex);
+  }
+
+  async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
+    const [question] = await db.insert(questions).values(insertQuestion).returning();
+    return question;
+  }
+
+  async updateQuestion(id: number, updateData: Partial<InsertQuestion>): Promise<Question | undefined> {
+    const [question] = await db.update(questions)
+      .set(updateData)
+      .where(eq(questions.id, id))
+      .returning();
+    return question || undefined;
+  }
+
+  async deleteQuestion(id: number): Promise<boolean> {
+    const result = await db.delete(questions).where(eq(questions.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getMaterials(): Promise<Material[]> {
+    return await db.select().from(materials);
+  }
+
+  async getMaterial(id: number): Promise<Material | undefined> {
+    const [material] = await db.select().from(materials).where(eq(materials.id, id));
+    return material || undefined;
+  }
+
+  async getMaterialsByLesson(lessonId: number): Promise<Material[]> {
+    return await db.select({
+      id: materials.id,
+      title: materials.title,
+      description: materials.description,
+      fileName: materials.fileName,
+      filePath: materials.filePath,
+      fileSize: materials.fileSize,
+      fileType: materials.fileType,
+      createdAt: materials.createdAt,
+    })
+    .from(materials)
+    .innerJoin(lessonMaterials, eq(materials.id, lessonMaterials.materialId))
+    .where(eq(lessonMaterials.lessonId, lessonId));
+  }
+
+  async createMaterial(insertMaterial: InsertMaterial): Promise<Material> {
+    const [material] = await db.insert(materials).values(insertMaterial).returning();
+    return material;
+  }
+
+  async linkMaterialToLesson(materialId: number, lessonId: number): Promise<boolean> {
+    try {
+      await db.insert(lessonMaterials).values({ materialId, lessonId });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async unlinkMaterialFromLesson(materialId: number, lessonId: number): Promise<boolean> {
+    const result = await db.delete(lessonMaterials)
+      .where(and(
+        eq(lessonMaterials.materialId, materialId),
+        eq(lessonMaterials.lessonId, lessonId)
+      ));
+    return result.rowCount > 0;
+  }
+
+  async deleteMaterial(id: number): Promise<boolean> {
+    const result = await db.delete(materials).where(eq(materials.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getEnrollmentsByCourse(courseId: number): Promise<Enrollment[]> {
+    return await db.select().from(enrollments).where(eq(enrollments.courseId, courseId));
+  }
+
+  async getEnrollmentsByStudent(studentId: number): Promise<Enrollment[]> {
+    return await db.select().from(enrollments).where(eq(enrollments.studentId, studentId));
+  }
+
+  async createEnrollment(insertEnrollment: InsertEnrollment): Promise<Enrollment> {
+    const [enrollment] = await db.insert(enrollments).values(insertEnrollment).returning();
+    return enrollment;
+  }
+
+  async updateEnrollmentProgress(id: number, progress: number): Promise<Enrollment | undefined> {
+    const [enrollment] = await db.update(enrollments)
+      .set({ progress })
+      .where(eq(enrollments.id, id))
+      .returning();
+    return enrollment || undefined;
+  }
+
+  async getStudentProgress(studentId: number, lessonId: number): Promise<StudentProgress | undefined> {
+    const [progress] = await db.select().from(studentProgress)
+      .where(and(
+        eq(studentProgress.studentId, studentId),
+        eq(studentProgress.lessonId, lessonId)
+      ));
+    return progress || undefined;
+  }
+
+  async updateStudentProgress(insertProgress: InsertStudentProgress): Promise<StudentProgress> {
+    const existing = await this.getStudentProgress(insertProgress.studentId, insertProgress.lessonId);
+    
+    if (existing) {
+      const [progress] = await db.update(studentProgress)
+        .set(insertProgress)
+        .where(and(
+          eq(studentProgress.studentId, insertProgress.studentId),
+          eq(studentProgress.lessonId, insertProgress.lessonId)
+        ))
+        .returning();
+      return progress;
+    } else {
+      const [progress] = await db.insert(studentProgress).values(insertProgress).returning();
+      return progress;
+    }
+  }
+
+  async getStudentProgressByCourse(studentId: number, courseId: number): Promise<StudentProgress[]> {
+    return await db.select()
+      .from(studentProgress)
+      .innerJoin(lessons, eq(studentProgress.lessonId, lessons.id))
+      .innerJoin(chapters, eq(lessons.chapterId, chapters.id))
+      .where(and(
+        eq(studentProgress.studentId, studentId),
+        eq(chapters.courseId, courseId)
+      ));
+  }
+
+  async getSystemSetting(key: string): Promise<string | undefined> {
+    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    return setting?.value || undefined;
+  }
+
+  async setSystemSetting(key: string, value: string): Promise<void> {
+    const existing = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    
+    if (existing.length > 0) {
+      await db.update(systemSettings)
+        .set({ value })
+        .where(eq(systemSettings.key, key));
+    } else {
+      await db.insert(systemSettings).values({ key, value });
+    }
+  }
+}
+
+export const storage = new DatabaseStorage();
