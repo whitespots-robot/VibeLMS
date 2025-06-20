@@ -169,6 +169,38 @@ export default function LessonPreviewModal({ lesson, isOpen, onClose }: LessonPr
             </div>
           )}
 
+          {/* Materials */}
+          {lessonDetails?.materials && lessonDetails.materials.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-semibold text-slate-800">Downloadable Materials</span>
+              </div>
+              <div className="space-y-3">
+                {lessonDetails.materials.map((material) => (
+                  <div key={material.id} className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-slate-200/60">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-slate-900">{material.title}</h4>
+                          <p className="text-sm text-slate-600">{material.fileName}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+                        Preview
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Assignment */}
           {lesson.assignment && (
             <div className="space-y-4">

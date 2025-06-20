@@ -195,6 +195,7 @@ export class MemStorage implements IStorage {
       filePath: "./demo/web-dev-cheatsheet.txt",
       fileType: "text/plain",
       fileSize: 512,
+      uploadedBy: 1,
       createdAt: new Date(),
     };
     this.materials.set(1, demoMaterial);
