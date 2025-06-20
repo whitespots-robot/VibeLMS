@@ -474,30 +474,52 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
             <h4 className="text-sm font-semibold text-neutral-700 mb-4">Preview</h4>
             <div className="space-y-4">
               {/* Video Preview */}
-              {contentTypes.video && lessonData.videoUrl && (
-                <div className="bg-black rounded-lg aspect-video flex items-center justify-center">
-                  {embedUrl ? (
-                    <iframe
-                      src={embedUrl}
-                      className="w-full h-full rounded-lg"
-                      allowFullScreen
-                      title="YouTube video preview"
-                    />
+              {contentTypes.video && (
+                <div>
+                  <h5 className="text-sm font-medium text-neutral-700 mb-2">Video</h5>
+                  {lessonData.videoUrl ? (
+                    <div className="bg-black rounded-lg aspect-video flex items-center justify-center">
+                      {embedUrl ? (
+                        <iframe
+                          src={embedUrl}
+                          className="w-full h-full rounded-lg"
+                          allowFullScreen
+                          title="YouTube video preview"
+                        />
+                      ) : (
+                        <div className="text-center text-white">
+                          <Play className="w-12 h-12 mx-auto mb-2 opacity-70" />
+                          <p className="text-xs opacity-70">Invalid YouTube URL</p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    <Play className="w-12 h-12 text-white opacity-70" />
+                    <div className="bg-neutral-200 rounded-lg aspect-video flex items-center justify-center">
+                      <div className="text-center text-neutral-500">
+                        <Play className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-xs">Enter YouTube URL above</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* Content Preview */}
-              {contentTypes.text && lessonData.content && (
-                <div 
-                  className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: lessonData.content }}
-                />
+              {contentTypes.text && (
+                <div>
+                  <h5 className="text-sm font-medium text-neutral-700 mb-2">Text Content</h5>
+                  {lessonData.content ? (
+                    <div 
+                      className="text-sm text-neutral-700 leading-relaxed prose prose-sm max-w-none bg-white p-3 rounded border"
+                      dangerouslySetInnerHTML={{ __html: lessonData.content }}
+                    />
+                  ) : (
+                    <div className="bg-neutral-100 p-3 rounded border text-center text-neutral-500">
+                      <p className="text-xs">Use the rich text editor on the left to add content</p>
+                    </div>
+                  )}
+                </div>
               )}
-
-
 
               {/* Assignment Preview */}
               {lessonData.assignment && (
