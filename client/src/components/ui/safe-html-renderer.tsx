@@ -21,11 +21,22 @@ function htmlToMarkdown(html: string): string {
     .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
     .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
     .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
-    // Handle code blocks first (before inline code)
-    .replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gi, '```\n$1\n```\n')
-    .replace(/<pre[^>]*>(.*?)<\/pre>/gi, '```\n$1\n```\n')
-    // Handle inline code
-    .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
+    // Handle code blocks first (before inline code) - remove nested tags
+    .replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gis, (match, content) => {
+      // Strip HTML tags from inside code blocks
+      const cleanContent = content.replace(/<[^>]*>/g, '');
+      return `\`\`\`\n${cleanContent}\n\`\`\`\n`;
+    })
+    .replace(/<pre[^>]*>(.*?)<\/pre>/gis, (match, content) => {
+      // Strip HTML tags from inside pre blocks
+      const cleanContent = content.replace(/<[^>]*>/g, '');
+      return `\`\`\`\n${cleanContent}\n\`\`\`\n`;
+    })
+    // Handle inline code - also strip nested tags
+    .replace(/<code[^>]*>(.*?)<\/code>/gi, (match, content) => {
+      const cleanContent = content.replace(/<[^>]*>/g, '');
+      return `\`${cleanContent}\``;
+    })
     .replace(/<ul[^>]*>(.*?)<\/ul>/gi, (match, content) => {
       return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
     })
