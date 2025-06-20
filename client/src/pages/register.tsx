@@ -125,8 +125,15 @@ export default function Register() {
                     <FormControl>
                       <Input type="password" placeholder="Create a password" {...field} />
                     </FormControl>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Password must contain at least 8 characters, including uppercase, lowercase, number, and special character
+                    <div className="text-xs mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="text-blue-700 font-medium mb-1">Password requirements:</div>
+                      <ul className="text-blue-600 space-y-0.5">
+                        <li>• At least 8 characters</li>
+                        <li>• One uppercase letter (A-Z)</li>
+                        <li>• One lowercase letter (a-z)</li>
+                        <li>• One number (0-9)</li>
+                        <li>• One special character (!@#$%^&*)</li>
+                      </ul>
                     </div>
                     <FormMessage />
                   </FormItem>

@@ -291,8 +291,15 @@ export default function UserManagement() {
                     <FormControl>
                       <Input type="password" placeholder="Teacher password" {...field} />
                     </FormControl>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Must be 8+ characters with uppercase, lowercase, number, and special character
+                    <div className="text-xs mt-2 p-2 bg-purple-50 border border-purple-200 rounded-md">
+                      <div className="text-purple-700 font-medium mb-1">Password requirements:</div>
+                      <ul className="text-purple-600 space-y-0.5">
+                        <li>• At least 8 characters</li>
+                        <li>• One uppercase letter (A-Z)</li>
+                        <li>• One lowercase letter (a-z)</li>
+                        <li>• One number (0-9)</li>
+                        <li>• One special character (!@#$%^&*)</li>
+                      </ul>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -351,8 +358,15 @@ export default function UserManagement() {
                     <FormControl>
                       <Input type="password" placeholder="Enter new password" {...field} />
                     </FormControl>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Must be 8+ characters with uppercase, lowercase, number, and special character
+                    <div className="text-xs mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-md">
+                      <div className="text-indigo-700 font-medium mb-1">Password requirements:</div>
+                      <ul className="text-indigo-600 space-y-0.5">
+                        <li>• At least 8 characters</li>
+                        <li>• One uppercase letter (A-Z)</li>
+                        <li>• One lowercase letter (a-z)</li>
+                        <li>• One number (0-9)</li>
+                        <li>• One special character (!@#$%^&*)</li>
+                      </ul>
                     </div>
                     <FormMessage />
                   </FormItem>
