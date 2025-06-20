@@ -649,17 +649,17 @@ export default function CourseLearning() {
       {/* Congratulations Modal */}
       {showCongratulations && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
-          <Card className="max-w-md mx-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 shadow-2xl">
+          <Card className="max-w-md mx-4 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 shadow-2xl">
             <CardContent className="p-8 text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trophy className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Congratulations!</h2>
                 <div className="flex items-center justify-center mb-4">
-                  <PartyPopper className="w-5 h-5 text-orange-500 mr-2" />
-                  <span className="text-lg font-semibold text-orange-700">Course Complete!</span>
-                  <PartyPopper className="w-5 h-5 text-orange-500 ml-2" />
+                  <PartyPopper className="w-5 h-5 text-purple-500 mr-2" />
+                  <span className="text-lg font-semibold text-purple-700">Course Complete!</span>
+                  <PartyPopper className="w-5 h-5 text-purple-500 ml-2" />
                 </div>
               </div>
               
@@ -682,7 +682,7 @@ export default function CourseLearning() {
                   setShowCongratulations(false);
                   setLocation("/learning");
                 }}
-                className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white"
               >
                 Go to Courses
               </Button>
