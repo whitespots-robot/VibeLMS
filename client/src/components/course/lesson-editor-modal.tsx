@@ -252,22 +252,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl w-full max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
-              <Button 
-                onClick={saveLesson}
-                disabled={updateLessonMutation.isPending}
-                className="btn-primary"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-            <div className="pr-8">
-              {/* This empty div creates space from the close button */}
-            </div>
-          </div>
+          <DialogTitle>Edit Lesson: {lesson.title}</DialogTitle>
         </DialogHeader>
 
         <div className="flex h-full max-h-[80vh]">
@@ -506,8 +491,9 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                           size="sm"
                           variant="ghost"
                           onClick={() => unlinkMaterialMutation.mutate(material.id)}
+                          className="bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-600 border-red-300"
                         >
-                          <Unlink className="w-4 h-4 text-red-500" />
+                          <Unlink className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
@@ -583,16 +569,21 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
         {/* Modal Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200 bg-white">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={onClose}>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 border-gray-300"
+            >
               Cancel
             </Button>
           </div>
           <Button
-            onClick={handleSave}
+            onClick={saveLesson}
             disabled={updateLessonMutation.isPending}
-            className="bg-primary text-white hover:bg-blue-600"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
           >
-            {updateLessonMutation.isPending ? "Saving..." : "Save Lesson"}
+            <Save className="w-4 h-4 mr-2" />
+            {updateLessonMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </DialogContent>
