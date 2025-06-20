@@ -48,7 +48,6 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
   const [contentTypes, setContentTypes] = useState({
     video: !!lesson.videoUrl,
     text: !!lesson.content,
-    code: !!lesson.codeExample,
   });
 
   const [questions, setQuestions] = useState<QuestionForm[]>([]);
@@ -183,8 +182,6 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
       ...lessonData,
       videoUrl: contentTypes.video ? lessonData.videoUrl : null,
       content: contentTypes.text ? lessonData.content : null,
-      codeExample: contentTypes.code ? lessonData.codeExample : null,
-      codeLanguage: contentTypes.code ? lessonData.codeLanguage : null,
     });
   };
 
@@ -295,16 +292,7 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                         />
                         <Label htmlFor="text" className="text-sm">Text</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="code"
-                          checked={contentTypes.code}
-                          onCheckedChange={(checked) => 
-                            setContentTypes({ ...contentTypes, code: !!checked })
-                          }
-                        />
-                        <Label htmlFor="code" className="text-sm">Code Example</Label>
-                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -333,40 +321,6 @@ export default function LessonEditorModal({ lesson, isOpen, onClose }: LessonEdi
                         onChange={(content) => setLessonData({ ...lessonData, content })}
                         placeholder="Write your lesson content here... Use the toolbar above for formatting options."
                         className="min-h-[300px]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Code Example */}
-                {contentTypes.code && (
-                  <div>
-                    <Label className="text-sm font-medium text-neutral-700">Code Example</Label>
-                    <div className="mt-1 border border-neutral-300 rounded-lg overflow-hidden">
-                      <div className="px-3 py-2 bg-neutral-800 text-neutral-200 text-sm flex items-center justify-between">
-                        <Select 
-                          value={lessonData.codeLanguage} 
-                          onValueChange={(value) => setLessonData({ ...lessonData, codeLanguage: value })}
-                        >
-                          <SelectTrigger className="bg-neutral-700 border-none text-neutral-200 text-xs w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="javascript">JavaScript</SelectItem>
-                            <SelectItem value="html">HTML</SelectItem>
-                            <SelectItem value="css">CSS</SelectItem>
-                            <SelectItem value="python">Python</SelectItem>
-                            <SelectItem value="java">Java</SelectItem>
-                            <SelectItem value="typescript">TypeScript</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Textarea
-                        rows={8}
-                        className="bg-neutral-900 text-green-400 font-mono text-sm border-none resize-none focus:ring-0"
-                        placeholder="// Your code example here"
-                        value={lessonData.codeExample}
-                        onChange={(e) => setLessonData({ ...lessonData, codeExample: e.target.value })}
                       />
                     </div>
                   </div>
