@@ -462,6 +462,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Material not found" });
       }
 
+      // For demo material, generate a sample PDF content
+      if (material.fileName === "web-dev-cheatsheet.pdf") {
+        const pdfContent = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 100
+>>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(Web Development Cheat Sheet) Tj
+100 650 Td
+(HTML - Structure) Tj
+100 600 Td
+(CSS - Styling) Tj
+100 550 Td
+(JavaScript - Functionality) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000274 00000 n 
+0000000423 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+489
+%%EOF`;
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
+        res.send(Buffer.from(pdfContent));
+        return;
+      }
+
       if (!fs.existsSync(material.filePath)) {
         return res.status(404).json({ message: "File not found" });
       }
