@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, FolderOpen, BarChart3, Download, User } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, FolderOpen, BarChart3, Download, User, Play } from "lucide-react";
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'My Courses', href: '/courses', icon: BookOpen },
+  { name: 'Start Learning', href: '/learning', icon: Play },
   { name: 'Students', href: '/students', icon: Users },
   { name: 'Materials', href: '/materials', icon: FolderOpen },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

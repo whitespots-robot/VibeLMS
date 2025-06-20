@@ -37,7 +37,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Course routes
   app.get("/api/courses", async (req, res) => {
     try {
-      const courses = await storage.getCourses();
+      const status = req.query.status as string;
+      const courses = await storage.getCourses(status);
       res.json(courses);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch courses" });
@@ -345,6 +346,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(enrollments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch enrollments" });
+    }
+  });
+
+  app.get("/api/enrollments/student/:studentId", async (req, res) => {
+    try {
+      const studentId = parseInt(req.params.studentId);
+      const enrollments = await storage.getEnrollmentsByStudent(studentId);
+      res.json(enrollments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch student enrollments" });
     }
   });
 

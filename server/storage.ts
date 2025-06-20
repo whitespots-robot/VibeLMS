@@ -18,7 +18,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   // Course operations
-  getCourses(): Promise<CourseWithStats[]>;
+  getCourses(status?: string): Promise<CourseWithStats[]>;
   getCourse(id: number): Promise<Course | undefined>;
   getCourseWithChapters(id: number): Promise<Course & { chapters: ChapterWithLessons[] } | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;

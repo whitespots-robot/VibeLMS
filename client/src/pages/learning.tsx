@@ -57,7 +57,7 @@ export default function Learning() {
   };
 
   const confirmEnrollment = () => {
-    if (selectedCourse) {
+    if (selectedCourse?.id) {
       enrollMutation.mutate(selectedCourse.id);
     }
   };
@@ -105,13 +105,13 @@ export default function Learning() {
                         <div className="flex items-center justify-between">
                           <Badge className="bg-green-100 text-green-800">In Progress</Badge>
                           <div className="text-sm text-slate-500">
-                            {Math.round(enrollment.progress)}% Complete
+                            {Math.round(enrollment.progress || 0)}% Complete
                           </div>
                         </div>
                         <CardTitle className="text-lg">{course.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <Progress value={enrollment.progress} className="mb-4" />
+                        <Progress value={enrollment.progress || 0} className="mb-4" />
                         <div className="flex items-center justify-between text-sm text-slate-600 mb-4">
                           <span>{course.chaptersCount} Chapters</span>
                           <span>{course.lessonsCount} Lessons</span>
