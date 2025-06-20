@@ -1,19 +1,51 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, FolderOpen, BarChart3, Download, User, Play } from "lucide-react";
+import { 
+  GraduationCap, LayoutDashboard, BookOpen, Users, FolderOpen, 
+  BarChart3, Download, User, Play, Settings, LogOut 
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'My Courses', href: '/courses', icon: BookOpen },
-  { name: 'Start Learning', href: '/learning', icon: Play },
-  { name: 'Students', href: '/students', icon: Users },
-  { name: 'Materials', href: '/materials', icon: FolderOpen },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Export', href: '/export', icon: Download },
-];
+const getNavigation = (userRole: string | null) => {
+  const baseNavigation = [
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  ];
+
+  if (userRole === 'instructor') {
+    return [
+      ...baseNavigation,
+      { name: 'My Courses', href: '/courses', icon: BookOpen },
+      { name: 'Students', href: '/students', icon: Users },
+      { name: 'Materials', href: '/materials', icon: FolderOpen },
+      { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+      { name: 'Export', href: '/export', icon: Download },
+      { name: 'User Management', href: '/users', icon: Settings },
+    ];
+  } else {
+    return [
+      ...baseNavigation,
+      { name: 'Start Learning', href: '/learning', icon: Play },
+    ];
+  }
+};
 
 export default function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // Get current user from localStorage
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const navigation = getNavigation(currentUser?.role || null);
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    setLocation("/login");
+  };
 
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
@@ -27,6 +59,21 @@ export default function Sidebar() {
             <span className="ml-2 text-lg font-semibold text-white">Vibe LMS</span>
           </div>
         </div>
+
+        {/* User Info */}
+        {currentUser && (
+          <div className="px-4 py-3 border-b border-slate-700">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-white">{currentUser.username}</p>
+                <p className="text-xs text-slate-300 capitalize">{currentUser.role}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
@@ -50,18 +97,19 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* User Profile */}
-        <div className="border-t border-slate-700 p-4">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-white">John Educator</p>
-              <p className="text-xs text-slate-300">Instructor</p>
-            </div>
+        {/* Logout */}
+        {currentUser && (
+          <div className="border-t border-slate-700 p-4">
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
+            >
+              <LogOut className="mr-3 w-4 h-4" />
+              Logout
+            </Button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

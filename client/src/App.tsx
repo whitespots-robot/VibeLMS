@@ -13,6 +13,9 @@ import Materials from "@/pages/materials";
 import Students from "@/pages/students";
 import Export from "@/pages/export";
 import Analytics from "@/pages/analytics";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import UserManagement from "@/pages/user-management";
 import Sidebar from "@/components/layout/sidebar";
 
 function Router() {
@@ -21,7 +24,10 @@ function Router() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Switch>
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/courses" component={Courses} />
           <Route path="/courses/:id/edit" component={CourseEditor} />
           <Route path="/learning" component={Learning} />
@@ -30,6 +36,7 @@ function Router() {
           <Route path="/students" component={Students} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/export" component={Export} />
+          <Route path="/users" component={UserManagement} />
           <Route component={NotFound} />
         </Switch>
       </div>

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Users, Key, Shield } from "lucide-react";
+import type { User } from "@shared/schema";
 
 const teacherRegistrationSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -39,7 +40,7 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const { toast } = useToast();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
 
@@ -116,7 +117,7 @@ export default function UserManagement() {
     changePasswordMutation.mutate(data);
   };
 
-  const openPasswordDialog = (user: any) => {
+  const openPasswordDialog = (user: User) => {
     setSelectedUser(user);
     passwordForm.setValue("userId", user.id);
     setIsPasswordDialogOpen(true);
