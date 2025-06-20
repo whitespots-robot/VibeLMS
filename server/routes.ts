@@ -11,6 +11,26 @@ import path from "path";
 import fs from "fs";
 import JSZip from "jszip";
 
+// Security utility functions
+function sanitizeFilename(filename: string): string {
+  // Remove path traversal patterns and special characters
+  return filename
+    .replace(/[\.\/\\:*?"<>|]/g, '_')  // Replace dangerous chars with underscore
+    .replace(/^\.+/, '')  // Remove leading dots
+    .replace(/\s+/g, '_')  // Replace spaces with underscore
+    .toLowerCase()
+    .slice(0, 100);  // Limit length
+}
+
+function isValidPath(filePath: string): boolean {
+  const normalizedPath = path.normalize(filePath);
+  const uploadsDir = path.resolve('./uploads');
+  const resolvedPath = path.resolve(normalizedPath);
+  
+  // Ensure the path is within the uploads directory
+  return resolvedPath.startsWith(uploadsDir);
+}
+
 // Configure multer for file uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -23,12 +43,27 @@ const upload = multer({
       cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
+      const sanitizedName = sanitizeFilename(file.originalname);
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
+      const ext = path.extname(file.originalname).toLowerCase();
+      const filename = `${sanitizedName}_${uniqueSuffix}${ext}`;
+      cb(null, filename);
     }
   }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow only specific file types
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|md/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images, PDFs, and documents are allowed'));
+    }
   }
 });
 
@@ -439,8 +474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const materialData = {
-        title: req.body.title || req.file.originalname,
-        fileName: req.file.originalname,
+        title: req.body.title || sanitizeFilename(req.file.originalname),
+        fileName: sanitizeFilename(req.file.originalname),
         filePath: req.file.path,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
@@ -460,6 +495,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const material = await storage.getMaterial(id);
       if (!material) {
         return res.status(404).json({ message: "Material not found" });
+      }
+
+      // Validate file path for security
+      if (!isValidPath(material.filePath)) {
+        return res.status(403).json({ message: "Access denied: Invalid file path" });
       }
 
       // For demo material, generate a sample PDF content
