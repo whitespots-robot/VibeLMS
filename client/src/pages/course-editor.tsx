@@ -256,7 +256,7 @@ export default function CourseEditor() {
                                   </div>
                                   {lesson.content && (
                                     <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
-                                      {lesson.content.substring(0, 100)}...
+                                      {lesson.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
                                     </p>
                                   )}
                                 </div>

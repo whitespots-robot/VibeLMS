@@ -86,13 +86,10 @@ export default function LessonPreviewModal({ lesson, isOpen, onClose }: LessonPr
           {lesson.content && (
             <div className="space-y-4">
               <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-lg border border-slate-200/60">
-                <div className="prose prose-lg max-w-none text-slate-700">
-                  {lesson.content.split('\n').map((paragraph, index) => (
-                    <p key={index} className="mb-4 last:mb-0 leading-relaxed text-slate-700">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
+                <div 
+                  className="prose prose-lg max-w-none text-slate-700"
+                  dangerouslySetInnerHTML={{ __html: lesson.content }}
+                />
               </div>
             </div>
           )}
