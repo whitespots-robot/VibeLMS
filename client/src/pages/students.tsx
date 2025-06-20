@@ -1,8 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, TrendingUp, Clock } from "lucide-react";
 
 export default function Students() {
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+  });
+
+  const { data: enrollments } = useQuery({
+    queryKey: ['/api/enrollments'],
+  });
+
+  const totalStudents = (dashboardStats as any)?.activeStudents || 0;
+  const activeEnrollments = (enrollments as any)?.length || 0;
+  const avgProgress = (dashboardStats as any)?.assignments || 0;
+
   return (
     <>
       <Topbar title="Students" />
@@ -13,12 +26,12 @@ export default function Students() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-primary rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
                     <Users className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Total Students</p>
-                    <p className="text-2xl font-semibold text-neutral-900">248</p>
+                    <p className="text-2xl font-semibold text-neutral-900">{totalStudents}</p>
                   </div>
                 </div>
               </CardContent>
@@ -27,12 +40,12 @@ export default function Students() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-secondary rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
                     <BookOpen className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Active Enrollments</p>
-                    <p className="text-2xl font-semibold text-neutral-900">186</p>
+                    <p className="text-2xl font-semibold text-neutral-900">{activeEnrollments}</p>
                   </div>
                 </div>
               </CardContent>
@@ -41,12 +54,12 @@ export default function Students() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-accent rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg">
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Avg. Progress</p>
-                    <p className="text-2xl font-semibold text-neutral-900">68%</p>
+                    <p className="text-2xl font-semibold text-neutral-900">{avgProgress}%</p>
                   </div>
                 </div>
               </CardContent>
@@ -55,12 +68,12 @@ export default function Students() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-purple-500 rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Completions</p>
-                    <p className="text-2xl font-semibold text-neutral-900">42</p>
+                    <p className="text-2xl font-semibold text-neutral-900">0</p>
                   </div>
                 </div>
               </CardContent>
