@@ -47,6 +47,12 @@ export default function CourseLearning() {
     enabled: !!currentLessonId,
   });
 
+  const { data: registrationAllowed = true } = useQuery({
+    queryKey: ["/api/settings/allow_student_registration"],
+    select: (data: { value: string | null }) => data.value !== "false",
+    enabled: isPreviewMode,
+  });
+
   // Auto-select first lesson when course loads
   useEffect(() => {
     if (course?.chapters?.[0]?.lessons?.[0] && !currentLessonId) {
@@ -188,7 +194,12 @@ export default function CourseLearning() {
               <Button variant="outline" onClick={() => setLocation("/")}>
                 Back to Courses
               </Button>
-              <Button className="btn-primary" onClick={() => setLocation("/")}>
+              <Button 
+                className="btn-primary" 
+                onClick={() => setLocation("/")}
+                disabled={!registrationAllowed}
+                title={!registrationAllowed ? "Student registration is currently disabled" : undefined}
+              >
                 Register to Enroll
               </Button>
             </div>
