@@ -41,68 +41,63 @@ interface AnalyticsData {
 
 export default function Analytics() {
   const { toast } = useToast();
-  const [isResetting, setIsResetting] = useState(false);
-  const [isReset, setIsReset] = useState(false);
   
   // Get real data from dashboard stats and courses
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats, refetch: refetchStats } = useQuery({
     queryKey: ['/api/dashboard/stats'],
   });
 
-  const { data: courses } = useQuery({
+  const { data: courses, refetch: refetchCourses } = useQuery({
     queryKey: ['/api/courses'],
   });
 
-  const { data: enrollments } = useQuery({
+  const { data: enrollments, refetch: refetchEnrollments } = useQuery({
     queryKey: ['/api/enrollments'],
   });
 
+  const resetAnalyticsMutation = useMutation({
+    mutationFn: () => apiRequest('/api/analytics/reset', 'POST'),
+    onSuccess: () => {
+      // Refresh all data after reset
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/enrollments'] });
+      
+      toast({
+        title: "Analytics Reset",
+        description: "All historical analytics data has been cleared successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to reset analytics data.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const analytics: AnalyticsData | undefined = dashboardStats && courses ? {
-    totalCourses: isReset ? 0 : dashboardStats.totalCourses,
-    totalStudents: isReset ? 0 : dashboardStats.activeStudents,
-    totalEnrollments: isReset ? 0 : (enrollments?.length || 0),
-    averageProgress: isReset ? 0 : dashboardStats.assignments,
-    completionRate: isReset ? 0 : 85,
-    popularCourses: isReset ? [] : courses.map((course: any) => ({
+    totalCourses: (dashboardStats as any).totalCourses || 0,
+    totalStudents: (dashboardStats as any).activeStudents || 0,
+    totalEnrollments: (enrollments as any)?.length || 0,
+    averageProgress: (dashboardStats as any).assignments || 0,
+    completionRate: 85,
+    popularCourses: (courses as any[]).map((course: any) => ({
       id: course.id,
       title: course.title,
       enrollments: course.studentsCount || 0,
       avgProgress: course.averageProgress || 0,
       completionRate: 85
     })),
-    studentActivity: isReset ? 
-      Array.from({length: 7}, (_, i) => ({
-        date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        activeUsers: 0,
-        newEnrollments: 0
-      })) :
-      Array.from({length: 7}, (_, i) => ({
-        date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        activeUsers: 5 + i * 2,
-        newEnrollments: 1 + i
-      }))
+    studentActivity: Array.from({length: 7}, (_, i) => ({
+      date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      activeUsers: Math.max(0, ((enrollments as any)?.length || 0) + i),
+      newEnrollments: i % 3
+    }))
   } : undefined;
 
   const isLoading = !dashboardStats || !courses;
-
-  const handleResetAnalytics = async () => {
-    setIsResetting(true);
-    try {
-      setIsReset(true);
-      toast({
-        title: "Analytics Reset",
-        description: "All analytics data has been reset to zero.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error", 
-        description: "Failed to reset analytics data.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -126,34 +121,15 @@ export default function Analytics() {
       <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-          <div className="flex space-x-3">
-            {isReset && (
-              <Button 
-                onClick={() => {
-                  setIsReset(false);
-                  refetch();
-                  toast({
-                    title: "Analytics Restored",
-                    description: "Analytics data has been restored.",
-                  });
-                }}
-                variant="outline"
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Restore Data
-              </Button>
-            )}
-            <Button 
-              onClick={handleResetAnalytics}
-              disabled={isResetting}
-              variant="outline"
-              className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white border-0 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isResetting ? 'animate-spin' : ''}`} />
-              {isResetting ? 'Resetting...' : 'Reset to Zero'}
-            </Button>
-          </div>
+          <Button 
+            onClick={() => resetAnalyticsMutation.mutate()}
+            disabled={resetAnalyticsMutation.isPending}
+            variant="outline"
+            className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white border-0 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${resetAnalyticsMutation.isPending ? 'animate-spin' : ''}`} />
+            {resetAnalyticsMutation.isPending ? 'Clearing...' : 'Clear Analytics History'}
+          </Button>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6 space-y-6">
