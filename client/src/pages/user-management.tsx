@@ -168,13 +168,13 @@ export default function UserManagement() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
                     <Users className="w-5 h-5 text-white" />
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Students</p>
                     <p className="text-2xl font-semibold text-neutral-900">
-                      {users.filter((user: any) => user.role === "student").length}
+                      {users.filter((user) => user.role === "student").length}
                     </p>
                   </div>
                 </div>
@@ -290,7 +290,7 @@ export default function UserManagement() {
                 <Button 
                   type="submit" 
                   disabled={registerTeacherMutation.isPending}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
                   {registerTeacherMutation.isPending ? "Creating..." : "Create Teacher Account"}
                 </Button>
@@ -361,7 +361,7 @@ export default function UserManagement() {
                 <Button 
                   type="submit" 
                   disabled={changePasswordMutation.isPending}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
                   {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
                 </Button>
