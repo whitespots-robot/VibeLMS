@@ -234,6 +234,19 @@ export default function CourseLearning() {
               {/* Lesson Content */}
               <div className="space-y-8">
                 
+                {/* Empty lesson warning */}
+                {!embedUrl && !currentLesson.content && !currentLesson.codeExample && !currentLesson.assignment && (!currentLesson.questions || currentLesson.questions.length === 0) && (
+                  <Card className="bg-yellow-50 border-yellow-200">
+                    <CardContent className="p-6 text-center">
+                      <FileText className="w-12 h-12 mx-auto text-yellow-500 mb-4" />
+                      <h3 className="text-lg font-semibold text-yellow-800 mb-2">Empty Lesson</h3>
+                      <p className="text-yellow-700">
+                        This lesson doesn't have any content yet. Add videos, text, code examples, or assignments in the course editor.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+                
                 {/* Video Content */}
                 {embedUrl && (
                   <Card>
