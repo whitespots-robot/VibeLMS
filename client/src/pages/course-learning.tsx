@@ -167,7 +167,7 @@ export default function CourseLearning() {
 
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto">
-          {currentLesson ? (
+          {currentLessonId && currentLesson ? (
             <div className="p-6 max-w-4xl mx-auto">
               
               {/* Lesson Header */}
@@ -415,6 +415,14 @@ export default function CourseLearning() {
                   </CardContent>
                 </Card>
 
+              </div>
+            </div>
+          ) : currentLessonId ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <BookOpen className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+                <h3 className="text-xl font-semibold text-slate-600 mb-2">Loading lesson...</h3>
+                <p className="text-slate-500">Please wait while we load the lesson content.</p>
               </div>
             </div>
           ) : (
