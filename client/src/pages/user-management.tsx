@@ -48,10 +48,23 @@ export default function UserManagement() {
   const [isTeacherDialogOpen, setIsTeacherDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [allowStudentRegistration, setAllowStudentRegistration] = useState(true);
   const { toast } = useToast();
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
+  });
+
+  const { data: registrationSetting } = useQuery({
+    queryKey: ["/api/settings", "allow_student_registration"],
+    select: (data: { value: string | null }) => data.value !== "false",
+  });
+
+  // Update local state when setting loads
+  useState(() => {
+    if (registrationSetting !== undefined) {
+      setAllowStudentRegistration(registrationSetting);
+    }
   });
 
   const teacherForm = useForm<TeacherRegistrationForm>({
@@ -114,6 +127,29 @@ export default function UserManagement() {
       toast({
         title: "Error",
         description: error.message || "Failed to change password",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
+      return apiRequest(`/api/settings/${key}`, {
+        method: "PUT",
+        body: { value },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      toast({
+        title: "Success",
+        description: "Setting updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update setting",
         variant: "destructive",
       });
     },
