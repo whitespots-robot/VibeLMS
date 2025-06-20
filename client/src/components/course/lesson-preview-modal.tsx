@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
+import SafeHtmlRenderer from "@/components/ui/safe-html-renderer";
 import { X, Play, FileText, Code, BookOpen, Eye, HelpCircle, CheckCircle2 } from "lucide-react";
 import type { Lesson, LessonWithDetails } from "@shared/schema";
 
@@ -86,9 +87,10 @@ export default function LessonPreviewModal({ lesson, isOpen, onClose }: LessonPr
           {lesson.content && (
             <div className="space-y-4">
               <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-lg border border-slate-200/60">
-                <div className="prose prose-lg max-w-none text-slate-700 whitespace-pre-wrap">
-                  {lesson.content}
-                </div>
+                <SafeHtmlRenderer 
+                  content={lesson.content}
+                  className="text-slate-700"
+                />
               </div>
             </div>
           )}

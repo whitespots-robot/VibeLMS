@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import SafeHtmlRenderer from "@/components/ui/safe-html-renderer";
 import { 
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
   ChevronLeft, Clock, Award, FileText, HelpCircle, Download, Trophy, PartyPopper
@@ -385,9 +386,10 @@ export default function CourseLearning() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-lg max-w-none text-slate-700 whitespace-pre-wrap">
-                        {currentLesson.content}
-                      </div>
+                      <SafeHtmlRenderer 
+                        content={currentLesson.content}
+                        className="text-slate-700"
+                      />
                     </CardContent>
                   </Card>
                 )}
