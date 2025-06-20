@@ -37,7 +37,7 @@ type PasswordChangeForm = z.infer<typeof passwordChangeSchema>;
 export default function UserManagement() {
   const [isTeacherDialogOpen, setIsTeacherDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
   const { data: users = [], isLoading } = useQuery<User[]>({

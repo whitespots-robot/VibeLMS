@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,30 +17,61 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import UserManagement from "@/pages/user-management";
 import Sidebar from "@/components/layout/sidebar";
+import { useEffect } from "react";
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const [location, setLocation] = useLocation();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  
+  useEffect(() => {
+    if (!currentUser && location !== "/login" && location !== "/register") {
+      setLocation("/login");
+    }
+  }, [currentUser, location, setLocation]);
+
+  if (!currentUser && location !== "/login" && location !== "/register") {
+    return null;
+  }
+
+  return <>{children}</>;
+}
 
 function Router() {
+  const [location] = useLocation();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+
+  // Public routes that don't need authentication
+  if (location === "/login" || location === "/register") {
+    return (
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+      </Switch>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Switch>
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/courses" component={Courses} />
-          <Route path="/courses/:id/edit" component={CourseEditor} />
-          <Route path="/learning" component={Learning} />
-          <Route path="/learning/:id" component={CourseLearning} />
-          <Route path="/materials" component={Materials} />
-          <Route path="/students" component={Students} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/export" component={Export} />
-          <Route path="/users" component={UserManagement} />
-          <Route component={NotFound} />
-        </Switch>
+    <AuthGuard>
+      <div className="flex h-screen overflow-hidden bg-neutral-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/courses" component={Courses} />
+            <Route path="/courses/:id/edit" component={CourseEditor} />
+            <Route path="/learning" component={Learning} />
+            <Route path="/learning/:id" component={CourseLearning} />
+            <Route path="/materials" component={Materials} />
+            <Route path="/students" component={Students} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/export" component={Export} />
+            <Route path="/users" component={UserManagement} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }
 
