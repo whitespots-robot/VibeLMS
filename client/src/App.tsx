@@ -12,6 +12,7 @@ import CourseLearning from "@/pages/course-learning";
 import Materials from "@/pages/materials";
 import Students from "@/pages/students";
 import Export from "@/pages/export";
+import Analytics from "@/pages/analytics";
 import Sidebar from "@/components/layout/sidebar";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
           <Route path="/learning/:id" component={CourseLearning} />
           <Route path="/materials" component={Materials} />
           <Route path="/students" component={Students} />
+          <Route path="/analytics" component={Analytics} />
           <Route path="/export" component={Export} />
           <Route component={NotFound} />
         </Switch>
