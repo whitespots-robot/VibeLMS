@@ -683,12 +683,17 @@ document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
 // Add your JavaScript functionality here
 console.log('Portfolio loaded successfully!');`);
 
-        const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-        
-        res.setHeader('Content-Type', 'application/zip');
-        res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
-        res.send(zipBuffer);
-        return;
+        try {
+          const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+          
+          res.setHeader('Content-Type', 'application/zip');
+          res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
+          res.send(zipBuffer);
+          return;
+        } catch (zipError) {
+          console.error('ZIP generation error:', zipError);
+          return res.status(500).json({ message: "Failed to generate ZIP file" });
+        }
       }
 
       if (!fs.existsSync(material.filePath)) {
