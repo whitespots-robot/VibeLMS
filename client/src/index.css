@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(240, 10%, 3.9%);
+  --muted: hsl(210, 40%, 98%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(240, 10%, 3.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(240, 10%, 3.9%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(158, 64%, 52%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(38, 92%, 50%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(215, 16%, 47%);
+  --radius: 0.5rem;
+
+  /* Neutral color palette */
+  --neutral-50: hsl(210, 20%, 98%);
+  --neutral-100: hsl(220, 14%, 96%);
+  --neutral-200: hsl(220, 13%, 91%);
+  --neutral-300: hsl(216, 12%, 84%);
+  --neutral-400: hsl(218, 11%, 65%);
+  --neutral-500: hsl(220, 9%, 46%);
+  --neutral-600: hsl(215, 14%, 34%);
+  --neutral-700: hsl(215, 25%, 27%);
+  --neutral-800: hsl(217, 33%, 17%);
+  --neutral-900: hsl(222, 84%, 5%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(158, 64%, 52%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(38, 92%, 50%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-neutral-50 { color: var(--neutral-50); }
+  .text-neutral-100 { color: var(--neutral-100); }
+  .text-neutral-200 { color: var(--neutral-200); }
+  .text-neutral-300 { color: var(--neutral-300); }
+  .text-neutral-400 { color: var(--neutral-400); }
+  .text-neutral-500 { color: var(--neutral-500); }
+  .text-neutral-600 { color: var(--neutral-600); }
+  .text-neutral-700 { color: var(--neutral-700); }
+  .text-neutral-800 { color: var(--neutral-800); }
+  .text-neutral-900 { color: var(--neutral-900); }
+
+  .bg-neutral-50 { background-color: var(--neutral-50); }
+  .bg-neutral-100 { background-color: var(--neutral-100); }
+  .bg-neutral-200 { background-color: var(--neutral-200); }
+  .bg-neutral-300 { background-color: var(--neutral-300); }
+  .bg-neutral-400 { background-color: var(--neutral-400); }
+  .bg-neutral-500 { background-color: var(--neutral-500); }
+  .bg-neutral-600 { background-color: var(--neutral-600); }
+  .bg-neutral-700 { background-color: var(--neutral-700); }
+  .bg-neutral-800 { background-color: var(--neutral-800); }
+  .bg-neutral-900 { background-color: var(--neutral-900); }
+
+  .border-neutral-200 { border-color: var(--neutral-200); }
+  .border-neutral-300 { border-color: var(--neutral-300); }
+
+  .gradient-blue { @apply bg-gradient-to-br from-blue-400 to-blue-600; }
+  .gradient-green { @apply bg-gradient-to-br from-green-400 to-green-600; }
+  .gradient-purple { @apply bg-gradient-to-br from-purple-400 to-purple-600; }
+}
+
+/* Code highlighting styles */
+.code-editor {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monocons;
+}
+
+/* Rich text editor styles */
+.rich-text-content {
+  @apply prose prose-sm max-w-none;
+}
+
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3 {
+  @apply text-neutral-900 font-semibold;
+}
+
+.rich-text-content p {
+  @apply text-neutral-700 leading-relaxed;
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+  @apply text-neutral-700;
+}
+
+.rich-text-content code {
+  @apply bg-neutral-100 px-1 py-0.5 rounded text-sm;
+}
+
+.rich-text-content pre {
+  @apply bg-neutral-900 text-green-400 p-4 rounded-lg overflow-x-auto;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+}
