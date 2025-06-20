@@ -1,15 +1,123 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, Clock, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { BookOpen, Users, Clock, Eye, X } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { CourseWithStats } from "@shared/schema";
 
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const registerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+type RegisterForm = z.infer<typeof registerSchema>;
+
 export default function PublicCourses() {
+  const [, setLocation] = useLocation();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const { toast } = useToast();
+
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
     queryKey: ["/api/public/courses"],
   });
+
+  const loginForm = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const registerForm = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginForm) => {
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      setIsLoginOpen(false);
+      if (data.user.role === "instructor") {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/learning");
+      }
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Login failed",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterForm) => {
+      const response = await apiRequest("POST", "/api/auth/register", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      setIsRegisterOpen(false);
+      setLocation("/learning");
+      toast({
+        title: "Success",
+        description: "Account created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Registration failed",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onLogin = (data: LoginForm) => {
+    loginMutation.mutate(data);
+  };
+
+  const onRegister = (data: RegisterForm) => {
+    registerMutation.mutate(data);
+  };
 
   if (isLoading) {
     return (
@@ -33,11 +141,11 @@ export default function PublicCourses() {
             <span className="ml-3 text-2xl font-bold text-gray-900">Vibe LMS</span>
           </div>
           <div className="flex gap-3">
-            <Button asChild variant="outline">
-              <Link href="/login">Login</Link>
+            <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
+              Login
             </Button>
-            <Button asChild className="btn-primary">
-              <Link href="/register">Sign Up</Link>
+            <Button className="btn-primary" onClick={() => setIsRegisterOpen(true)}>
+              Sign Up
             </Button>
           </div>
         </div>
@@ -113,6 +221,136 @@ export default function PublicCourses() {
           </div>
         )}
 
+        {/* Login Modal */}
+        <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center">Welcome Back</DialogTitle>
+            </DialogHeader>
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                <FormField
+                  control={loginForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Enter your password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full btn-primary" 
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                </Button>
+                <div className="text-center text-sm text-neutral-600">
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLoginOpen(false);
+                      setIsRegisterOpen(true);
+                    }}
+                    className="text-primary hover:underline"
+                  >
+                    Sign up
+                  </button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Register Modal */}
+        <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center">Create Account</DialogTitle>
+            </DialogHeader>
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                <FormField
+                  control={registerForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Choose a username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Enter your email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Create a password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full btn-primary" 
+                  disabled={registerMutation.isPending}
+                >
+                  {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                </Button>
+                <div className="text-center text-sm text-neutral-600">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRegisterOpen(false);
+                      setIsLoginOpen(true);
+                    }}
+                    className="text-primary hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>
