@@ -40,6 +40,12 @@ export default function PublicCourses() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    window.location.reload();
+  };
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
     queryKey: ["/api/public/courses"],
@@ -147,7 +153,7 @@ export default function PublicCourses() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
-        {/* Header with Login Button */}
+        {/* Header with User Info or Login Button */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -155,18 +161,39 @@ export default function PublicCourses() {
             </div>
             <span className="ml-3 text-2xl font-bold text-gray-900">Vibe LMS</span>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
-              Login
-            </Button>
-            <Button 
-              className="btn-primary" 
-              onClick={() => setIsRegisterOpen(true)}
-              disabled={!registrationAllowed}
-              title={!registrationAllowed ? "Student registration is currently disabled" : undefined}
-            >
-              Sign Up
-            </Button>
+          <div className="flex gap-3 items-center">
+            {currentUser ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation(currentUser.role === "instructor" ? "/dashboard" : "/learning")}
+                >
+                  Go to {currentUser.role === "instructor" ? "Dashboard" : "Learning"}
+                </Button>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    Welcome, <strong>{currentUser.username}</strong> ({currentUser.role})
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
+                  Login
+                </Button>
+                <Button 
+                  className="btn-primary" 
+                  onClick={() => setIsRegisterOpen(true)}
+                  disabled={!registrationAllowed}
+                  title={!registrationAllowed ? "Student registration is currently disabled" : undefined}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
