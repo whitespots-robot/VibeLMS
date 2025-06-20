@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "80:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://vibelms:${POSTGRES_PASSWORD}@postgres:5432/vibelms
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGUSER=vibelms
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDATABASE=vibelms
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - vibelms-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=vibelms
+      - POSTGRES_USER=vibelms
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibelms -d vibelms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - vibelms-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  vibelms-network:
+    driver: bridge

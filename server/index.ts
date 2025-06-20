@@ -1,6 +1,25 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+// Run database migrations on startup
+async function runMigrations() {
+  try {
+    log("Running database migrations...");
+    await execAsync("npm run db:push");
+    log("Database migrations completed successfully");
+  } catch (error) {
+    log(`Migration error: ${error}`, "migration");
+    // Don't exit on migration errors in production - database might already be set up
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1);
+    }
+  }
+}
 
 const app = express();
 app.use(express.json());
@@ -37,6 +56,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run database migrations first
+  await runMigrations();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
