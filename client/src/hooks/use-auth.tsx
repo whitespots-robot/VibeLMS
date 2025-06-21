@@ -63,10 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem(key);
       });
       
-      if (currentToken && currentToken.startsWith('eyJ')) {
-        // Restore valid JWT token
+      if (currentToken) {
+        // Restore token - let API validate it
         localStorage.setItem('auth_token', currentToken);
-        console.log('JWT token preserved');
+        console.log('Token preserved');
       }
     } catch (error) {
       console.error('Error during auth initialization:', error);
@@ -88,14 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return null;
         }
         
-        // Check if token is valid JWT format
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-          console.log('Invalid JWT format, clearing auth data');
-          clearAllAuthData();
-          setIsAuthenticated(false);
-          return null;
-        }
+        // No need to validate JWT format on frontend - let the API handle it
         
         console.log('Making API request to verify token...');
         const res = await apiRequest("GET", "/api/auth/verify");
