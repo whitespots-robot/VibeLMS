@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { LogIn, User } from "lucide-react";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -20,8 +19,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { loginMutation, user, isAuthenticated } = useAuth();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -31,35 +29,27 @@ export default function Login() {
     },
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      const result = await response.json();
-      
-      if (response.ok) {
-        localStorage.setItem("currentUser", JSON.stringify(result.user));
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${result.user.username}!`,
-        });
-        setLocation("/dashboard");
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "student") {
+        setLocation("/learning");
       } else {
-        toast({
-          title: "Login Failed",
-          description: result.message || "Invalid credentials",
-          variant: "destructive",
-        });
+        setLocation("/dashboard");
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to login. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
+  }, [isAuthenticated, user, setLocation]);
+
+  const onSubmit = async (data: LoginForm) => {
+    loginMutation.mutate(data, {
+      onSuccess: (user) => {
+        if (user.role === "student") {
+          setLocation("/learning");
+        } else {
+          setLocation("/dashboard");
+        }
+      }
+    });
   };
 
   return (
@@ -105,9 +95,9 @@ export default function Login() {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {loginMutation.isPending ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>

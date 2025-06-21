@@ -31,12 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
     refetch: refetchUser,
-  } = useQuery<SelectUser | undefined, Error>({
+  } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/auth/verify"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       if (!token) {
-        return undefined;
+        return null;
       }
       
       try {
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Token is invalid, remove it
         localStorage.removeItem('auth_token');
         setIsAuthenticated(false);
-        return undefined;
+        return null;
       }
     },
     retry: false,

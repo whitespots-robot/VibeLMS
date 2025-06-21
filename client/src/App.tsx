@@ -26,24 +26,24 @@ import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const { user, isAuthenticated } = useAuth();
   
   useEffect(() => {
-    if (!currentUser) {
+    if (!isAuthenticated || !user) {
       setLocation("/");
       return;
     }
     // Redirect students away from dashboard to learning, but don't redirect instructors
-    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
+    if (user.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (currentUser && currentUser.role === "instructor" && location === "/") {
+    if (user.role === "instructor" && location === "/") {
       setLocation("/dashboard");
     }
-  }, [currentUser, location, setLocation]);
+  }, [user, isAuthenticated, location, setLocation]);
 
-  if (!currentUser) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 
@@ -53,10 +53,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const { user, isAuthenticated } = useAuth();
 
   // Public routes that don't need authentication
-  if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
+  if (!isAuthenticated && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
     return (
       <Switch>
         <Route path="/login" component={Login} />
@@ -112,13 +112,21 @@ function Router() {
   );
 }
 
+function AppContent() {
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Router />
+    </TooltipProvider>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
