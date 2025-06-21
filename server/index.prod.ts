@@ -24,6 +24,26 @@ async function waitForDatabase(maxRetries = 30, delay = 2000) {
   }
 }
 
+// Force create demo data in production
+async function createDemoDataForced() {
+  try {
+    log("Creating demo data for production...");
+    const { storage } = await import("./storage");
+    
+    // Force create teacher user if it doesn't exist
+    const existingTeacher = await storage.getUserByUsername("teacher");
+    if (!existingTeacher) {
+      log("Teacher user not found, creating demo data...");
+      await storage.ensureDemoData();
+      log("Demo data created successfully");
+    } else {
+      log("Teacher user already exists");
+    }
+  } catch (error) {
+    log(`Demo data creation error: ${error}`, "demo");
+  }
+}
+
 // Run database migrations on startup
 async function runMigrations() {
   try {
@@ -32,6 +52,9 @@ async function runMigrations() {
     log("Running database migrations...");
     await execAsync("npm run db:push");
     log("Database migrations completed successfully");
+    
+    // Always try to create demo data in production
+    await createDemoDataForced();
   } catch (error) {
     log(`Migration error: ${error}`, "migration");
     // Don't exit on migration errors in production - database might already be set up
