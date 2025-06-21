@@ -37,8 +37,13 @@ async function runMigrations() {
     
     // Run initial data migration
     log("Running initial data migration...");
-    await execAsync(`psql "${process.env.DATABASE_URL}" -f migrations/0001_initial_demo_data.sql`);
-    log("Initial data migration completed");
+    try {
+      await execAsync(`psql "${process.env.DATABASE_URL}" -f migrations/0001_initial_demo_data.sql`);
+      log("Initial data migration completed successfully");
+    } catch (migrationError) {
+      log(`Initial data migration warning: ${migrationError}`, "migration");
+      // Don't fail if demo data already exists
+    }
   } catch (error) {
     log(`Migration error: ${error}`, "migration");
     // Don't exit on migration errors in production - database might already be set up
