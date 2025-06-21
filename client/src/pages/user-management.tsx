@@ -14,7 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Key, Shield } from "lucide-react";
+import { UserPlus, Users, Key, Shield, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { User } from "@shared/schema";
 
 const teacherRegistrationSchema = z.object({
@@ -51,6 +52,8 @@ export default function UserManagement() {
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [allowStudentRegistration, setAllowStudentRegistration] = useState(true);
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -154,6 +157,29 @@ export default function UserManagement() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (userIds: number[]) => {
+      const response = await apiRequest("DELETE", "/api/users/bulk", { userIds });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setSelectedUserIds([]);
+      setIsBulkDeleteDialogOpen(false);
+      toast({
+        title: "Success",
+        description: `Successfully deleted ${data.deletedCount} users`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete users",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onRegisterTeacher = (data: TeacherRegistrationForm) => {
     registerTeacherMutation.mutate(data);
   };
@@ -166,6 +192,31 @@ export default function UserManagement() {
     setSelectedUser(user);
     passwordForm.setValue("userId", user.id);
     setIsPasswordDialogOpen(true);
+  };
+
+  const toggleUserSelection = (userId: number) => {
+    setSelectedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUserIds.length === users.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(users.map((user: any) => user.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedUserIds.length === 0) return;
+    setIsBulkDeleteDialogOpen(true);
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate(selectedUserIds);
   };
 
   return (
@@ -263,7 +314,20 @@ export default function UserManagement() {
           {/* Users Table */}
           <Card>
             <CardHeader>
-              <CardTitle>All Users</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>All Users</CardTitle>
+                {selectedUserIds.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected ({selectedUserIds.length})
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -273,6 +337,12 @@ export default function UserManagement() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
+                        <th className="text-left py-3 px-4">
+                          <Checkbox
+                            checked={selectedUserIds.length === users.length && users.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </th>
                         <th className="text-left py-3 px-4">Username</th>
                         <th className="text-left py-3 px-4">Email</th>
                         <th className="text-left py-3 px-4">Role</th>
@@ -283,6 +353,12 @@ export default function UserManagement() {
                     <tbody>
                       {users.map((user: any) => (
                         <tr key={user.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            <Checkbox
+                              checked={selectedUserIds.includes(user.id)}
+                              onCheckedChange={() => toggleUserSelection(user.id)}
+                            />
+                          </td>
                           <td className="py-3 px-4 font-medium">{user.username}</td>
                           <td className="py-3 px-4">{user.email}</td>
                           <td className="py-3 px-4">
@@ -473,6 +549,43 @@ export default function UserManagement() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete {selectedUserIds.length} selected users? This action cannot be undone.
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-red-800 text-sm font-medium">Warning:</p>
+              <p className="text-red-700 text-sm">
+                This will permanently delete all selected user accounts and their associated data.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                variant="destructive"
+                onClick={confirmBulkDelete}
+                disabled={bulkDeleteMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {bulkDeleteMutation.isPending ? "Deleting..." : `Delete ${selectedUserIds.length} Users`}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setIsBulkDeleteDialogOpen(false)}
+                disabled={bulkDeleteMutation.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

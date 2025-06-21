@@ -8,7 +8,7 @@ import {
   type CourseWithStats, type ChapterWithLessons, type LessonWithDetails
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -228,13 +228,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUsers(userIds: number[]): Promise<number> {
-    const result = await db.delete(users).where(
-      userIds.length === 1 
-        ? eq(users.id, userIds[0])
-        : userIds.reduce((acc, id, index) => 
-            index === 0 ? eq(users.id, id) : acc.or(eq(users.id, id))
-          , eq(users.id, userIds[0]))
-    );
+    const result = await db.delete(users).where(inArray(users.id, userIds));
     return result.rowCount || 0;
   }
 
