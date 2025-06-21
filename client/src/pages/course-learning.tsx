@@ -73,7 +73,8 @@ export default function CourseLearning() {
       // Get or create anonymous user ID for this session
       let studentId = 1; // Default fallback
       
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+      const currentUserData = localStorage.getItem("currentUser");
+      const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
       if (currentUser) {
         studentId = currentUser.id;
       } else {
@@ -86,7 +87,7 @@ export default function CourseLearning() {
           anonymousId = userData.id.toString();
           localStorage.setItem("anonymousUserId", anonymousId);
         }
-        studentId = parseInt(anonymousId || "0");
+        studentId = parseInt(anonymousId);
       }
       
       // Update student progress

@@ -40,7 +40,8 @@ export default function PublicCourses() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUserData = localStorage.getItem("currentUser");
+  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");

@@ -52,7 +52,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUserData = localStorage.getItem("currentUser");
+  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
 
   // Public routes that don't need authentication
   if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
