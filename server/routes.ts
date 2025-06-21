@@ -94,19 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Initialize demo data endpoint (for production setup)
-  app.post('/api/init-demo', async (_req, res) => {
-    try {
-      const created = await storage.ensureDemoData();
-      if (created) {
-        res.json({ message: 'Demo data created successfully', created: true });
-      } else {
-        res.json({ message: 'Demo data already exists', created: false });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to initialize demo data', error: String(error) });
-    }
-  });
+
   
   // Authentication routes
   app.post("/api/auth/login", async (req: AuthenticatedRequest, res) => {

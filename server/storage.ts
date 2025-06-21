@@ -79,8 +79,17 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private initialized = false;
+
   constructor() {
-    this.initializeDatabase();
+    // Don't initialize in constructor for better reliability
+  }
+
+  private async ensureInitialized() {
+    if (!this.initialized) {
+      await this.initializeDatabase();
+      this.initialized = true;
+    }
   }
 
   private async initializeDatabase() {
@@ -121,8 +130,8 @@ export class DatabaseStorage implements IStorage {
     }).returning();
 
     const [course] = await db.insert(courses).values({
-      title: "🎯 Demo Course - Web Development Basics",
-      description: "Learn the fundamentals of web development with HTML, CSS, and JavaScript. This demo course shows all LMS features.",
+      title: "🎯 Complete Web Development Bootcamp",
+      description: "Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.",
       instructorId: teacher.id,
       status: "published",
       isPublic: true,
@@ -216,11 +225,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(id: number): Promise<User | undefined> {
+    await this.ensureInitialized();
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    await this.ensureInitialized();
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
@@ -242,6 +253,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async authenticateUser(username: string, password: string): Promise<User | undefined> {
+    await this.ensureInitialized();
     const [user] = await db.select().from(users).where(eq(users.username, username));
     if (user && this.verifyPassword(password, user.password)) {
       return user;
@@ -282,6 +294,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCourses(status?: string): Promise<CourseWithStats[]> {
+    await this.ensureInitialized();
     const coursesData = await db.select().from(courses);
     
     const coursesWithStats: CourseWithStats[] = [];

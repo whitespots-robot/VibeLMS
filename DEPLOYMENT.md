@@ -29,13 +29,18 @@ SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_s
 ### Application Access
 - **Application**: http://localhost (port 80)
 - **Health Check**: http://localhost/api/health
-- **Demo Data Setup**: POST http://localhost/api/init-demo
 
 ### Default Login Credentials
-After demo data initialization:
+Demo data is created automatically on first startup:
 - **Username**: teacher
 - **Password**: teacher
 - **Role**: instructor
+
+### Demo Course
+The system includes a complete demo course:
+- **Title**: "Complete Web Development Bootcamp"
+- **Content**: HTML, CSS, JavaScript lessons with videos and quizzes
+- **Features**: Student enrollment, progress tracking, materials
 
 ### Architecture
 - **Frontend**: React with Vite build system
