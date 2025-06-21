@@ -32,8 +32,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies plus vite (needed for static serving)
-RUN npm ci --only=production && npm install vite && npm cache clean --force
+# Install production dependencies plus vite and tsx (needed for static serving and TS execution)
+RUN npm ci --only=production && npm install vite tsx && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
@@ -41,6 +41,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/shared ./shared
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/vite.config.ts ./vite.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
@@ -55,6 +56,6 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start application with dumb-init
+# Start application with dumb-init using tsx for TypeScript execution
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "start"]
+CMD ["sh", "-c", "NODE_ENV=production npx tsx server/index.ts"]
