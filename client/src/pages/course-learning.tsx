@@ -102,10 +102,30 @@ export default function CourseLearning() {
             }, 2000);
           }, 3000);
         } else {
-          toast({
-            title: "Lesson Completed!",
-            description: "Great job! You've completed this lesson.",
-          });
+          // Find the next lesson and navigate to it
+          const allLessons = course.chapters.flatMap(chapter => chapter.lessons);
+          const currentIndex = allLessons.findIndex(lesson => lesson.id === lessonId);
+          const nextLesson = currentIndex >= 0 && currentIndex < allLessons.length - 1 
+            ? allLessons[currentIndex + 1] 
+            : null;
+
+          if (nextLesson) {
+            toast({
+              title: "Урок завершен!",
+              description: "Переходим к следующему уроку...",
+            });
+            // Navigate to the next lesson after a short delay
+            setTimeout(() => {
+              setCurrentLessonId(nextLesson.id);
+              // Scroll to top
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1000);
+          } else {
+            toast({
+              title: "Урок завершен!",
+              description: "Отлично! Вы завершили этот урок.",
+            });
+          }
         }
       }
     },
