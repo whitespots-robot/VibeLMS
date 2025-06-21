@@ -825,9 +825,20 @@ console.log('Portfolio loaded successfully!');`);
               // Calculate completion percentage
               const completionPercentage = (completedLessonIds.length / allLessons.length) * 100;
               
-              // Update enrollment progress
+              // Update or create enrollment progress
               const enrollments = await storage.getEnrollmentsByCourse(courseId);
-              const enrollment = enrollments.find(e => e.studentId === progressData.studentId);
+              let enrollment = enrollments.find(e => e.studentId === progressData.studentId);
+              
+              if (!enrollment) {
+                // Create enrollment for anonymous users or users who haven't enrolled yet
+                enrollment = await storage.createEnrollment({
+                  studentId: progressData.studentId,
+                  courseId: courseId,
+                  progress: 0,
+                  enrolledAt: new Date().toISOString(),
+                });
+              }
+              
               if (enrollment) {
                 await storage.updateEnrollmentProgress(enrollment.id, completionPercentage);
               }
