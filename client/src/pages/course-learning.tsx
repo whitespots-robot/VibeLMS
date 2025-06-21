@@ -79,6 +79,19 @@ export default function CourseLearning() {
       } else {
         // Create unique anonymous user for this session
         let anonymousId = localStorage.getItem("anonymousUserId");
+        
+        // Check if we need a new user
+        if (anonymousId) {
+          try {
+            const checkResponse = await apiRequest("GET", `/api/users/${anonymousId}`, {});
+            if (!checkResponse.ok) {
+              anonymousId = null; // User doesn't exist, need new one
+            }
+          } catch {
+            anonymousId = null; // Error checking user, need new one
+          }
+        }
+        
         if (!anonymousId) {
           // Generate unique anonymous user
           const response = await apiRequest("POST", "/api/anonymous-user", {});
@@ -86,7 +99,8 @@ export default function CourseLearning() {
           anonymousId = userData.id.toString();
           localStorage.setItem("anonymousUserId", anonymousId);
         }
-        studentId = parseInt(anonymousId!);
+        
+        studentId = parseInt(anonymousId);
       }
       
       // Update student progress
