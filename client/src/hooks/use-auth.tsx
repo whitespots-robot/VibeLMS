@@ -90,10 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('Making API request to verify token...');
         const res = await apiRequest("GET", "/api/auth/verify");
         const data = await res.json();
-        console.log('User verification successful:', data.user.username, data.user.role);
-        setIsAuthenticated(true);
-        return data.user;
+        if (data && data.user) {
+          console.log('User verification successful:', data.user.username, data.user.role);
+          setIsAuthenticated(true);
+          return data.user;
+        } else {
+          console.log('Invalid response from auth verify:', data);
+          clearAllAuthData();
+          setIsAuthenticated(false);
+          return null;
+        }
       } catch (error) {
+        console.log('Token verification failed:', error);
         // Token is invalid or expired, clear all auth data
         clearAllAuthData();
         setIsAuthenticated(false);
@@ -129,13 +137,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      console.log('Starting login mutation with credentials:', credentials.username);
       const res = await apiRequest("POST", "/api/auth/login", credentials);
       const data = await res.json();
+      console.log('Login response received:', data);
       
       // Store JWT token securely
-      if (data.token) {
+      if (data && data.token) {
         localStorage.setItem('auth_token', data.token);
         console.log('Token stored in localStorage:', data.token.substring(0, 20) + '...');
+      } else {
+        console.error('No token in login response:', data);
       }
       
       return data;
@@ -143,7 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (data: { token: string }) => {
       console.log('Login mutation success, refetching user...');
       setIsAuthenticated(true);
-      refetchUser();
+      // Use a small delay to ensure token is saved before refetch
+      setTimeout(() => {
+        refetchUser();
+      }, 50);
     },
     onError: (error: Error) => {
       toast({
