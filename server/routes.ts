@@ -202,7 +202,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users", requireRole("teacher"), async (req, res) => {
+  app.get("/api/users", requireAuth, async (req: AuthenticatedRequest, res) => {
+    // Debug: Log session data
+    console.log("User session:", req.session);
+    
+    // Allow instructors and teachers to manage users
+    if (req.session?.role !== "instructor" && req.session?.role !== "teacher") {
+      return res.status(403).json({ 
+        message: "Insufficient permissions",
+        debug: { currentRole: req.session?.role, requiredRoles: ["instructor", "teacher"] }
+      });
+    }
     try {
       const users = await storage.getAllUsers();
       const usersWithoutPasswords = users.map(({ password, ...user }) => user);
@@ -212,7 +222,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/bulk", async (req, res) => {
+  app.delete("/api/users/bulk", requireAuth, async (req: AuthenticatedRequest, res) => {
+    // Allow instructors and teachers to manage users
+    if (req.session?.role !== "instructor" && req.session?.role !== "teacher") {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
     try {
       const { userIds } = req.body;
       if (!Array.isArray(userIds) || userIds.length === 0) {
