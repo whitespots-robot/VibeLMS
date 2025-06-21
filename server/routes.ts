@@ -171,6 +171,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/anonymous-user", async (req, res) => {
+    try {
+      // Create a unique anonymous user for this session
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 8);
+      const anonymousUsername = `anonymous_${timestamp}_${randomId}`;
+      
+      const userData = {
+        username: anonymousUsername,
+        email: `${anonymousUsername}@anonymous.local`,
+        password: "no-password",
+        role: "student"
+      };
+      
+      const user = await storage.createUser(userData);
+      res.status(201).json({ id: user.id, username: user.username });
+    } catch (error) {
+      console.error("Anonymous user creation error:", error);
+      res.status(500).json({ message: "Failed to create anonymous user" });
+    }
+  });
+
   // Course routes
   app.get("/api/courses", async (req, res) => {
     try {

@@ -70,9 +70,28 @@ export default function CourseLearning() {
 
   const markLessonComplete = useMutation({
     mutationFn: async (lessonId: number) => {
+      // Get or create anonymous user ID for this session
+      let studentId = 1; // Default fallback
+      
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+      if (currentUser) {
+        studentId = currentUser.id;
+      } else {
+        // Create unique anonymous user for this session
+        let anonymousId = localStorage.getItem("anonymousUserId");
+        if (!anonymousId) {
+          // Generate unique anonymous user
+          const response = await apiRequest("POST", "/api/anonymous-user", {});
+          const userData = await response.json();
+          anonymousId = userData.id.toString();
+          localStorage.setItem("anonymousUserId", anonymousId);
+        }
+        studentId = parseInt(anonymousId || "1");
+      }
+      
       // Update student progress
       const response = await apiRequest("POST", "/api/progress", {
-        studentId: 1, // Demo student ID
+        studentId,
         lessonId,
         completed: true,
         completedAt: new Date().toISOString(),
