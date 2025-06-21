@@ -29,9 +29,11 @@ export default function Login() {
     },
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated or after successful login
   useEffect(() => {
+    console.log('Login page - auth state:', { isAuthenticated, user: !!user, userRole: user?.role });
     if (isAuthenticated && user) {
+      console.log('Redirecting user based on role:', user.role);
       if (user.role === "student") {
         setLocation("/learning");
       } else {
@@ -41,19 +43,9 @@ export default function Login() {
   }, [isAuthenticated, user, setLocation]);
 
   const onSubmit = async (data: LoginForm) => {
+    console.log('Submitting login form');
     loginMutation.mutate(data);
   };
-  
-  // Handle redirect after successful login
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === "student") {
-        setLocation("/learning");
-      } else {
-        setLocation("/dashboard");
-      }
-    }
-  }, [isAuthenticated, user, setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">

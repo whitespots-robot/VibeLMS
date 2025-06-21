@@ -87,8 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return null;
         }
         
+        console.log('Making API request to verify token...');
         const res = await apiRequest("GET", "/api/auth/verify");
         const data = await res.json();
+        console.log('User verification successful:', data.user.username, data.user.role);
         setIsAuthenticated(true);
         return data.user;
       } catch (error) {
@@ -133,12 +135,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Store JWT token securely
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
+        console.log('Token stored in localStorage:', data.token.substring(0, 20) + '...');
       }
       
       return data;
     },
     onSuccess: (data: { token: string }) => {
-      // Cache removed to prevent localStorage pollution
+      console.log('Login mutation success, refetching user...');
       setIsAuthenticated(true);
       refetchUser();
     },
