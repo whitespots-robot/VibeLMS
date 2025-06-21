@@ -28,11 +28,31 @@ function clearAllAuthData() {
   localStorage.removeItem('currentUser');
   localStorage.removeItem('user');
   localStorage.removeItem('token');
+  
+  // Clear any React Query cache data that might contain user info
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.includes('user') || key.includes('auth') || key.includes('User'))) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Clear any old authentication data on initialization but preserve valid tokens
+  useEffect(() => {
+    const currentToken = localStorage.getItem('auth_token');
+    clearAllAuthData();
+    if (currentToken && currentToken.startsWith('eyJ')) {
+      // Restore valid JWT token
+      localStorage.setItem('auth_token', currentToken);
+    }
+  }, []);
 
   const {
     data: user,

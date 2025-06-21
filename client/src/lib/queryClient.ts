@@ -77,6 +77,7 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
+      cacheTime: 0, // Disable cache persistence
     },
     mutations: {
       retry: false,
