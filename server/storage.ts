@@ -232,14 +232,22 @@ export class DatabaseStorage implements IStorage {
       const lessonsCount = await db.select().from(lessons)
         .innerJoin(chapters, eq(lessons.chapterId, chapters.id))
         .where(eq(chapters.courseId, course.id));
-      const enrollmentsCount = await db.select().from(enrollments).where(eq(enrollments.courseId, course.id));
+      const enrollmentsList = await db.select().from(enrollments).where(eq(enrollments.courseId, course.id));
+      
+      // Calculate average progress across all enrollments
+      let averageProgress = 0;
+      if (enrollmentsList.length > 0) {
+        const totalProgress = enrollmentsList.reduce((sum, enrollment) => sum + (enrollment.progress || 0), 0);
+        averageProgress = Math.round(totalProgress / enrollmentsList.length);
+        console.log(`Course ${course.id}: ${enrollmentsList.length} enrollments, total progress: ${totalProgress}, average: ${averageProgress}`);
+      }
       
       coursesWithStats.push({
         ...course,
         chaptersCount: chaptersCount.length,
         lessonsCount: lessonsCount.length,
-        studentsCount: enrollmentsCount.length,
-        averageProgress: 0,
+        studentsCount: enrollmentsList.length,
+        averageProgress,
       });
     }
     
