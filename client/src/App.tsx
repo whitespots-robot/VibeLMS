@@ -25,27 +25,31 @@ import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  
-  // Check localStorage for user data as fallback during transition
-  const storedUser = localStorage.getItem("currentUser");
-  const currentUser = storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
+  const { user, isLoading, isAuthenticated } = useAuth();
   
   useEffect(() => {
-    if (!currentUser) {
+    if (isLoading) return;
+    
+    if (!isAuthenticated) {
       setLocation("/");
       return;
     }
+    
     // Redirect students away from dashboard to learning, but don't redirect instructors
-    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
+    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (currentUser && currentUser.role === "teacher" && location === "/") {
+    if (user && (user.role === "instructor" || user.role === "teacher") && location === "/") {
       setLocation("/dashboard");
     }
-  }, [currentUser, location, setLocation]);
+  }, [user, isAuthenticated, isLoading, location, setLocation]);
 
-  if (!currentUser) {
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 

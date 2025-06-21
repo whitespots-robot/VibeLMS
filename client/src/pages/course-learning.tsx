@@ -13,7 +13,7 @@ import {
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
   ChevronLeft, Clock, Award, FileText, HelpCircle, Download, Trophy, PartyPopper
 } from "lucide-react";
-import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question } from "@shared/schema";
+import type { Course, ChapterWithLessons, Lesson, LessonWithDetails, Question, StudentProgress } from "@shared/schema";
 
 export default function CourseLearning() {
   const [match, params] = useRoute("/learning/:id");
@@ -36,11 +36,21 @@ export default function CourseLearning() {
   });
 
   // Load user's progress for this course
-  const { data: progressData } = useQuery<StudentProgress[]>({
+  const { data: progressData } = useQuery({
     queryKey: [`/api/courses/${courseId}/progress`],
     enabled: !!courseId && !isPreviewMode,
     retry: false,
   });
+
+  // Initialize completed lessons from server data
+  useEffect(() => {
+    if (progressData && Array.isArray(progressData)) {
+      const completedLessonIds = progressData
+        .filter((p: any) => p.completed)
+        .map((p: any) => p.lessonId);
+      setCompletedLessons(new Set(completedLessonIds));
+    }
+  }, [progressData]);
 
   // Redirect to login if course is not public
   useEffect(() => {

@@ -40,12 +40,10 @@ export default function PublicCourses() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
-  const currentUserData = localStorage.getItem("currentUser");
-  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
+  const { user, isAuthenticated } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    window.location.reload();
+    window.location.href = "/api/auth/logout";
   };
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
@@ -189,17 +187,17 @@ export default function PublicCourses() {
             <span className="ml-3 text-2xl font-bold text-gray-900">Vibe LMS</span>
           </div>
           <div className="flex gap-3 items-center">
-            {currentUser ? (
+            {isAuthenticated && user ? (
               <>
                 <Button 
                   variant="outline" 
-                  onClick={() => setLocation(currentUser.role === "instructor" ? "/dashboard" : "/learning")}
+                  onClick={() => setLocation(user.role === "instructor" ? "/dashboard" : "/learning")}
                 >
-                  Go to {currentUser.role === "instructor" ? "Dashboard" : "Learning"}
+                  Go to {user.role === "instructor" ? "Dashboard" : "Learning"}
                 </Button>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-600">
-                    Welcome, <strong>{currentUser.username}</strong> ({currentUser.role})
+                    Welcome, <strong>{user.username}</strong> ({user.role})
                   </span>
                   <Button variant="outline" size="sm" onClick={handleLogout}>
                     Logout
