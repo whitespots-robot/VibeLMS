@@ -193,6 +193,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/users/bulk", async (req, res) => {
+    try {
+      const { userIds } = req.body;
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "userIds must be a non-empty array" });
+      }
+      
+      // Prevent deletion of instructors
+      const users = await storage.getAllUsers();
+      const instructorIds = users.filter(user => user.role === 'instructor').map(user => user.id);
+      const safeUserIds = userIds.filter(id => !instructorIds.includes(id));
+      
+      if (safeUserIds.length === 0) {
+        return res.status(400).json({ message: "Cannot delete instructor accounts" });
+      }
+      
+      const deleted = await storage.bulkDeleteUsers(safeUserIds);
+      res.json({ deleted, message: `${deleted} users deleted successfully` });
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      res.status(500).json({ message: "Failed to delete users" });
+    }
+  });
+
+  app.delete("/api/users/anonymous", async (req, res) => {
+    try {
+      const deleted = await storage.deleteAnonymousUsers();
+      res.json({ deleted, message: `${deleted} anonymous users deleted successfully` });
+    } catch (error) {
+      console.error("Delete anonymous users error:", error);
+      res.status(500).json({ message: "Failed to delete anonymous users" });
+    }
+  });
+
   // Course routes
   app.get("/api/courses", async (req, res) => {
     try {

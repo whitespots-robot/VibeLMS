@@ -622,6 +622,35 @@ export default function UserManagement() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete {selectedUsers.size} selected users? This action cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteMutation.isPending}
+              >
+                {bulkDeleteMutation.isPending ? "Deleting..." : "Delete Users"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
