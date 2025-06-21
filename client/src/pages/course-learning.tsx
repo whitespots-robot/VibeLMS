@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Play, BookOpen, Code, CheckCircle2, ChevronRight, 
   ChevronLeft, Clock, Award, FileText, HelpCircle, Download, Trophy, PartyPopper
@@ -73,7 +74,7 @@ export default function CourseLearning() {
       // Get or create anonymous user ID for this session
       let studentId = 1; // Default fallback
       
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+      const { user: currentUser } = useAuth();
       if (currentUser) {
         studentId = currentUser.id;
       } else {

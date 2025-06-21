@@ -47,7 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Clear any old authentication data on initialization but preserve valid tokens
   useEffect(() => {
     const currentToken = localStorage.getItem('auth_token');
-    clearAllAuthData();
+    
+    // Aggressively clear ALL localStorage keys that might contain user data
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key !== 'auth_token') {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
     if (currentToken && currentToken.startsWith('eyJ')) {
       // Restore valid JWT token
       localStorage.setItem('auth_token', currentToken);
