@@ -32,7 +32,7 @@ export default function Login() {
   // Redirect if already authenticated or after successful login
   useEffect(() => {
     console.log('Login page - auth state:', { isAuthenticated, user: !!user, userRole: user?.role });
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && user.role) {
       console.log('Redirecting user based on role:', user.role);
       // Force immediate redirect without going through AuthGuard
       setTimeout(() => {

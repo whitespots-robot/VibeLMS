@@ -46,21 +46,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Clear any old authentication data on initialization but preserve valid tokens
   useEffect(() => {
-    const currentToken = localStorage.getItem('auth_token');
-    
-    // Aggressively clear ALL localStorage keys that might contain user data
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key !== 'auth_token') {
-        keysToRemove.push(key);
+    try {
+      const currentToken = localStorage.getItem('auth_token');
+      console.log('Initializing auth provider, current token exists:', !!currentToken);
+      
+      // Aggressively clear ALL localStorage keys that might contain user data
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key !== 'auth_token') {
+          keysToRemove.push(key);
+        }
       }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    if (currentToken && currentToken.startsWith('eyJ')) {
-      // Restore valid JWT token
-      localStorage.setItem('auth_token', currentToken);
+      keysToRemove.forEach(key => {
+        console.log('Removing localStorage key:', key);
+        localStorage.removeItem(key);
+      });
+      
+      if (currentToken && currentToken.startsWith('eyJ')) {
+        // Restore valid JWT token
+        localStorage.setItem('auth_token', currentToken);
+        console.log('JWT token preserved');
+      }
+    } catch (error) {
+      console.error('Error during auth initialization:', error);
     }
   }, []);
 
@@ -72,16 +81,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SafeUser | null, Error>({
     queryKey: ["/api/auth/verify"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        return null;
-      }
-      
-      // Check if token is valid JWT format
       try {
+        const token = localStorage.getItem('auth_token');
+        console.log('User query - token exists:', !!token);
+        if (!token) {
+          return null;
+        }
+        
+        // Check if token is valid JWT format
         const tokenParts = token.split('.');
         if (tokenParts.length !== 3) {
-          // Invalid JWT format, clear all auth data
+          console.log('Invalid JWT format, clearing auth data');
           clearAllAuthData();
           setIsAuthenticated(false);
           return null;
@@ -89,8 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         console.log('Making API request to verify token...');
         const res = await apiRequest("GET", "/api/auth/verify");
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
         const data = await res.json();
-        if (data && data.user) {
+        if (data && data.user && typeof data.user === 'object' && data.user.id) {
           console.log('User verification successful:', data.user.username, data.user.role);
           setIsAuthenticated(true);
           return data.user;
@@ -119,8 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const hasUser = !!user;
     const hasOldUserData = !!localStorage.getItem('currentUser');
     
+    console.log('Auth effect - state:', { hasValidToken, hasUser, hasOldUserData, user });
+    
     // Clear any old authentication data immediately
     if (hasOldUserData) {
+      console.log('Clearing old user data from localStorage');
       clearAllAuthData();
       setIsAuthenticated(false);
       return;
@@ -128,9 +146,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // If no user but token exists, token is invalid - clear it
     if (!hasUser && hasValidToken) {
+      console.log('Token exists but no user, clearing auth data');
       clearAllAuthData();
       setIsAuthenticated(false);
     } else {
+      console.log('Setting authentication state:', hasUser);
       setIsAuthenticated(hasUser);
     }
   }, [user]);
@@ -157,7 +177,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
       // Use a small delay to ensure token is saved before refetch
       setTimeout(() => {
-        refetchUser();
+        console.log('Triggering user refetch...');
+        refetchUser().then(() => {
+          console.log('User refetch completed');
+        }).catch((error) => {
+          console.error('User refetch failed:', error);
+        });
       }, 50);
     },
     onError: (error: Error) => {

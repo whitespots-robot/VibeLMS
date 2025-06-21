@@ -34,11 +34,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
     // Redirect students away from dashboard to learning
-    if (user.role === "student" && (location === "/dashboard" || location === "/")) {
+    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (user.role === "instructor" && location === "/") {
+    if (user && user.role === "instructor" && location === "/") {
       setLocation("/dashboard");
     }
   }, [user, isAuthenticated, location, setLocation]);
