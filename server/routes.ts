@@ -30,9 +30,9 @@ function authenticateToken(req: any, res: any, next: any) {
     return res.sendStatus(401);
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
     if (err) return res.sendStatus(403);
-    req.user = user;
+    req.user = decoded;
     next();
   });
 }

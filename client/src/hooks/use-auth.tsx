@@ -55,7 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    setIsAuthenticated(!!user);
+    const hasValidToken = !!localStorage.getItem('auth_token');
+    const hasUser = !!user;
+    
+    // If no user but token exists, token is invalid - clear it
+    if (!hasUser && hasValidToken) {
+      localStorage.removeItem('auth_token');
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(hasUser);
+    }
   }, [user]);
 
   const loginMutation = useMutation({
