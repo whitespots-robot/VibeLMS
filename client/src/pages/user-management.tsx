@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Key, Shield } from "lucide-react";
+import { UserPlus, Users, Key, Shield, Trash2, UserX, CheckSquare } from "lucide-react";
 import type { User } from "@shared/schema";
 
 const teacherRegistrationSchema = z.object({
@@ -51,6 +52,8 @@ export default function UserManagement() {
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [allowStudentRegistration, setAllowStudentRegistration] = useState(true);
+  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -154,6 +157,52 @@ export default function UserManagement() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (userIds: number[]) => {
+      return apiRequest("DELETE", "/api/users/bulk", { userIds });
+    },
+    onSuccess: (_, userIds) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      setSelectedUsers(new Set());
+      toast({
+        title: "Success",
+        description: `${userIds.length} users deleted successfully`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete users",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAnonymousMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", "/api/users/anonymous", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      setSelectedUsers(new Set());
+      toast({
+        title: "Success",
+        description: "All anonymous users deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete anonymous users",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onRegisterTeacher = (data: TeacherRegistrationForm) => {
     registerTeacherMutation.mutate(data);
   };
@@ -167,6 +216,40 @@ export default function UserManagement() {
     passwordForm.setValue("userId", user.id);
     setIsPasswordDialogOpen(true);
   };
+
+  const toggleUserSelection = (userId: number) => {
+    const newSelection = new Set(selectedUsers);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedUsers(newSelection);
+  };
+
+  const selectAllUsers = () => {
+    const selectableUsers = users.filter(user => user.role !== 'instructor');
+    setSelectedUsers(new Set(selectableUsers.map(user => user.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedUsers(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedUsers.size > 0) {
+      bulkDeleteMutation.mutate(Array.from(selectedUsers));
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteAnonymous = () => {
+    deleteAnonymousMutation.mutate();
+  };
+
+  const anonymousUsers = users.filter(user => user.username.startsWith('anonymous'));
+  const registeredUsers = users.filter(user => !user.username.startsWith('anonymous') && user.role === 'student');
+  const instructors = users.filter(user => user.role === 'instructor');
 
   return (
     <>
@@ -263,7 +346,55 @@ export default function UserManagement() {
           {/* Users Table */}
           <Card>
             <CardHeader>
-              <CardTitle>All Users</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>All Users</CardTitle>
+                <div className="flex items-center space-x-2">
+                  {selectedUsers.size > 0 && (
+                    <>
+                      <Badge variant="secondary" className="px-3 py-1">
+                        {selectedUsers.size} selected
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearSelection}
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        disabled={bulkDeleteMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete Selected
+                      </Button>
+                    </>
+                  )}
+                  {anonymousUsers.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDeleteAnonymous}
+                      disabled={deleteAnonymousMutation.isPending}
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                    >
+                      <UserX className="w-4 h-4 mr-1" />
+                      Delete Anonymous ({anonymousUsers.length})
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllUsers}
+                    disabled={users.filter(user => user.role !== 'instructor').length === 0}
+                  >
+                    <CheckSquare className="w-4 h-4 mr-1" />
+                    Select All Students
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -273,6 +404,7 @@ export default function UserManagement() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
+                        <th className="text-left py-3 px-4 w-12">Select</th>
                         <th className="text-left py-3 px-4">Username</th>
                         <th className="text-left py-3 px-4">Email</th>
                         <th className="text-left py-3 px-4">Role</th>
@@ -283,7 +415,22 @@ export default function UserManagement() {
                     <tbody>
                       {users.map((user: any) => (
                         <tr key={user.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4 font-medium">{user.username}</td>
+                          <td className="py-3 px-4">
+                            {user.role !== 'instructor' && (
+                              <Checkbox
+                                checked={selectedUsers.has(user.id)}
+                                onCheckedChange={() => toggleUserSelection(user.id)}
+                              />
+                            )}
+                          </td>
+                          <td className="py-3 px-4 font-medium">
+                            {user.username}
+                            {user.username.startsWith('anonymous') && (
+                              <Badge variant="outline" className="ml-2 text-xs text-orange-600 border-orange-300">
+                                Anonymous
+                              </Badge>
+                            )}
+                          </td>
                           <td className="py-3 px-4">{user.email}</td>
                           <td className="py-3 px-4">
                             <Badge variant={user.role === "instructor" ? "default" : "secondary"}>
