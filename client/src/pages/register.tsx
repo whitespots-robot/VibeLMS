@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { UserPlus, LogIn } from "lucide-react";
+import { useEffect } from "react";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -30,8 +29,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { registerMutation, user, isAuthenticated } = useAuth();
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -43,36 +41,28 @@ export default function Register() {
     },
   });
 
-  const onSubmit = async (data: RegisterForm) => {
-    setIsLoading(true);
-    try {
-      const { confirmPassword, ...registerData } = data;
-      const response = await apiRequest("POST", "/api/auth/register", registerData);
-      const result = await response.json();
-      
-      if (response.ok) {
-        localStorage.setItem("currentUser", JSON.stringify(result.user));
-        toast({
-          title: "Registration Successful",
-          description: `Welcome to Vibe LMS, ${result.user.username}!`,
-        });
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "student") {
         setLocation("/learning");
       } else {
-        toast({
-          title: "Registration Failed",
-          description: result.message || "Failed to create account",
-          variant: "destructive",
-        });
+        setLocation("/dashboard");
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to register. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
+  }, [isAuthenticated, user, setLocation]);
+
+  const onSubmit = async (data: RegisterForm) => {
+    const { confirmPassword, ...registerData } = data;
+    registerMutation.mutate(registerData, {
+      onSuccess: (user) => {
+        if (user.role === "student") {
+          setLocation("/learning");
+        } else {
+          setLocation("/dashboard");
+        }
+      }
+    });
   };
 
   return (
@@ -157,9 +147,9 @@ export default function Register() {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={isLoading}
+                disabled={registerMutation.isPending}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {registerMutation.isPending ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </Form>
