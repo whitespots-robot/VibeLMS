@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
-import { studentProgress, enrollments, users, courses } from "@shared/schema";
+import { studentProgress, enrollments as enrollmentsTable, users, courses } from "@shared/schema";
 import { sql, eq } from "drizzle-orm";
 import { 
   insertCourseSchema, insertChapterSchema, insertLessonSchema, 
@@ -772,32 +772,35 @@ console.log('Portfolio loaded successfully!');`);
   // Enrollment routes
   app.get("/api/enrollments", async (req, res) => {
     try {
-      // Get all enrollments with user and course details
-      const enrollmentData = await db.select({
-        id: enrollments.id,
-        studentId: enrollments.studentId,
-        courseId: enrollments.courseId,
-        progress: enrollments.progress,
-        enrolledAt: enrollments.enrolledAt,
-        student: {
-          id: users.id,
-          username: users.username,
-          email: users.email,
-          role: users.role,
-        },
-        course: {
-          id: courses.id,
-          title: courses.title,
-          status: courses.status,
-        }
-      })
-      .from(enrollments)
-      .leftJoin(users, eq(enrollments.studentId, users.id))
-      .leftJoin(courses, eq(enrollments.courseId, courses.id));
+      // Get all enrollments and add user/course details
+      const allUsers = await storage.getAllUsers();
+      const allCourses = await storage.getCourses();
+      const allEnrollments = await db.select().from(enrollmentsTable);
       
-      res.json(enrollments);
+      const enrichedEnrollments = allEnrollments.map(enrollment => {
+        const student = allUsers.find(u => u.id === enrollment.studentId);
+        const course = allCourses.find(c => c.id === enrollment.courseId);
+        
+        return {
+          ...enrollment,
+          student: student ? {
+            id: student.id,
+            username: student.username,
+            email: student.email,
+            role: student.role
+          } : null,
+          course: course ? {
+            id: course.id,
+            title: course.title,
+            status: course.status
+          } : null
+        };
+      });
+      
+      res.json(enrichedEnrollments);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch enrollments" });
+      console.error("Enrollments API error:", error);
+      res.status(500).json({ message: "Failed to fetch enrollments", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
