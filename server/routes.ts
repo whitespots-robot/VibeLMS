@@ -960,9 +960,13 @@ console.log('Portfolio loaded successfully!');`);
     try {
       const courses = await storage.getCourses();
       const materials = await storage.getMaterials();
+      const allUsers = await storage.getAllUsers();
       
       const totalCourses = courses.length;
-      const totalStudents = courses.reduce((sum, course) => sum + course.studentsCount, 0);
+      // Count actual students (users with role 'student')
+      const activeStudents = allUsers.filter(user => user.role === 'student').length;
+      // Total enrolled students across all courses
+      const totalEnrollments = courses.reduce((sum, course) => sum + course.studentsCount, 0);
       const totalMaterials = materials.length;
       
       // Calculate assignments count by getting all lessons with assignments
@@ -977,7 +981,7 @@ console.log('Portfolio loaded successfully!');`);
 
       res.json({
         totalCourses,
-        activeStudents: totalStudents,
+        activeStudents,
         assignments: assignmentsCount,
         materials: totalMaterials,
       });
