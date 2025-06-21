@@ -46,8 +46,8 @@ export default function Students() {
   const coursesArray = Array.isArray(courses) ? courses : [];
 
   // Separate registered and anonymous users
-  const registeredUsers = usersArray.filter((user: any) => user.username !== 'anonymous' && user.role === 'student');
-  const anonymousUsers = usersArray.filter((user: any) => user.username === 'anonymous');
+  const registeredUsers = usersArray.filter((user: any) => !user.username.startsWith('anonymous') && user.role === 'student');
+  const anonymousUsers = usersArray.filter((user: any) => user.username.startsWith('anonymous'));
   const totalRegistered = registeredUsers.length;
   const totalAnonymous = anonymousUsers.length;
   
@@ -62,8 +62,8 @@ export default function Students() {
     };
   }).filter(e => e.student && e.course);
 
-  const registeredEnrollments = enrollmentsWithUsers.filter(e => e.student.username !== 'anonymous');
-  const anonymousEnrollments = enrollmentsWithUsers.filter(e => e.student.username === 'anonymous');
+  const registeredEnrollments = enrollmentsWithUsers.filter(e => !e.student.username.startsWith('anonymous'));
+  const anonymousEnrollments = enrollmentsWithUsers.filter(e => e.student.username.startsWith('anonymous'));
 
   const totalEnrollments = enrollmentsArray.length;
   const completions = enrollmentsArray.filter((enrollment: any) => enrollment.progress === 100).length;

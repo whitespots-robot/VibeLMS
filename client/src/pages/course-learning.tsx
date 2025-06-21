@@ -86,7 +86,7 @@ export default function CourseLearning() {
           anonymousId = userData.id.toString();
           localStorage.setItem("anonymousUserId", anonymousId);
         }
-        studentId = parseInt(anonymousId || "1");
+        studentId = parseInt(anonymousId!);
       }
       
       // Update student progress
