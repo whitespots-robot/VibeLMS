@@ -26,6 +26,80 @@ async function waitForDatabase(maxRetries = 30, delay = 2000) {
 
 
 
+// Force ensure demo data exists every time
+async function ensureDemoData() {
+  try {
+    log("Ensuring demo data exists...");
+    const { pool } = await import("./db");
+    
+    // Always check and create if missing
+    const teacherCheck = await pool.query("SELECT id FROM users WHERE username = 'teacher' LIMIT 1");
+    let teacherId;
+    
+    if (teacherCheck.rows.length === 0) {
+      log("Creating teacher user...");
+      const teacherResult = await pool.query(`
+        INSERT INTO users (username, password, email, role, created_at)
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING id
+      `, ['teacher', '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044', 'teacher@example.com', 'instructor']);
+      teacherId = teacherResult.rows[0].id;
+      log("Teacher user created");
+    } else {
+      teacherId = teacherCheck.rows[0].id;
+      log("Teacher user exists");
+    }
+    
+    // Always check and create course if missing
+    const courseCheck = await pool.query("SELECT id FROM courses WHERE title = '🎯 Complete Web Development Bootcamp' LIMIT 1");
+    
+    if (courseCheck.rows.length === 0) {
+      log("Creating demo course...");
+      const courseResult = await pool.query(`
+        INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        RETURNING id
+      `, ['🎯 Complete Web Development Bootcamp', 'Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.', teacherId, 'published', true, true]);
+      
+      const courseId = courseResult.rows[0].id;
+      log(`Demo course created with ID: ${courseId}`);
+      
+      // Create basic chapter and lesson
+      const chapterResult = await pool.query(`
+        INSERT INTO chapters (title, description, course_id, order_index, created_at)
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING id
+      `, ['Getting Started', 'Introduction to web development', courseId, 1]);
+      
+      await pool.query(`
+        INSERT INTO lessons (title, description, content, chapter_id, order_index, lesson_type, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `, ['Welcome', 'Welcome to the course!', '<h2>Welcome!</h2><p>Let\'s start learning web development.</p>', chapterResult.rows[0].id, 1, 'text']);
+      
+      log("Demo chapter and lesson created");
+    } else {
+      log("Demo course already exists");
+    }
+    
+    // Always ensure system settings
+    await pool.query(`
+      INSERT INTO system_settings (key, value)
+      VALUES 
+        ('allow_student_registration', 'true'),
+        ('platform_name', 'Vibe LMS'),
+        ('welcome_message', 'Welcome to your learning journey!')
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `);
+    
+    // Final verification
+    const finalCheck = await pool.query("SELECT COUNT(*) as count FROM courses WHERE is_public = true AND status = 'published'");
+    log(`Final check: ${finalCheck.rows[0].count} public courses available`);
+    
+  } catch (error) {
+    log(`Demo data error: ${error}`, "demo");
+  }
+}
+
 // Run database migrations on startup
 async function runMigrations() {
   try {
@@ -35,91 +109,9 @@ async function runMigrations() {
     await execAsync("npm run db:push");
     log("Database migrations completed successfully");
     
-    // Run initial data migration using direct database connection
-    log("Running initial data migration...");
-    try {
-      const { pool } = await import("./db");
-      
-      // Check if teacher user exists
-      const teacherCheck = await pool.query("SELECT id FROM users WHERE username = 'teacher' LIMIT 1");
-      
-      if (teacherCheck.rows.length === 0) {
-        log("Teacher user not found, creating demo data...");
-        
-        // Create teacher user
-        await pool.query(`
-          INSERT INTO users (username, password, email, role, created_at)
-          VALUES ($1, $2, $3, $4, NOW())
-        `, ['teacher', '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044', 'teacher@example.com', 'instructor']);
-        
-        log("Teacher user created successfully");
-        
-        // Get teacher ID
-        const teacherResult = await pool.query("SELECT id FROM users WHERE username = 'teacher' LIMIT 1");
-        const teacherId = teacherResult.rows[0].id;
-        
-        // Create demo course
-        const courseResult = await pool.query(`
-          INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration, created_at)
-          VALUES ($1, $2, $3, $4, $5, $6, NOW())
-          RETURNING id
-        `, ['🎯 Complete Web Development Bootcamp', 'Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.', teacherId, 'published', true, true]);
-        
-        const courseId = courseResult.rows[0].id;
-        log("Demo course created successfully");
-        
-        // Create demo chapters
-        const chapter1Result = await pool.query(`
-          INSERT INTO chapters (title, description, course_id, order_index, created_at)
-          VALUES ($1, $2, $3, $4, NOW())
-          RETURNING id
-        `, ['Getting Started with Web Development', 'Introduction to web development fundamentals and setting up your development environment.', courseId, 1]);
-        
-        const chapter2Result = await pool.query(`
-          INSERT INTO chapters (title, description, course_id, order_index, created_at)
-          VALUES ($1, $2, $3, $4, NOW())
-          RETURNING id
-        `, ['HTML Fundamentals', 'Learn the building blocks of web pages with HTML5.', courseId, 2]);
-        
-        log("Demo chapters created successfully");
-        
-        // Create demo lessons
-        await pool.query(`
-          INSERT INTO lessons (title, description, content, chapter_id, order_index, lesson_type, created_at)
-          VALUES ($1, $2, $3, $4, $5, $6, NOW())
-        `, ['Welcome to Web Development', 'Your journey into web development starts here!', '<h2>Welcome to Web Development!</h2><p>In this course, you\'ll learn everything you need to become a professional web developer.</p><p><strong>What you\'ll learn:</strong></p><ul><li>HTML5 fundamentals</li><li>CSS3 styling and layouts</li><li>JavaScript programming</li><li>Building real projects</li></ul>', chapter1Result.rows[0].id, 1, 'text']);
-        
-        await pool.query(`
-          INSERT INTO lessons (title, description, content, chapter_id, order_index, lesson_type, created_at)
-          VALUES ($1, $2, $3, $4, $5, $6, NOW())
-        `, ['Setting Up Your Development Environment', 'Learn how to set up the tools you need for web development.', '<h2>Development Environment Setup</h2><p>Let\'s get your computer ready for web development!</p><h3>Tools You\'ll Need:</h3><ul><li>Code Editor (VS Code recommended)</li><li>Web Browser (Chrome or Firefox)</li><li>Terminal/Command Line</li></ul><p>Follow along as we install and configure each tool.</p>', chapter1Result.rows[0].id, 2, 'text']);
-        
-        await pool.query(`
-          INSERT INTO lessons (title, description, content, chapter_id, order_index, lesson_type, created_at)
-          VALUES ($1, $2, $3, $4, $5, $6, NOW())
-        `, ['Introduction to HTML', 'Learn the basics of HTML markup language.', '<h2>What is HTML?</h2><p>HTML (HyperText Markup Language) is the standard markup language for creating web pages.</p><h3>Basic HTML Structure:</h3><pre><code>&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n    &lt;title&gt;My First Webpage&lt;/title&gt;\n&lt;/head&gt;\n&lt;body&gt;\n    &lt;h1&gt;Hello World!&lt;/h1&gt;\n&lt;/body&gt;\n&lt;/html&gt;</code></pre>', chapter2Result.rows[0].id, 1, 'text']);
-        
-        log("Demo lessons created successfully");
-        
-        // Create system settings
-        await pool.query(`
-          INSERT INTO system_settings (key, value)
-          VALUES 
-            ('allow_student_registration', 'true'),
-            ('platform_name', 'Vibe LMS'),
-            ('welcome_message', 'Welcome to your learning journey!')
-          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-        `);
-        
-        log("System settings created successfully");
-        log("Initial demo data migration completed successfully");
-      } else {
-        log("Teacher user already exists, skipping demo data creation");
-      }
-    } catch (migrationError) {
-      log(`Initial data migration error: ${migrationError}`, "migration");
-      // Don't fail if demo data already exists
-    }
+    // Always ensure demo data after migrations
+    await ensureDemoData();
+    
   } catch (error) {
     log(`Migration error: ${error}`, "migration");
     // Don't exit on migration errors in production - database might already be set up
