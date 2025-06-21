@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
@@ -20,6 +21,15 @@ import crypto from "crypto";
 // Generate a unique JWT secret on each application start
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
 console.log("[AUTH] JWT secret generated for this session");
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 
 // JWT middleware for authentication
 function authenticateToken(req: any, res: any, next: any) {
@@ -117,7 +127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: '24h' }
       );
 
-      res.json({ token, user });
+      // Remove password from user object before sending
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ token, user: userWithoutPassword });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -145,7 +157,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: '24h' }
       );
 
-      res.status(201).json({ token, user });
+      // Remove password from user object before sending
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ token, user: userWithoutPassword });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Failed to create account" });
@@ -158,7 +172,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json({ user });
+      
+      // Remove password from user object before sending
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
     } catch (error) {
       console.error("Verify error:", error);
       res.status(500).json({ message: "Internal server error" });
