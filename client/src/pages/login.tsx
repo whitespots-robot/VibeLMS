@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, User } from "lucide-react";
 
@@ -20,7 +19,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoginPending } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<LoginForm>({
@@ -32,33 +31,26 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      const result = await response.json();
+      const result = await login(data);
       
-      if (response.ok) {
-        localStorage.setItem("currentUser", JSON.stringify(result.user));
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${result.user.username}!`,
-        });
-        setLocation("/dashboard");
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${result.user.username}!`,
+      });
+      
+      // Redirect based on user role
+      if (result.user.role === "student") {
+        setLocation("/learning");
       } else {
-        toast({
-          title: "Login Failed",
-          description: result.message || "Invalid credentials",
-          variant: "destructive",
-        });
+        setLocation("/dashboard");
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to login. Please try again.",
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : "Invalid credentials",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -105,9 +97,9 @@ export default function Login() {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={isLoading}
+                disabled={isLoginPending}
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoginPending ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>
