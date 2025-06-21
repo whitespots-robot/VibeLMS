@@ -182,10 +182,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   private hashPassword(password: string): string {
-    return Buffer.from(password).toString('base64');
+    // Use crypto for proper password hashing in production
+    const crypto = require('crypto');
+    const salt = 'vibelms_salt_2024'; // In production, use random salt per user
+    return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   }
 
   private verifyPassword(password: string, hashedPassword: string): boolean {
+    // Handle both old base64 and new hashed passwords for backward compatibility
+    const oldBase64 = Buffer.from(password).toString('base64');
+    if (hashedPassword === oldBase64) {
+      return true; // Support legacy base64 passwords
+    }
     return this.hashPassword(password) === hashedPassword;
   }
 
