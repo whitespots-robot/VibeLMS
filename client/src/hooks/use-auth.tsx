@@ -118,6 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     retry: false,
     enabled: !!localStorage.getItem('auth_token'),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
@@ -169,14 +171,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Login mutation success, refetching user...');
       setIsAuthenticated(true);
       // Use a small delay to ensure token is saved before refetch
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log('Triggering user refetch...');
-        refetchUser().then(() => {
-          console.log('User refetch completed');
-        }).catch((error) => {
+        try {
+          const result = await refetchUser();
+          console.log('User refetch completed, result:', result.data);
+          if (result.data) {
+            console.log('User data loaded, should redirect now');
+          }
+        } catch (error) {
           console.error('User refetch failed:', error);
-        });
-      }, 50);
+        }
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
