@@ -938,7 +938,12 @@ console.log('Portfolio loaded successfully!');`);
       
       res.json(progress);
     } catch (error) {
-      res.status(400).json({ message: "Invalid progress data" });
+      console.error("Progress API error:", error);
+      res.status(400).json({ 
+        message: "Invalid progress data",
+        error: error instanceof Error ? error.message : "Unknown error",
+        received: req.body
+      });
     }
   });
 

@@ -94,7 +94,6 @@ export default function CourseLearning() {
         studentId,
         lessonId,
         completed: true,
-        completedAt: new Date().toISOString(),
       });
       return response.json();
     },
