@@ -8,12 +8,17 @@
 
 ## Quick Deployment
 
-1. **Create environment file**:
+1. **Stop any existing containers**:
+   ```bash
+   docker compose down
+   ```
+
+2. **Create environment file**:
    ```bash
    cp .env.example .env
    ```
 
-2. **Generate secure secrets**:
+3. **Generate secure secrets**:
    ```bash
    # PostgreSQL password
    echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env
@@ -22,12 +27,12 @@
    echo "SESSION_SECRET=$(openssl rand -base64 64)" >> .env
    ```
 
-3. **Deploy**:
+4. **Deploy with rebuild**:
    ```bash
-   docker compose up -d
+   docker compose up -d --build
    ```
 
-4. **Check status**:
+5. **Check status**:
    ```bash
    docker compose ps
    docker compose logs -f app
