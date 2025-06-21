@@ -835,7 +835,6 @@ console.log('Portfolio loaded successfully!');`);
                   studentId: progressData.studentId,
                   courseId: courseId,
                   progress: 0,
-                  enrolledAt: new Date().toISOString(),
                 });
               }
               
