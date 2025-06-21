@@ -40,7 +40,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/shared ./shared
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/vite.config.ts ./vite.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 # Create uploads directory with proper permissions
@@ -56,7 +55,7 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start application with dumb-init using tsx directly
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/index.ts"]
+# Start application with dumb-init using production entry point
 ENV NODE_ENV=production
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npx", "tsx", "server/index.prod.ts"]

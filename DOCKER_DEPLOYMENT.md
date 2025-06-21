@@ -11,9 +11,10 @@ This document provides instructions for deploying Vibe LMS using Docker containe
 - **Solution**: Direct TypeScript execution using `tsx` instead of compiled JavaScript
 
 ### Docker Configuration Updates
-- Switched from esbuild compilation to direct TypeScript execution
+- Created production-specific server entry point (`index.prod.ts`)
+- Eliminated vite.config.ts dependency in production mode
 - Added `tsx` as production dependency for TypeScript runtime
-- Included all necessary configuration files (tsconfig.json, vite.config.ts)
+- Removed problematic `import.meta.dirname` path resolution
 - Set proper environment variables for production mode
 
 ## Prerequisites
