@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return data;
     },
     onSuccess: (data: { token: string; user: SafeUser }) => {
-      queryClient.setQueryData(["/api/auth/verify"], data.user);
+      // Cache removed to prevent localStorage pollution
       setIsAuthenticated(true);
       refetchUser();
     },
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return data;
     },
     onSuccess: (data: { token: string; user: SafeUser }) => {
-      queryClient.setQueryData(["/api/auth/verify"], data.user);
+      // Cache removed to prevent localStorage pollution
       setIsAuthenticated(true);
       refetchUser();
     },
