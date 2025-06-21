@@ -48,7 +48,7 @@ export default function CourseLearning() {
   });
 
   const { data: registrationAllowed = true } = useQuery({
-    queryKey: ["/api/settings/allow_student_registration", Date.now()],
+    queryKey: ["/api/settings/allow_student_registration"],
     select: (data: { value: string | null }) => data.value !== "false",
     enabled: isPreviewMode,
   });

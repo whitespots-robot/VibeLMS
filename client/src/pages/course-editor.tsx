@@ -41,7 +41,7 @@ export default function CourseEditor() {
   const { toast } = useToast();
 
   const { data: course, isLoading } = useQuery<Course & { chapters: ChapterWithLessons[] }>({
-    queryKey: [`/api/courses/${courseId}`, Date.now()],
+    queryKey: [`/api/courses/${courseId}`],
     enabled: !!courseId,
   });
 
@@ -64,8 +64,8 @@ export default function CourseEditor() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`, Date.now()] });
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", Date.now()] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
       toast({
         title: "Course Updated",
         description: "Course information has been updated successfully.",
@@ -91,7 +91,7 @@ export default function CourseEditor() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`, Date.now()] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
       setIsChapterDialogOpen(false);
       setNewChapterTitle("");
       setNewChapterDescription("");
@@ -116,7 +116,7 @@ export default function CourseEditor() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`, Date.now()] });
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
       toast({
         title: "Success",
         description: "Lesson created successfully",

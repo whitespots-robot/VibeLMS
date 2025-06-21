@@ -13,11 +13,11 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats", Date.now()],
+    queryKey: ["/api/dashboard/stats"],
   });
 
   const { data: courses, isLoading: coursesLoading } = useQuery({
-    queryKey: ["/api/courses", Date.now()],
+    queryKey: ["/api/courses"],
   });
 
   return (

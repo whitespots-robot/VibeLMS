@@ -48,11 +48,11 @@ export default function PublicCourses() {
   };
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
-    queryKey: ["/api/public/courses", Date.now()],
+    queryKey: ["/api/public/courses"],
   });
 
   const { data: registrationAllowed = true } = useQuery({
-    queryKey: ["/api/settings/allow_student_registration", Date.now()],
+    queryKey: ["/api/settings/allow_student_registration"],
     select: (data: { value: string | null }) => data.value !== "false",
   });
 

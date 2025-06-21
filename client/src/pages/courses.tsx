@@ -26,7 +26,7 @@ export default function Courses() {
   const { toast } = useToast();
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
-    queryKey: ["/api/courses", Date.now()],
+    queryKey: ["/api/courses"],
   });
 
   const createCourseMutation = useMutation({
@@ -35,7 +35,7 @@ export default function Courses() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", Date.now()] });
+      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
       setIsCreateDialogOpen(false);
       toast({
         title: "Success",
@@ -56,7 +56,7 @@ export default function Courses() {
       await apiRequest("DELETE", `/api/courses/${courseId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", Date.now()] });
+      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
       toast({
         title: "Success",
         description: "Course deleted successfully",
