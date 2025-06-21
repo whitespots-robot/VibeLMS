@@ -13,6 +13,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import JSZip from "jszip";
+import { ensureSession, requireAuth, requireRole, upgradeSession, clearSession, type AuthenticatedRequest } from "./auth";
 
 // Security utility functions
 function sanitizeFilename(filename: string): string {
