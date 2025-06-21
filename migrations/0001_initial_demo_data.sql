@@ -1,7 +1,9 @@
 -- Initial demo data for production deployment
 -- This will run only once when the database is first created
+\echo 'Creating initial demo data for production...'
 
 -- Insert teacher user with hashed password (PBKDF2)
+\echo 'Creating teacher user...'
 INSERT INTO users (username, password, email, role, created_at)
 VALUES (
   'teacher',
@@ -11,7 +13,10 @@ VALUES (
   NOW()
 ) ON CONFLICT (username) DO NOTHING;
 
+\echo 'Teacher user created or already exists'
+
 -- Insert demo course
+\echo 'Creating demo course...'
 INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration, created_at)
 SELECT 
   '🎯 Complete Web Development Bootcamp',
@@ -27,13 +32,28 @@ AND NOT EXISTS (
   SELECT 1 FROM courses c WHERE c.title = '🎯 Complete Web Development Bootcamp'
 );
 
+\echo 'Demo course created or already exists'
+
+-- Verify course creation
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM courses WHERE title = '🎯 Complete Web Development Bootcamp') THEN
+        RAISE NOTICE 'SUCCESS: Demo course exists in database';
+    ELSE
+        RAISE NOTICE 'WARNING: Demo course was not created';
+    END IF;
+END $$;
+
 -- Insert system settings
+\echo 'Creating system settings...'
 INSERT INTO system_settings (key, value)
 VALUES 
   ('allow_student_registration', 'true'),
   ('platform_name', 'Vibe LMS'),
   ('welcome_message', 'Welcome to your learning journey!')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+\echo 'System settings created'
 
 -- Insert demo chapters
 INSERT INTO chapters (title, description, course_id, order_index, created_at)
