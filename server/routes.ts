@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { studentProgress } from "@shared/schema";
+import { sql } from "drizzle-orm";
 import { 
   insertCourseSchema, insertChapterSchema, insertLessonSchema, 
   insertQuestionSchema, insertMaterialSchema, insertEnrollmentSchema,
@@ -963,8 +966,14 @@ console.log('Portfolio loaded successfully!');`);
       const allUsers = await storage.getAllUsers();
       
       const totalCourses = courses.length;
-      // Count actual students (users with role 'student')
-      const activeStudents = allUsers.filter(user => user.role === 'student').length;
+      
+      // Count all active learners including anonymous users
+      // Get unique student IDs from student_progress table (includes anonymous users)
+      const uniqueLearners = await db.select({ studentId: studentProgress.studentId })
+        .from(studentProgress)
+        .groupBy(studentProgress.studentId);
+      
+      const activeStudents = uniqueLearners.length;
       // Total enrolled students across all courses
       const totalEnrollments = courses.reduce((sum, course) => sum + course.studentsCount, 0);
       const totalMaterials = materials.length;
