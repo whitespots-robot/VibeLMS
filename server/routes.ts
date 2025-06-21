@@ -127,9 +127,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: '24h' }
       );
 
-      // Remove password from user object before sending
-      const { password: _, ...userWithoutPassword } = user;
-      res.json({ token, user: userWithoutPassword });
+      // Create safe user object without password
+      const safeUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      };
+      
+      res.json({ token, user: safeUser });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -157,9 +164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: '24h' }
       );
 
-      // Remove password from user object before sending
-      const { password: _, ...userWithoutPassword } = user;
-      res.status(201).json({ token, user: userWithoutPassword });
+      // Create safe user object without password
+      const safeUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      };
+      
+      res.status(201).json({ token, user: safeUser });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Failed to create account" });
@@ -173,9 +187,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Remove password from user object before sending
-      const { password: _, ...userWithoutPassword } = user;
-      res.json({ user: userWithoutPassword });
+      // Create safe user object without password
+      const safeUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      };
+      
+      res.json({ user: safeUser });
     } catch (error) {
       console.error("Verify error:", error);
       res.status(500).json({ message: "Internal server error" });
