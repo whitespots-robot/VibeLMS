@@ -32,8 +32,8 @@ SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_s
 
 ### Default Login Credentials
 Demo data is created automatically on first startup:
-- **Username**: teacher
-- **Password**: teacher
+- **Username**: admin
+- **Password**: admin123
 - **Role**: instructor
 
 ### Demo Course
