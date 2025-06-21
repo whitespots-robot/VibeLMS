@@ -32,6 +32,9 @@ export interface IStorage {
   getSystemSetting(key: string): Promise<string | undefined>;
   setSystemSetting(key: string, value: string): Promise<void>;
 
+  // Analytics
+  getActiveLearners(): Promise<number>;
+
   // Chapter operations
   getChaptersByCourse(courseId: number): Promise<Chapter[]>;
   getChapter(id: number): Promise<Chapter | undefined>;
@@ -589,6 +592,13 @@ export class DatabaseStorage implements IStorage {
     } else {
       await db.insert(systemSettings).values({ key, value });
     }
+  }
+
+  async getActiveLearners(): Promise<number> {
+    // Count unique student IDs from student_progress table (includes anonymous users)
+    const result = await db.selectDistinct({ studentId: studentProgress.studentId })
+      .from(studentProgress);
+    return result.length;
   }
 }
 

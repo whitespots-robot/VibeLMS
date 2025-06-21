@@ -968,12 +968,7 @@ console.log('Portfolio loaded successfully!');`);
       const totalCourses = courses.length;
       
       // Count all active learners including anonymous users
-      // Get unique student IDs from student_progress table (includes anonymous users)
-      const uniqueLearners = await db.select({ studentId: studentProgress.studentId })
-        .from(studentProgress)
-        .groupBy(studentProgress.studentId);
-      
-      const activeStudents = uniqueLearners.length;
+      const activeStudents = await storage.getActiveLearners();
       // Total enrolled students across all courses
       const totalEnrollments = courses.reduce((sum, course) => sum + course.studentsCount, 0);
       const totalMaterials = materials.length;
