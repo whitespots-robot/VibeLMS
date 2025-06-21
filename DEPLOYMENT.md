@@ -29,6 +29,13 @@ SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_s
 ### Application Access
 - **Application**: http://localhost (port 80)
 - **Health Check**: http://localhost/api/health
+- **Demo Data Setup**: POST http://localhost/api/init-demo
+
+### Default Login Credentials
+After demo data initialization:
+- **Username**: teacher
+- **Password**: teacher
+- **Role**: instructor
 
 ### Architecture
 - **Frontend**: React with Vite build system

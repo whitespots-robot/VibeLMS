@@ -85,12 +85,30 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeDatabase() {
     try {
-      const existingUsers = await db.select().from(users).limit(1);
-      if (existingUsers.length === 0) {
+      // Check if teacher user exists specifically
+      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
+      if (teacherUser.length === 0) {
+        console.log("Creating demo data - teacher user not found");
         await this.createDemoData();
       }
     } catch (error) {
       console.error("Failed to initialize database:", error);
+    }
+  }
+
+  // Public method to ensure demo data exists
+  async ensureDemoData() {
+    try {
+      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
+      if (teacherUser.length === 0) {
+        console.log("Ensuring demo data exists - creating teacher user");
+        await this.createDemoData();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to ensure demo data:", error);
+      return false;
     }
   }
 

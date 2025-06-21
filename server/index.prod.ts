@@ -24,6 +24,22 @@ async function waitForDatabase(maxRetries = 30, delay = 2000) {
   }
 }
 
+// Initialize demo data if needed
+async function initializeDemoData() {
+  try {
+    const { storage } = await import("./storage");
+    // Ensure demo data exists
+    const created = await storage.ensureDemoData();
+    if (created) {
+      log("Demo data created successfully");
+    } else {
+      log("Demo data already exists");
+    }
+  } catch (error) {
+    log(`Demo data initialization error: ${error}`, "init");
+  }
+}
+
 // Run database migrations on startup
 async function runMigrations() {
   try {
@@ -32,6 +48,9 @@ async function runMigrations() {
     log("Running database migrations...");
     await execAsync("npm run db:push");
     log("Database migrations completed successfully");
+    
+    // Initialize demo data after migrations
+    await initializeDemoData();
   } catch (error) {
     log(`Migration error: ${error}`, "migration");
     // Don't exit on migration errors in production - database might already be set up
