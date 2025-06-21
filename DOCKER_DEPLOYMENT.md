@@ -25,11 +25,15 @@ This document provides instructions for deploying Vibe LMS using Docker containe
 ## Deployment Steps
 
 ### 1. Environment Setup
-Create a `.env` file with:
+The repository includes a `.env` file with secure defaults for Docker deployment:
 ```env
-DATABASE_URL=your_postgresql_connection_string
-SESSION_SECRET=your_session_secret_key
+POSTGRES_PASSWORD=vibelms_secure_password_2024
+SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
 ```
+
+**Important**: Change these values for production deployment:
+- Generate a strong `POSTGRES_PASSWORD` 
+- Create a secure 32+ character `SESSION_SECRET`
 
 ### 2. Deploy Application
 ```bash
@@ -71,17 +75,19 @@ curl http://localhost:5000
 
 ### Container Won't Start
 - Check Docker logs: `docker compose logs app`
-- Verify environment variables are set
-- Ensure database is accessible
-
-### Path Resolution Errors
-- Verify tsconfig.json is copied to container
-- Check that tsx is installed in production dependencies
+- Verify `.env` file exists with required variables
+- Ensure PostgreSQL container is healthy: `docker compose logs postgres`
 
 ### Database Connection Issues
-- Verify DATABASE_URL format
-- Check network connectivity to database
-- Ensure database accepts connections from Docker network
+- The Docker setup includes a PostgreSQL container that starts automatically
+- Database connection errors usually indicate missing `.env` file
+- Check PostgreSQL container health: `docker compose ps`
+- Verify network connectivity: `docker compose logs postgres`
+
+### Authentication Issues
+- Ensure SESSION_SECRET is set in `.env` file
+- SESSION_SECRET must be at least 32 characters long
+- Check that cookies are being set properly in browser dev tools
 
 ## Health Monitoring
 The application includes a health check endpoint at `/api/health` that verifies:
