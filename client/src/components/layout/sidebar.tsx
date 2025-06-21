@@ -33,7 +33,8 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
   const { toast } = useToast();
   
   // Get current user from localStorage
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUserData = localStorage.getItem("currentUser");
+  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
   const navigation = getNavigation(currentUser?.role || null);
 
   const handleLogout = () => {

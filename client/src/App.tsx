@@ -24,7 +24,8 @@ import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUserData = localStorage.getItem("currentUser");
+  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
   
   useEffect(() => {
     if (!currentUser) {
