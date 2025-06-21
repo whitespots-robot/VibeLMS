@@ -25,13 +25,12 @@ export default function Learning() {
 
   // Fetch user's enrollments
   const { data: enrollments = [] } = useQuery<Enrollment[]>({
-    queryKey: ["/api/enrollments", "student", 1], // Using student ID 1 for demo
+    queryKey: ["/api/enrollments"],
   });
 
   const enrollMutation = useMutation({
     mutationFn: async (courseId: number) => {
       const response = await apiRequest("POST", "/api/enrollments", {
-        studentId: 1, // Demo student ID
         courseId,
         progress: 0,
       });

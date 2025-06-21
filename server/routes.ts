@@ -856,34 +856,45 @@ console.log('Portfolio loaded successfully!');`);
   });
 
   // Enrollment routes
-  app.get("/api/enrollments", async (req, res) => {
+  app.get("/api/enrollments", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      // Get all enrollments and add user/course details
-      const allUsers = await storage.getAllUsers();
-      const allCourses = await storage.getCourses();
-      const allEnrollments = await db.select().from(enrollmentsTable);
-      
-      const enrichedEnrollments = allEnrollments.map(enrollment => {
-        const student = allUsers.find(u => u.id === enrollment.studentId);
-        const course = allCourses.find(c => c.id === enrollment.courseId);
+      // For instructors/teachers: Get all enrollments with details for management
+      if (req.session?.role === "instructor" || req.session?.role === "teacher") {
+        const allUsers = await storage.getAllUsers();
+        const allCourses = await storage.getCourses();
+        const allEnrollments = await db.select().from(enrollmentsTable);
         
-        return {
-          ...enrollment,
-          student: student ? {
-            id: student.id,
-            username: student.username,
-            email: student.email,
-            role: student.role
-          } : null,
-          course: course ? {
-            id: course.id,
-            title: course.title,
-            status: course.status
-          } : null
-        };
-      });
-      
-      res.json(enrichedEnrollments);
+        const enrichedEnrollments = allEnrollments.map(enrollment => {
+          const student = allUsers.find(u => u.id === enrollment.studentId);
+          const course = allCourses.find(c => c.id === enrollment.courseId);
+          
+          return {
+            ...enrollment,
+            student: student ? {
+              id: student.id,
+              username: student.username,
+              email: student.email,
+              role: student.role
+            } : null,
+            course: course ? {
+              id: course.id,
+              title: course.title,
+              status: course.status
+            } : null
+          };
+        });
+        
+        res.json(enrichedEnrollments);
+      } else {
+        // For students: Only return their own enrollments
+        const studentId = req.session?.userId;
+        if (!studentId) {
+          return res.status(400).json({ message: "Session not found" });
+        }
+        
+        const enrollments = await storage.getEnrollmentsByStudent(studentId);
+        res.json(enrollments);
+      }
     } catch (error) {
       console.error("Enrollments API error:", error);
       res.status(500).json({ message: "Failed to fetch enrollments", error: error instanceof Error ? error.message : "Unknown error" });
@@ -910,9 +921,17 @@ console.log('Portfolio loaded successfully!');`);
     }
   });
 
-  app.post("/api/enrollments", async (req, res) => {
+  app.post("/api/enrollments", ensureSession, async (req: AuthenticatedRequest, res) => {
     try {
-      const enrollmentData = insertEnrollmentSchema.parse(req.body);
+      const studentId = req.session?.userId;
+      if (!studentId) {
+        return res.status(400).json({ message: "Session not found" });
+      }
+      
+      const enrollmentData = insertEnrollmentSchema.parse({
+        ...req.body,
+        studentId
+      });
       const enrollment = await storage.createEnrollment(enrollmentData);
       res.status(201).json(enrollment);
     } catch (error) {
