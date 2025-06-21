@@ -18,31 +18,37 @@ import Register from "@/pages/register";
 import UserManagement from "@/pages/user-management";
 import PublicCourses from "@/pages/public-courses";
 import Sidebar from "@/components/layout/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const currentUserData = localStorage.getItem("currentUser");
-  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
+  const { user, isLoading } = useAuth();
   
   useEffect(() => {
-    if (!currentUser) {
+    if (isLoading) return;
+    
+    if (!user) {
       setLocation("/");
       return;
     }
     // Redirect students away from dashboard to learning, but don't redirect instructors
-    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
+    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (currentUser && currentUser.role === "instructor" && location === "/") {
+    if (user && user.role === "teacher" && location === "/") {
       setLocation("/dashboard");
     }
-  }, [currentUser, location, setLocation]);
+  }, [user, location, setLocation, isLoading]);
 
-  if (!currentUser) {
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
     return null;
   }
 
@@ -52,11 +58,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const currentUserData = localStorage.getItem("currentUser");
-  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   // Public routes that don't need authentication
-  if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
+  if (!user && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
     return (
       <Switch>
         <Route path="/login" component={Login} />
