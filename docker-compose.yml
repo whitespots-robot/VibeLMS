@@ -32,10 +32,10 @@ services:
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vibelms -d vibelms"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
     networks:
       - vibelms-network

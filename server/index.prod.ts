@@ -7,9 +7,28 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
+// Wait for database to be ready
+async function waitForDatabase(maxRetries = 30, delay = 2000) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await execAsync("npm run db:push");
+      log("Database connection established successfully");
+      return;
+    } catch (error) {
+      log(`Database connection attempt ${i + 1}/${maxRetries} failed, retrying in ${delay/1000}s...`);
+      if (i === maxRetries - 1) {
+        throw new Error(`Failed to connect to database after ${maxRetries} attempts`);
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 // Run database migrations on startup
 async function runMigrations() {
   try {
+    log("Waiting for database to be ready...");
+    await waitForDatabase();
     log("Running database migrations...");
     await execAsync("npm run db:push");
     log("Database migrations completed successfully");

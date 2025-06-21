@@ -37,8 +37,8 @@ SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_s
 - **Authentication**: JWT with secure HTTP-only cookies
 
 ### Container Services
-1. **app**: Main application server (Node.js + TypeScript)
-2. **postgres**: PostgreSQL database with health checks
+1. **app**: Main application server (Node.js + TypeScript) with database connection retry logic
+2. **postgres**: PostgreSQL database with enhanced health checks (5s intervals, 60s startup time)
 
 ### Troubleshooting
 
