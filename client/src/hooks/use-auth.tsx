@@ -22,6 +22,14 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Clear all old authentication data
+function clearAllAuthData() {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,14 +47,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
       
+      // Check if token is valid JWT format
       try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+          // Invalid JWT format, clear all auth data
+          clearAllAuthData();
+          setIsAuthenticated(false);
+          return null;
+        }
+        
         const res = await apiRequest("GET", "/api/auth/verify");
         const data = await res.json();
         setIsAuthenticated(true);
         return data.user;
       } catch (error) {
         // Token is invalid or expired, clear all auth data
-        localStorage.removeItem('auth_token');
+        clearAllAuthData();
         setIsAuthenticated(false);
         return null;
       }
@@ -57,10 +74,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const hasValidToken = !!localStorage.getItem('auth_token');
     const hasUser = !!user;
+    const hasOldUserData = !!localStorage.getItem('currentUser');
+    
+    // Clear any old authentication data immediately
+    if (hasOldUserData) {
+      clearAllAuthData();
+      setIsAuthenticated(false);
+      return;
+    }
     
     // If no user but token exists, token is invalid - clear it
     if (!hasUser && hasValidToken) {
-      localStorage.removeItem('auth_token');
+      clearAllAuthData();
       setIsAuthenticated(false);
     } else {
       setIsAuthenticated(hasUser);
