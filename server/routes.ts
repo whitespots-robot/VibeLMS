@@ -13,6 +13,25 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import JSZip from "jszip";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+
+// JWT middleware for authentication
+function authenticateToken(req: any, res: any, next: any) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
 
 // Security utility functions
 function sanitizeFilename(filename: string): string {
@@ -93,9 +112,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      // Return user without password
+      
+      // Generate JWT token
       const { password: _, ...userWithoutPassword } = user;
-      res.json({ user: userWithoutPassword, message: "Login successful" });
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
+      
+      res.json({ 
+        token, 
+        user: userWithoutPassword, 
+        message: "Login successful" 
+      });
     } catch (error) {
       res.status(500).json({ message: "Authentication failed" });
     }
@@ -116,7 +142,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const user = await storage.createUser(userData);
       const { password: _, ...userWithoutPassword } = user;
-      res.status(201).json({ user: userWithoutPassword, message: "Registration successful" });
+      
+      // Generate JWT token for immediate login
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
+      
+      res.status(201).json({ 
+        token, 
+        user: userWithoutPassword, 
+        message: "Registration successful" 
+      });
     } catch (error) {
       res.status(400).json({ message: "Invalid user data" });
     }
@@ -131,9 +165,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const user = await storage.createUser(userData);
       const { password: _, ...userWithoutPassword } = user;
-      res.status(201).json({ user: userWithoutPassword, message: "Teacher registration successful" });
+      
+      // Generate JWT token
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
+      
+      res.status(201).json({ 
+        token, 
+        user: userWithoutPassword, 
+        message: "Teacher registration successful" 
+      });
     } catch (error) {
       res.status(400).json({ message: "Invalid teacher data" });
+    }
+  });
+
+  // JWT verification endpoint
+  app.get("/api/auth/verify", authenticateToken, async (req: any, res) => {
+    try {
+      // Token is valid, return user data from JWT payload
+      const { password: _, ...userWithoutPassword } = req.user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(401).json({ message: "Invalid token" });
     }
   });
 
