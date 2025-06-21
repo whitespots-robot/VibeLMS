@@ -74,11 +74,26 @@ export default function PublicCourses() {
     },
   });
 
-  const { login, register, isLoginPending, isRegisterPending } = useAuth();
+  // Temporarily use direct API calls to avoid auth hook loop
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   const handleLogin = async (data: LoginForm) => {
+    setIsAuthLoading(true);
     try {
-      const result = await login(data);
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+      
+      const result = await response.json();
+      localStorage.setItem("currentUser", JSON.stringify(result.user));
       setIsLoginOpen(false);
       if (result.user.role === "teacher") {
         setLocation("/dashboard");
@@ -95,15 +110,32 @@ export default function PublicCourses() {
         description: error instanceof Error ? error.message : "Login failed",
         variant: "destructive",
       });
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
   const handleRegister = async (data: RegisterForm) => {
+    setIsAuthLoading(true);
     try {
       if (!registrationAllowed) {
         throw new Error("Student registration is currently disabled");
       }
-      await register(data);
+      
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Registration failed");
+      }
+      
+      const result = await response.json();
+      localStorage.setItem("currentUser", JSON.stringify(result.user));
       setIsRegisterOpen(false);
       setLocation("/learning");
       toast({
@@ -116,6 +148,8 @@ export default function PublicCourses() {
         description: error instanceof Error ? error.message : "Registration failed",
         variant: "destructive",
       });
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 

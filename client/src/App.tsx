@@ -25,30 +25,27 @@ import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { user, isLoading } = useAuth();
+  
+  // Check localStorage for user data as fallback during transition
+  const storedUser = localStorage.getItem("currentUser");
+  const currentUser = storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
   
   useEffect(() => {
-    if (isLoading) return;
-    
-    if (!user) {
+    if (!currentUser) {
       setLocation("/");
       return;
     }
     // Redirect students away from dashboard to learning, but don't redirect instructors
-    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
+    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (user && user.role === "teacher" && location === "/") {
+    if (currentUser && currentUser.role === "teacher" && location === "/") {
       setLocation("/dashboard");
     }
-  }, [user, location, setLocation, isLoading]);
+  }, [currentUser, location, setLocation]);
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
+  if (!currentUser) {
     return null;
   }
 
@@ -58,14 +55,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  const storedUser = localStorage.getItem("currentUser");
+  const currentUser = storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
 
   // Public routes that don't need authentication
-  if (!user && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
+  if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
     return (
       <Switch>
         <Route path="/login" component={Login} />
