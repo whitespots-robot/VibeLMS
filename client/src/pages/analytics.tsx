@@ -58,13 +58,18 @@ export default function Analytics() {
 
 
 
-  const analytics: AnalyticsData | undefined = dashboardStats && courses ? {
+  const coursesArray = Array.isArray(courses) ? courses : [];
+  const enrollmentsArray = Array.isArray(enrollments) ? enrollments : [];
+  
+  const analytics: AnalyticsData | undefined = dashboardStats ? {
     totalCourses: (dashboardStats as any).totalCourses || 0,
     totalStudents: (dashboardStats as any).activeStudents || 0,
-    totalEnrollments: (enrollments as any)?.length || 0,
-    averageProgress: (dashboardStats as any).assignments || 0,
+    totalEnrollments: enrollmentsArray.length,
+    averageProgress: coursesArray.length > 0 
+      ? Math.round(coursesArray.reduce((sum: number, course: any) => sum + (course.averageProgress || 0), 0) / coursesArray.length)
+      : 0,
     completionRate: 85,
-    popularCourses: (courses as any[]).map((course: any) => ({
+    popularCourses: coursesArray.map((course: any) => ({
       id: course.id,
       title: course.title,
       enrollments: course.studentsCount || 0,
@@ -75,8 +80,8 @@ export default function Analytics() {
       const date = new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000);
       return {
         date: date.toISOString().split('T')[0],
-        activeUsers: i === 6 ? ((enrollments as any)?.length || 0) : 0, // Only show current enrollments on today
-        newEnrollments: i === 6 ? ((enrollments as any)?.length || 0) : 0 // Only show enrollments on today
+        activeUsers: i === 6 ? enrollmentsArray.length : 0, // Only show current enrollments on today
+        newEnrollments: i === 6 ? enrollmentsArray.length : 0 // Only show enrollments on today
       };
     })
   } : undefined;

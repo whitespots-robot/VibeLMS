@@ -17,10 +17,12 @@ export default function Students() {
   });
 
   const totalStudents = (dashboardStats as any)?.activeStudents || 0;
-  const activeEnrollments = (enrollments as any)?.length || 0;
+  const enrollmentsArray = Array.isArray(enrollments) ? enrollments : [];
+  const coursesArray = Array.isArray(courses) ? courses : [];
+  const activeEnrollments = enrollmentsArray.length;
   // Calculate average progress from courses data
-  const avgProgress = courses && courses.length > 0 
-    ? Math.round(courses.reduce((sum: number, course: any) => sum + (course.averageProgress || 0), 0) / courses.length)
+  const avgProgress = coursesArray.length > 0 
+    ? Math.round(coursesArray.reduce((sum: number, course: any) => sum + (course.averageProgress || 0), 0) / coursesArray.length)
     : 0;
 
   return (
