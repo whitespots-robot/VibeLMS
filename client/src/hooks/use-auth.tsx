@@ -4,17 +4,17 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { User as SelectUser, InsertUser } from "@shared/schema";
+import { SafeUser, InsertUser } from "@shared/schema";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
-  user: SelectUser | null;
+  user: SafeUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<{ token: string; user: SelectUser }, Error, LoginData>;
+  loginMutation: UseMutationResult<{ token: string; user: SafeUser }, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<{ token: string; user: SelectUser }, Error, InsertUser>;
+  registerMutation: UseMutationResult<{ token: string; user: SafeUser }, Error, InsertUser>;
   isAuthenticated: boolean;
 };
 
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
     refetch: refetchUser,
-  } = useQuery<SelectUser | null, Error>({
+  } = useQuery<SafeUser | null, Error>({
     queryKey: ["/api/auth/verify"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return data;
     },
-    onSuccess: (data: { token: string; user: SelectUser }) => {
+    onSuccess: (data: { token: string; user: SafeUser }) => {
       queryClient.setQueryData(["/api/auth/verify"], data.user);
       setIsAuthenticated(true);
       refetchUser();
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return data;
     },
-    onSuccess: (data: { token: string; user: SelectUser }) => {
+    onSuccess: (data: { token: string; user: SafeUser }) => {
       queryClient.setQueryData(["/api/auth/verify"], data.user);
       setIsAuthenticated(true);
       refetchUser();
