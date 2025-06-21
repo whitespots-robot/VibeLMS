@@ -8,6 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://vibelms:${POSTGRES_PASSWORD}@postgres:5432/vibelms
+      - SESSION_SECRET=${SESSION_SECRET}
       - PGHOST=postgres
       - PGPORT=5432
       - PGUSER=vibelms

@@ -1,28 +1,34 @@
 # Vibe LMS - Learning Management System
 
-A modern Learning Management System with hierarchical course structure, YouTube video support, rich text content, and student progress tracking.
+A modern Learning Management System with hierarchical course structure, YouTube video integration, and comprehensive progress tracking for both authenticated and anonymous users.
 
 ## Features
 
 - 🎯 Hierarchical structure: Course → Chapter → Lesson
-- 📹 YouTube video integration
-- 📝 Rich text editor with formatting
+- 📹 YouTube video integration with embedded player
+- 📝 Rich text content with TipTap editor
 - 🖼️ Image and code example support
 - ❓ Interactive questions and assignments
-- 📊 Student progress tracking
-- 📁 File upload and materials system
+- 📊 Individual progress tracking per user session
+- 👤 Anonymous user support with session continuity
+- 📁 File upload and materials management system
 - 📦 Course export to ZIP archives
-- 🔒 Authentication with teacher and student roles
-- 🌐 Public courses without registration
+- 🔒 JWT-based authentication with secure HTTP-only cookies
+- 👥 Role-based access control (Teachers/Instructors, Students)
+- 🌐 Public course preview without registration
+- 📱 Responsive mobile-first design
+- 🎉 Course completion celebrations
 
 ## Technologies
 
-- **Frontend**: React 18, Tailwind CSS, Shadcn/ui
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Shadcn/ui components
 - **Backend**: Node.js, Express, TypeScript
-- **Database**: PostgreSQL
-- **ORM**: Drizzle ORM
-- **Authentication**: Passport.js
-- **Build**: Vite
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: JWT tokens with HTTP-only cookies
+- **State Management**: TanStack Query (React Query)
+- **Rich Text**: TipTap editor
+- **Build Tools**: Vite
+- **Containerization**: Docker with multi-stage builds
 
 ## Installation and Setup
 
@@ -57,6 +63,9 @@ Create a `.env` file in the project root with the following variables:
 # PostgreSQL database password (REQUIRED)
 POSTGRES_PASSWORD=your_secure_password_here
 
+# JWT session secret (REQUIRED for production)
+SESSION_SECRET=your_jwt_secret_key_here
+
 # Additional variables for development (optional)
 DATABASE_URL=postgresql://username:password@localhost:5432/vibelms
 PGHOST=localhost
@@ -69,6 +78,7 @@ PGDATABASE=vibelms
 ### Required Variables
 
 - `POSTGRES_PASSWORD` - PostgreSQL database password. Use a strong password for security.
+- `SESSION_SECRET` - Secret key for JWT token signing. Generate a random string (32+ characters).
 
 ### Development Variables
 
@@ -119,30 +129,95 @@ npm run db:studio
 
 ## API Endpoints
 
-Main API routes:
+### Public Routes (No authentication required)
+- `GET /api/public/courses` - List public courses
+- `GET /api/public/courses/:id` - Get public course details
+- `GET /api/public/lessons/:id/details` - Get lesson content for preview
+- `GET /api/settings/allow_student_registration` - Check registration settings
 
-- `GET /api/public/courses` - Public courses
-- `GET /api/courses` - Courses (requires authentication)
-- `GET /api/courses/:id/chapters` - Course chapters
-- `GET /api/lessons/:id` - Lesson with details
-- `POST /api/auth/login` - Login
-- `POST /api/auth/register` - Registration
+### Authentication Routes
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration  
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/user` - Get current user info
+
+### Protected Routes (Authentication required)
+- `GET /api/courses` - User's courses
+- `GET /api/courses/:id` - Course details
+- `GET /api/courses/:id/progress` - User's progress in course
+- `POST /api/progress` - Update lesson progress
+- `GET /api/enrollments` - User's enrollments
+- `POST /api/enrollments` - Enroll in course
 - `GET /api/materials` - Course materials
-- `GET /api/materials/:id/download` - Download material
+- `POST /api/materials` - Upload material
+
+### Admin Routes (Teacher/Instructor only)
+- `GET /api/users` - Manage users
+- `DELETE /api/users/bulk` - Delete multiple users
+- `GET /api/dashboard/stats` - System statistics
 
 ## User Roles
 
-- **Administrator** - Full system access
-- **Teacher** - Course creation and management
-- **Student** - Course viewing and progress tracking
+- **Instructor/Teacher** - Full course management, user administration, analytics access
+- **Student** - Course enrollment, progress tracking, material access
+- **Anonymous** - Public course preview, automatic session-based progress tracking
 
-## Security
+## Security Features
 
+- JWT-based authentication with HTTP-only cookies
+- Automatic CSRF protection through SameSite cookie policy
 - File path validation prevents directory traversal attacks
 - Filename sanitization on upload
-- Session-based authentication
-- Password hashing
-- Protected API endpoints
+- Role-based access control for API endpoints
+- Secure password hashing with bcrypt
+- Session-based anonymous user tracking
+
+## Deployment
+
+### Docker Production Deployment
+
+1. Clone the repository and create your `.env` file:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your secure passwords and secrets
+   ```
+
+2. Generate secure secrets:
+   ```bash
+   # Generate a secure PostgreSQL password
+   openssl rand -base64 32
+
+   # Generate a secure JWT session secret
+   openssl rand -base64 64
+   ```
+
+3. Start the application:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. Check application status:
+   ```bash
+   docker-compose logs -f app
+   docker-compose ps
+   ```
+
+The application will be available at `http://localhost` (port 80).
+
+### Health Monitoring
+
+The application includes built-in health checks:
+- Docker health check endpoint: `GET /api/health`
+- Automatic container restart on failure
+- Database connection monitoring
+
+### Scaling and Performance
+
+For production environments:
+- Use a reverse proxy (nginx) for SSL termination
+- Configure PostgreSQL with appropriate connection pooling
+- Monitor JWT session token expiration (7 days default)
+- Scale horizontally using Docker Swarm or Kubernetes
 
 ## Support
 
