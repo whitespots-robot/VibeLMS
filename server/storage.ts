@@ -230,25 +230,22 @@ export class DatabaseStorage implements IStorage {
 
   async bulkDeleteUsers(userIds: number[]): Promise<number> {
     try {
-      // Delete related data first
-      for (const userId of userIds) {
-        // Delete student progress
-        await db.delete(studentProgress).where(eq(studentProgress.studentId, userId));
-        // Delete enrollments
-        await db.delete(enrollments).where(eq(enrollments.studentId, userId));
-      }
-      
-      // Delete users
-      const result = await db.delete(users).where(
-        eq(users.id, userIds[0])
-      );
-      
-      // For multiple users, we need to delete them one by one
       let deletedCount = 0;
+      
+      // Delete users one by one to ensure proper cleanup
       for (const userId of userIds) {
-        const deleteResult = await db.delete(users).where(eq(users.id, userId));
-        if (deleteResult.rowCount && deleteResult.rowCount > 0) {
-          deletedCount++;
+        try {
+          // Delete student progress
+          await db.delete(studentProgress).where(eq(studentProgress.studentId, userId));
+          // Delete enrollments
+          await db.delete(enrollments).where(eq(enrollments.studentId, userId));
+          // Delete user
+          const deleteResult = await db.delete(users).where(eq(users.id, userId));
+          if (deleteResult.rowCount && deleteResult.rowCount > 0) {
+            deletedCount++;
+          }
+        } catch (userError) {
+          console.error(`Error deleting user ${userId}:`, userError);
         }
       }
       
