@@ -203,15 +203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/users", requireAuth, async (req: AuthenticatedRequest, res) => {
-    // Debug: Log session data
-    console.log("User session:", req.session);
-    
     // Allow instructors and teachers to manage users
     if (req.session?.role !== "instructor" && req.session?.role !== "teacher") {
-      return res.status(403).json({ 
-        message: "Insufficient permissions",
-        debug: { currentRole: req.session?.role, requiredRoles: ["instructor", "teacher"] }
-      });
+      return res.status(403).json({ message: "Insufficient permissions" });
     }
     try {
       const users = await storage.getAllUsers();
@@ -927,9 +921,18 @@ console.log('Portfolio loaded successfully!');`);
   });
 
   // Progress tracking
-  app.post("/api/progress", async (req, res) => {
+  app.post("/api/progress", ensureSession, async (req: AuthenticatedRequest, res) => {
     try {
-      const progressData = insertStudentProgressSchema.parse(req.body);
+      // Get student ID from session (works for both authenticated and anonymous users)
+      const studentId = req.session?.userId;
+      if (!studentId) {
+        return res.status(400).json({ message: "Session not found" });
+      }
+      
+      const progressData = insertStudentProgressSchema.parse({
+        ...req.body,
+        studentId
+      });
       const progress = await storage.updateStudentProgress(progressData);
       
       // If lesson was completed, check if course should be marked as complete
@@ -978,7 +981,22 @@ console.log('Portfolio loaded successfully!');`);
     }
   });
 
-
+  // Get student progress for a course
+  app.get("/api/courses/:courseId/progress", ensureSession, async (req: AuthenticatedRequest, res) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const studentId = req.session?.userId;
+      
+      if (!studentId) {
+        return res.status(400).json({ message: "Session not found" });
+      }
+      
+      const progress = await storage.getStudentProgressByCourse(studentId, courseId);
+      res.json(progress);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch progress" });
+    }
+  });
 
   // Export functionality
   app.get("/api/courses/:id/export", async (req, res) => {

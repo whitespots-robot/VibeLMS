@@ -35,6 +35,13 @@ export default function CourseLearning() {
     retry: false,
   });
 
+  // Load user's progress for this course
+  const { data: progressData } = useQuery<StudentProgress[]>({
+    queryKey: [`/api/courses/${courseId}/progress`],
+    enabled: !!courseId && !isPreviewMode,
+    retry: false,
+  });
+
   // Redirect to login if course is not public
   useEffect(() => {
     if (isPreviewMode && error && (error as any)?.status === 403) {
@@ -70,29 +77,8 @@ export default function CourseLearning() {
 
   const markLessonComplete = useMutation({
     mutationFn: async (lessonId: number) => {
-      // Get or create anonymous user ID for this session
-      let studentId = 1; // Default fallback
-      
-      const currentUserData = localStorage.getItem("currentUser");
-      const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
-      if (currentUser) {
-        studentId = currentUser.id;
-      } else {
-        // Create unique anonymous user for this session
-        let anonymousId = localStorage.getItem("anonymousUserId");
-        if (!anonymousId) {
-          // Generate unique anonymous user
-          const response = await apiRequest("POST", "/api/anonymous-user", {});
-          const userData = await response.json();
-          anonymousId = userData.id.toString();
-          localStorage.setItem("anonymousUserId", anonymousId);
-        }
-        studentId = parseInt(anonymousId);
-      }
-      
-      // Update student progress
+      // Use the current user's session - JWT system handles anonymous users automatically
       const response = await apiRequest("POST", "/api/progress", {
-        studentId,
         lessonId,
         completed: true,
         completedAt: new Date().toISOString(),
