@@ -57,11 +57,11 @@ export default function UserManagement() {
   const { toast } = useToast();
 
   const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+    queryKey: ['/api/users', Date.now()],
   });
 
   const { data: registrationSetting } = useQuery({
-    queryKey: ["/api/settings/allow_student_registration"],
+    queryKey: ["/api/settings/allow_student_registration", Date.now()],
     select: (data: { value: string | null }) => data.value !== "false",
   });
 
@@ -97,7 +97,7 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', Date.now()] });
       setIsTeacherDialogOpen(false);
       teacherForm.reset();
       toast({
@@ -142,7 +142,7 @@ export default function UserManagement() {
       return apiRequest("PUT", `/api/settings/${key}`, { value });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", Date.now()] });
       toast({
         title: "Success",
         description: "Setting updated successfully",
@@ -163,7 +163,7 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', Date.now()] });
       setSelectedUserIds([]);
       setIsBulkDeleteDialogOpen(false);
       toast({

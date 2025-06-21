@@ -13,7 +13,7 @@ export default function Export() {
   const { toast } = useToast();
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
-    queryKey: ["/api/courses"],
+    queryKey: ["/api/courses", Date.now()],
   });
 
   const handleExportCourse = async (courseId: number, courseTitle: string) => {

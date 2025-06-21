@@ -20,12 +20,12 @@ export default function Learning() {
 
   // Fetch published courses available for learning
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
-    queryKey: ["/api/courses", "published"],
+    queryKey: ["/api/courses", "published", Date.now()],
   });
 
   // Fetch user's enrollments
   const { data: enrollments = [] } = useQuery<Enrollment[]>({
-    queryKey: ["/api/enrollments", "student", 1], // Using student ID 1 for demo
+    queryKey: ["/api/enrollments", "student", 1, Date.now()], // Using student ID 1 for demo
   });
 
   const enrollMutation = useMutation({
@@ -38,7 +38,7 @@ export default function Learning() {
       return response.json();
     },
     onSuccess: (_, courseId) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/enrollments", Date.now()] });
       // Immediately navigate to learning interface
       navigate(`/learning/${courseId}`);
     },

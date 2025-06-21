@@ -19,7 +19,7 @@ export default function Materials() {
   const { toast } = useToast();
 
   const { data: materials = [], isLoading } = useQuery<Material[]>({
-    queryKey: ["/api/materials"],
+    queryKey: ["/api/materials", Date.now()],
   });
 
   const uploadMaterialMutation = useMutation({
@@ -41,7 +41,7 @@ export default function Materials() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials", Date.now()] });
       setIsUploadDialogOpen(false);
       setSelectedFile(null);
       setMaterialTitle("");
@@ -64,7 +64,7 @@ export default function Materials() {
       await apiRequest("DELETE", `/api/materials/${materialId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials", Date.now()] });
       toast({
         title: "Success",
         description: "Material deleted successfully",

@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     refetch: refetchUser,
   } = useQuery<SafeUser | null, Error>({
-    queryKey: ["/api/auth/verify"],
+    queryKey: ["/api/auth/verify", Date.now()], // Always unique to prevent caching
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       if (!token) {

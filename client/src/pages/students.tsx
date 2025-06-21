@@ -26,19 +26,19 @@ interface EnrollmentWithDetails {
 
 export default function Students() {
   const { data: dashboardStats } = useQuery({
-    queryKey: ['/api/dashboard/stats'],
+    queryKey: ['/api/dashboard/stats', Date.now()],
   });
 
   const { data: enrollments } = useQuery({
-    queryKey: ['/api/enrollments'],
+    queryKey: ['/api/enrollments', Date.now()],
   });
 
   const { data: courses } = useQuery({
-    queryKey: ['/api/courses'],
+    queryKey: ['/api/courses', Date.now()],
   });
 
   const { data: users } = useQuery({
-    queryKey: ['/api/users'],
+    queryKey: ['/api/users', Date.now()],
   });
 
   const enrollmentsArray: EnrollmentWithDetails[] = Array.isArray(enrollments) ? enrollments : [];

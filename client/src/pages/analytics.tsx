@@ -45,15 +45,15 @@ export default function Analytics() {
   
   // Get real data from dashboard stats and courses
   const { data: dashboardStats, refetch: refetchStats } = useQuery({
-    queryKey: ['/api/dashboard/stats'],
+    queryKey: ['/api/dashboard/stats', Date.now()],
   });
 
   const { data: courses, refetch: refetchCourses } = useQuery({
-    queryKey: ['/api/courses'],
+    queryKey: ['/api/courses', Date.now()],
   });
 
   const { data: enrollments, refetch: refetchEnrollments } = useQuery({
-    queryKey: ['/api/enrollments'],
+    queryKey: ['/api/enrollments', Date.now()],
   });
 
 
