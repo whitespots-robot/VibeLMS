@@ -264,7 +264,7 @@ export default function Analytics() {
                     name="activeUsers"
                     fill="url(#activeUsersGradient)" 
                     radius={[4, 4, 0, 0]}
-                    stroke="#3b82f6"
+                    stroke="#10b981"
                     strokeWidth={1}
                   />
                   <Bar 
@@ -272,17 +272,17 @@ export default function Analytics() {
                     name="newEnrollments"
                     fill="url(#newEnrollmentsGradient)" 
                     radius={[4, 4, 0, 0]}
-                    stroke="#10b981"
+                    stroke="#8b5cf6"
                     strokeWidth={1}
                   />
                   <defs>
                     <linearGradient id="activeUsersGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.9}/>
+                      <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
                     </linearGradient>
                     <linearGradient id="newEnrollmentsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+                      <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.6}/>
                     </linearGradient>
                   </defs>
                 </BarChart>
@@ -290,11 +290,11 @@ export default function Analytics() {
             </div>
             <div className="flex justify-center space-x-6 mt-4">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <div className="w-3 h-3 bg-green-500 rounded"></div>
                 <span className="text-sm text-slate-600">Active Users</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
+                <div className="w-3 h-3 bg-purple-500 rounded"></div>
                 <span className="text-sm text-slate-600">New Enrollments</span>
               </div>
             </div>
