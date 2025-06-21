@@ -34,11 +34,14 @@ export default function Login() {
     console.log('Login page - auth state:', { isAuthenticated, user: !!user, userRole: user?.role });
     if (isAuthenticated && user) {
       console.log('Redirecting user based on role:', user.role);
-      if (user.role === "student") {
-        setLocation("/learning");
-      } else {
-        setLocation("/dashboard");
-      }
+      // Force immediate redirect without going through AuthGuard
+      setTimeout(() => {
+        if (user.role === "student") {
+          setLocation("/learning");
+        } else {
+          setLocation("/dashboard");
+        }
+      }, 100);
     }
   }, [isAuthenticated, user, setLocation]);
 

@@ -30,10 +30,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      setLocation("/");
+      // Don't redirect to "/" since it's public courses, let the router handle it
       return;
     }
-    // Redirect students away from dashboard to learning, but don't redirect instructors
+    // Redirect students away from dashboard to learning
     if (user.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }

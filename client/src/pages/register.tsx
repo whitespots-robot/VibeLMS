@@ -60,11 +60,14 @@ export default function Register() {
   // Handle redirect after successful registration
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "student") {
-        setLocation("/learning");
-      } else {
-        setLocation("/dashboard");
-      }
+      // Force immediate redirect
+      setTimeout(() => {
+        if (user.role === "student") {
+          setLocation("/learning");
+        } else {
+          setLocation("/dashboard");
+        }
+      }, 100);
     }
   }, [isAuthenticated, user, setLocation]);
 
