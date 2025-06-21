@@ -68,3 +68,6 @@ demo/
 # Temporary files
 .tmp
 tmp/
+
+# User uploads (created at runtime)
+uploads/
