@@ -79,6 +79,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply session middleware to all routes
+  app.use(ensureSession);
+
   const httpServer = createServer(app);
 
   // Health check endpoint for Docker
@@ -87,13 +90,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Authentication routes
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", async (req: AuthenticatedRequest, res) => {
     try {
       const { username, password } = req.body;
       const user = await storage.authenticateUser(username, password);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
+      
+      // Upgrade the session from anonymous to authenticated
+      upgradeSession(req, res, user);
+      
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword, message: "Login successful" });
@@ -102,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", async (req: AuthenticatedRequest, res) => {
     try {
       // Check if student registration is allowed globally
       const allowRegistration = await storage.getSystemSetting("allow_student_registration");
@@ -116,6 +123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username already exists" });
       }
       const user = await storage.createUser(userData);
+      
+      // Upgrade the session from anonymous to authenticated
+      upgradeSession(req, res, user);
+      
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json({ user: userWithoutPassword, message: "Registration successful" });
     } catch (error) {
@@ -135,6 +146,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ user: userWithoutPassword, message: "Teacher registration successful" });
     } catch (error) {
       res.status(400).json({ message: "Invalid teacher data" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", async (req: AuthenticatedRequest, res) => {
+    try {
+      clearSession(req, res);
+      res.json({ message: "Logout successful" });
+    } catch (error) {
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
+
+  // Get current user info
+  app.get("/api/auth/user", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user info" });
     }
   });
 
@@ -162,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users", async (req, res) => {
+  app.get("/api/users", requireRole("teacher"), async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       const usersWithoutPasswords = users.map(({ password, ...user }) => user);
