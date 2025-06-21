@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray } from "drizzle-orm";
+import * as crypto from "crypto";
 
 export interface IStorage {
   // User operations
@@ -210,7 +211,6 @@ export class DatabaseStorage implements IStorage {
 
   private hashPassword(password: string): string {
     // Use crypto for proper password hashing in production
-    const crypto = require('crypto');
     const salt = 'vibelms_salt_2024'; // In production, use random salt per user
     return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   }
