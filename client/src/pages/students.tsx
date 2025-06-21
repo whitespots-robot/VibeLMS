@@ -24,6 +24,9 @@ export default function Students() {
   const avgProgress = coursesArray.length > 0 
     ? Math.round(coursesArray.reduce((sum: number, course: any) => sum + (course.averageProgress || 0), 0) / coursesArray.length)
     : 0;
+  
+  // Calculate completions (enrollments with 100% progress)
+  const completions = enrollmentsArray.filter((enrollment: any) => enrollment.progress === 100).length;
 
   return (
     <>
@@ -82,7 +85,7 @@ export default function Students() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-neutral-600">Completions</p>
-                    <p className="text-2xl font-semibold text-neutral-900">0</p>
+                    <p className="text-2xl font-semibold text-neutral-900">{completions}</p>
                   </div>
                 </div>
               </CardContent>
