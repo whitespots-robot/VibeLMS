@@ -56,6 +56,7 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start application with dumb-init using tsx for TypeScript execution
+# Start application with dumb-init using tsx directly
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "NODE_ENV=production npx tsx server/index.ts"]
+CMD ["npx", "tsx", "server/index.ts"]
+ENV NODE_ENV=production
