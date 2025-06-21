@@ -350,9 +350,9 @@ export default function PublicCourses() {
                 <Button 
                   type="submit" 
                   className="w-full btn-primary" 
-                  disabled={isLoginPending}
+                  disabled={isAuthLoading}
                 >
-                  {isLoginPending ? "Signing in..." : "Sign In"}
+                  {isAuthLoading ? "Signing in..." : "Sign In"}
                 </Button>
                 <div className="text-center text-sm text-neutral-600">
                   Don't have an account?{" "}
@@ -439,9 +439,9 @@ export default function PublicCourses() {
                   <Button 
                     type="submit" 
                     className="w-full btn-primary" 
-                    disabled={isRegisterPending}
+                    disabled={isAuthLoading}
                   >
-                    {isRegisterPending ? "Creating account..." : "Create Account"}
+                    {isAuthLoading ? "Creating account..." : "Create Account"}
                   </Button>
                   <div className="text-center text-sm text-neutral-600">
                     Already have an account?{" "}
