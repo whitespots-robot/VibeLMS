@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
-import { studentProgress } from "@shared/schema";
-import { sql } from "drizzle-orm";
+import { studentProgress, enrollments, users, courses } from "@shared/schema";
+import { sql, eq } from "drizzle-orm";
 import { 
   insertCourseSchema, insertChapterSchema, insertLessonSchema, 
   insertQuestionSchema, insertMaterialSchema, insertEnrollmentSchema,
@@ -770,6 +770,37 @@ console.log('Portfolio loaded successfully!');`);
   });
 
   // Enrollment routes
+  app.get("/api/enrollments", async (req, res) => {
+    try {
+      // Get all enrollments with user and course details
+      const enrollmentData = await db.select({
+        id: enrollments.id,
+        studentId: enrollments.studentId,
+        courseId: enrollments.courseId,
+        progress: enrollments.progress,
+        enrolledAt: enrollments.enrolledAt,
+        student: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          role: users.role,
+        },
+        course: {
+          id: courses.id,
+          title: courses.title,
+          status: courses.status,
+        }
+      })
+      .from(enrollments)
+      .leftJoin(users, eq(enrollments.studentId, users.id))
+      .leftJoin(courses, eq(enrollments.courseId, courses.id));
+      
+      res.json(enrollments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch enrollments" });
+    }
+  });
+
   app.get("/api/courses/:courseId/enrollments", async (req, res) => {
     try {
       const courseId = parseInt(req.params.courseId);
