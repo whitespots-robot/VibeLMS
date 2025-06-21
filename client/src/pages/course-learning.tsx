@@ -111,8 +111,8 @@ export default function CourseLearning() {
 
           if (nextLesson) {
             toast({
-              title: "Урок завершен!",
-              description: "Переходим к следующему уроку...",
+              title: "Lesson Completed!",
+              description: "Moving to next lesson...",
             });
             // Navigate to the next lesson after a short delay
             setTimeout(() => {
@@ -122,8 +122,8 @@ export default function CourseLearning() {
             }, 1000);
           } else {
             toast({
-              title: "Урок завершен!",
-              description: "Отлично! Вы завершили этот урок.",
+              title: "Lesson Completed!",
+              description: "Great job! You've completed this lesson.",
             });
           }
         }
