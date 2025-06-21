@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
         return data.user;
       } catch (error) {
-        // Token is invalid, remove it
+        // Token is invalid or expired, clear all auth data
         localStorage.removeItem('auth_token');
         setIsAuthenticated(false);
         return null;

@@ -15,7 +15,11 @@ import fs from "fs";
 import JSZip from "jszip";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import crypto from "crypto";
+
+// Generate a unique JWT secret on each application start
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
+console.log("[AUTH] JWT secret generated for this session");
 
 // JWT middleware for authentication
 function authenticateToken(req: any, res: any, next: any) {
