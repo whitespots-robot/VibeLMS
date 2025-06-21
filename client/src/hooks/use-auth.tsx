@@ -12,9 +12,9 @@ type AuthContextType = {
   user: SafeUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<{ token: string; user: SafeUser }, Error, LoginData>;
+  loginMutation: UseMutationResult<{ token: string }, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<{ token: string; user: SafeUser }, Error, InsertUser>;
+  registerMutation: UseMutationResult<{ token: string }, Error, InsertUser>;
   isAuthenticated: boolean;
 };
 
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return data;
     },
-    onSuccess: (data: { token: string; user: SafeUser }) => {
+    onSuccess: (data: { token: string }) => {
       // Cache removed to prevent localStorage pollution
       setIsAuthenticated(true);
       refetchUser();
@@ -163,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return data;
     },
-    onSuccess: (data: { token: string; user: SafeUser }) => {
+    onSuccess: (data: { token: string }) => {
       // Cache removed to prevent localStorage pollution
       setIsAuthenticated(true);
       refetchUser();

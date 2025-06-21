@@ -3,12 +3,22 @@ import type { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
-import { studentProgress, enrollments as enrollmentsTable, users, courses } from "@shared/schema";
+import {
+  studentProgress,
+  enrollments as enrollmentsTable,
+  users,
+  courses,
+} from "@shared/schema";
 import { sql, eq } from "drizzle-orm";
-import { 
-  insertCourseSchema, insertChapterSchema, insertLessonSchema, 
-  insertQuestionSchema, insertMaterialSchema, insertEnrollmentSchema,
-  insertStudentProgressSchema, insertUserSchema 
+import {
+  insertCourseSchema,
+  insertChapterSchema,
+  insertLessonSchema,
+  insertQuestionSchema,
+  insertMaterialSchema,
+  insertEnrollmentSchema,
+  insertStudentProgressSchema,
+  insertUserSchema,
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -19,7 +29,8 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
 // Generate a unique JWT secret on each application start
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
+const JWT_SECRET =
+  process.env.JWT_SECRET || crypto.randomBytes(64).toString("hex");
 console.log("[AUTH] JWT secret generated for this session");
 
 // Extend Express Request type to include user
@@ -33,8 +44,8 @@ declare global {
 
 // JWT middleware for authentication
 function authenticateToken(req: any, res: any, next: any) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return res.sendStatus(401);
@@ -51,27 +62,29 @@ function authenticateToken(req: any, res: any, next: any) {
 function sanitizeFilename(filename: string): string {
   // Remove path traversal patterns and special characters
   return filename
-    .replace(/[\.\/\\:*?"<>|]/g, '_')  // Replace dangerous chars with underscore
-    .replace(/^\.+/, '')  // Remove leading dots
-    .replace(/\s+/g, '_')  // Replace spaces with underscore
+    .replace(/[\.\/\\:*?"<>|]/g, "_") // Replace dangerous chars with underscore
+    .replace(/^\.+/, "") // Remove leading dots
+    .replace(/\s+/g, "_") // Replace spaces with underscore
     .toLowerCase()
-    .slice(0, 100);  // Limit length
+    .slice(0, 100); // Limit length
 }
 
 function isValidPath(filePath: string): boolean {
   const normalizedPath = path.normalize(filePath);
-  const uploadsDir = path.resolve('./uploads');
-  
+  const uploadsDir = path.resolve("./uploads");
+
   // Handle both absolute and relative paths
   let resolvedPath: string;
   if (path.isAbsolute(normalizedPath)) {
     resolvedPath = normalizedPath;
   } else {
-    resolvedPath = path.resolve('.', normalizedPath);
+    resolvedPath = path.resolve(".", normalizedPath);
   }
-  
+
   // Ensure the path is within the uploads directory or is a demo file
-  return resolvedPath.startsWith(uploadsDir) || normalizedPath.includes('uploads/');
+  return (
+    resolvedPath.startsWith(uploadsDir) || normalizedPath.includes("uploads/")
+  );
 }
 
 // Configure multer for file uploads
@@ -87,11 +100,11 @@ const upload = multer({
     },
     filename: (req, file, cb) => {
       const sanitizedName = sanitizeFilename(file.originalname);
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const ext = path.extname(file.originalname).toLowerCase();
       const filename = `${sanitizedName}_${uniqueSuffix}${ext}`;
       cb(null, filename);
-    }
+    },
   }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
@@ -99,15 +112,17 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Allow only specific file types
     const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|md/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase(),
+    );
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only images, PDFs, and documents are allowed'));
+      cb(new Error("Only images, PDFs, and documents are allowed"));
     }
-  }
+  },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -116,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       const user = await storage.authenticateUser(username, password);
-      
+
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -124,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
         JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: "24h" },
       );
 
       // Create safe user object without password
@@ -133,10 +148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: user.username,
         email: user.email,
         role: user.role,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
       };
-      
-      res.json({ token, user: safeUser });
+
+      res.json({ token });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -146,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
@@ -155,13 +170,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const user = await storage.createUser({
         ...userData,
-        role: "student" // Default role for registration
+        role: "student", // Default role for registration
       });
 
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
         JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: "24h" },
       );
 
       // Create safe user object without password
@@ -170,10 +185,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: user.username,
         email: user.email,
         role: user.role,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
       };
-      
-      res.status(201).json({ token, user: safeUser });
+
+      res.status(201).json({ token });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Failed to create account" });
@@ -186,16 +201,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Create safe user object without password
       const safeUser = {
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
       };
-      
+
       res.json({ user: safeUser });
     } catch (error) {
       console.error("Verify error:", error);
@@ -206,10 +221,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Health check endpoint for Docker
-  app.get('/api/health', (_req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
-  
+
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -218,15 +233,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
+
       // Generate JWT token
       const { password: _, ...userWithoutPassword } = user;
-      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
-      
-      res.json({ 
-        token, 
-        user: userWithoutPassword, 
-        message: "Login successful" 
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+
+      res.json({
+        token,
+        user: userWithoutPassword,
+        message: "Login successful",
       });
     } catch (error) {
       res.status(500).json({ message: "Authentication failed" });
@@ -236,9 +253,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       // Check if student registration is allowed globally
-      const allowRegistration = await storage.getSystemSetting("allow_student_registration");
+      const allowRegistration = await storage.getSystemSetting(
+        "allow_student_registration",
+      );
       if (allowRegistration === "false") {
-        return res.status(403).json({ message: "Student registration is currently disabled" });
+        return res
+          .status(403)
+          .json({ message: "Student registration is currently disabled" });
       }
 
       const userData = insertUserSchema.parse(req.body);
@@ -248,14 +269,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const user = await storage.createUser(userData);
       const { password: _, ...userWithoutPassword } = user;
-      
+
       // Generate JWT token for immediate login
-      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        token, 
-        user: userWithoutPassword, 
-        message: "Registration successful" 
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+
+      res.status(201).json({
+        token,
+        user: userWithoutPassword,
+        message: "Registration successful",
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid user data" });
@@ -264,21 +287,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register-teacher", async (req, res) => {
     try {
-      const userData = insertUserSchema.parse({ ...req.body, role: "instructor" });
+      const userData = insertUserSchema.parse({
+        ...req.body,
+        role: "instructor",
+      });
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
       const user = await storage.createUser(userData);
       const { password: _, ...userWithoutPassword } = user;
-      
+
       // Generate JWT token
-      const token = jwt.sign(userWithoutPassword, JWT_SECRET, { expiresIn: '7d' });
-      
-      res.status(201).json({ 
-        token, 
-        user: userWithoutPassword, 
-        message: "Teacher registration successful" 
+      const token = jwt.sign(userWithoutPassword, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+
+      res.status(201).json({
+        token,
+        user: userWithoutPassword,
+        message: "Teacher registration successful",
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid teacher data" });
@@ -303,17 +331,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
-      const authenticatedUser = await storage.authenticateUser(user.username, currentPassword);
+
+      const authenticatedUser = await storage.authenticateUser(
+        user.username,
+        currentPassword,
+      );
       if (!authenticatedUser) {
-        return res.status(401).json({ message: "Current password is incorrect" });
+        return res
+          .status(401)
+          .json({ message: "Current password is incorrect" });
       }
-      
+
       const updatedUser = await storage.updateUserPassword(userId, newPassword);
       if (!updatedUser) {
         return res.status(500).json({ message: "Failed to update password" });
       }
-      
+
       res.json({ message: "Password updated successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to change password" });
@@ -338,7 +371,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const deletedCount = await storage.deleteUsers(userIds);
-      res.json({ message: `Successfully deleted ${deletedCount} users`, deletedCount });
+      res.json({
+        message: `Successfully deleted ${deletedCount} users`,
+        deletedCount,
+      });
     } catch (error) {
       console.error("Bulk user deletion error:", error);
       res.status(500).json({ message: "Failed to delete users" });
@@ -351,14 +387,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 8);
       const anonymousUsername = `anonymous_${timestamp}_${randomId}`;
-      
+
       const userData = {
         username: anonymousUsername,
         email: `${anonymousUsername}@anonymous.local`,
         password: "no-password",
-        role: "student"
+        role: "student",
       };
-      
+
       const user = await storage.createUser(userData);
       res.status(201).json({ id: user.id, username: user.username });
     } catch (error) {
@@ -426,7 +462,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Course deletion error:", error);
-      res.status(500).json({ message: "Failed to delete course", error: error instanceof Error ? error.message : "Unknown error" });
+      res
+        .status(500)
+        .json({
+          message: "Failed to delete course",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
@@ -451,7 +492,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // Only return published courses
       if (course.status !== "published") {
-        return res.status(403).json({ message: "Course is not public", redirect: "/login" });
+        return res
+          .status(403)
+          .json({ message: "Course is not public", redirect: "/login" });
       }
       res.json(course);
     } catch (error) {
@@ -468,18 +511,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!lesson) {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
+
       // Get the chapter and verify it belongs to a published course
       const chapter = await storage.getChapter(lesson.chapterId);
       if (!chapter) {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
+
       const course = await storage.getCourse(chapter.courseId);
       if (!course || course.status !== "published") {
         return res.status(404).json({ message: "Lesson not found" });
       }
-      
+
       res.json(lesson);
     } catch (error) {
       console.error("Error fetching public lesson:", error);
@@ -528,7 +571,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(chapter);
     } catch (error) {
       console.error("Chapter creation error:", error);
-      res.status(400).json({ message: "Invalid chapter data", error: error instanceof Error ? error.message : "Unknown error" });
+      res
+        .status(400)
+        .json({
+          message: "Invalid chapter data",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
@@ -681,7 +729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/materials", upload.single('file'), async (req, res) => {
+  app.post("/api/materials", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -713,26 +761,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate file path for security
       if (!isValidPath(material.filePath)) {
-        return res.status(403).json({ message: "Access denied: Invalid file path" });
+        return res
+          .status(403)
+          .json({ message: "Access denied: Invalid file path" });
       }
 
       // Generate demo content for materials
-      if (material.fileName.endsWith('.pdf')) {
+      if (material.fileName.endsWith(".pdf")) {
         let pdfTitle = material.title;
-        let pdfContent = '';
-        
+        let pdfContent = "";
+
         switch (material.fileName) {
           case "web-dev-cheatsheet.pdf":
-            pdfContent = "Web Development Cheat Sheet\n\nHTML - Structure\nCSS - Styling\nJavaScript - Functionality";
+            pdfContent =
+              "Web Development Cheat Sheet\n\nHTML - Structure\nCSS - Styling\nJavaScript - Functionality";
             break;
           case "html-reference.pdf":
-            pdfContent = "HTML Reference Guide\n\nBasic Elements:\n<html>, <head>, <body>\n<h1>-<h6>, <p>, <div>\n<a>, <img>, <ul>, <li>\n\nSemantic Elements:\n<header>, <nav>, <main>\n<article>, <section>, <footer>";
+            pdfContent =
+              "HTML Reference Guide\n\nBasic Elements:\n<html>, <head>, <body>\n<h1>-<h6>, <p>, <div>\n<a>, <img>, <ul>, <li>\n\nSemantic Elements:\n<header>, <nav>, <main>\n<article>, <section>, <footer>";
             break;
           case "css-cheatsheet.pdf":
-            pdfContent = "CSS Cheat Sheet\n\nSelectors:\n.class, #id, element\n\nLayout:\ndisplay: flex, grid\nposition: relative, absolute\n\nBox Model:\nmargin, border, padding, content";
+            pdfContent =
+              "CSS Cheat Sheet\n\nSelectors:\n.class, #id, element\n\nLayout:\ndisplay: flex, grid\nposition: relative, absolute\n\nBox Model:\nmargin, border, padding, content";
             break;
           case "js-reference.pdf":
-            pdfContent = "JavaScript Quick Reference\n\nVariables:\nlet, const, var\n\nFunctions:\nfunction name() {}\n() => {}\n\nDOM:\ndocument.querySelector()\nelement.addEventListener()";
+            pdfContent =
+              "JavaScript Quick Reference\n\nVariables:\nlet, const, var\n\nFunctions:\nfunction name() {}\n() => {}\n\nDOM:\ndocument.querySelector()\nelement.addEventListener()";
             break;
           default:
             pdfContent = `${pdfTitle}\n\nThis is a reference document for web development learning.`;
@@ -743,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
 3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
 4 0 obj<</Length ${pdfContent.length + 50}>>stream
-BT/F1 12 Tf 50 750 Td(${pdfTitle})Tj 0 -30 Td(${pdfContent.replace(/\n/g, ')Tj 0 -20 Td(')})Tj ET
+BT/F1 12 Tf 50 750 Td(${pdfTitle})Tj 0 -30 Td(${pdfContent.replace(/\n/g, ")Tj 0 -20 Td(")})Tj ET
 endstream endobj
 5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
 xref 0 6
@@ -757,17 +811,22 @@ trailer<</Size 6/Root 1 0 R>>
 startxref 467
 %%EOF`;
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${material.fileName}"`,
+        );
         res.send(Buffer.from(simplePdf));
         return;
       }
-      
+
       if (material.fileName === "starter-files.zip") {
         const zip = new JSZip();
-        
+
         // Add HTML starter file
-        zip.file("index.html", `<!DOCTYPE html>
+        zip.file(
+          "index.html",
+          `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -810,10 +869,13 @@ startxref 467
     
     <script src="script.js"></script>
 </body>
-</html>`);
+</html>`,
+        );
 
         // Add CSS starter file
-        zip.file("style.css", `/* Reset and Base Styles */
+        zip.file(
+          "style.css",
+          `/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -870,10 +932,13 @@ section {
 h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
-}`);
+}`,
+        );
 
         // Add JavaScript starter file
-        zip.file("script.js", `// Smooth scrolling for navigation links
+        zip.file(
+          "script.js",
+          `// Smooth scrolling for navigation links
 document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -888,18 +953,24 @@ document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
 });
 
 // Add your JavaScript functionality here
-console.log('Portfolio loaded successfully!');`);
+console.log('Portfolio loaded successfully!');`,
+        );
 
         try {
           const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-          
-          res.setHeader('Content-Type', 'application/zip');
-          res.setHeader('Content-Disposition', `attachment; filename="${material.fileName}"`);
+
+          res.setHeader("Content-Type", "application/zip");
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${material.fileName}"`,
+          );
           res.send(zipBuffer);
           return;
         } catch (zipError) {
-          console.error('ZIP generation error:', zipError);
-          return res.status(500).json({ message: "Failed to generate ZIP file" });
+          console.error("ZIP generation error:", zipError);
+          return res
+            .status(500)
+            .json({ message: "Failed to generate ZIP file" });
         }
       }
 
@@ -928,7 +999,10 @@ console.log('Portfolio loaded successfully!');`);
     try {
       const materialId = parseInt(req.params.materialId);
       const lessonId = parseInt(req.params.lessonId);
-      const success = await storage.unlinkMaterialFromLesson(materialId, lessonId);
+      const success = await storage.unlinkMaterialFromLesson(
+        materialId,
+        lessonId,
+      );
       res.json({ success });
     } catch (error) {
       res.status(500).json({ message: "Failed to unlink material" });
@@ -945,23 +1019,36 @@ console.log('Portfolio loaded successfully!');`);
       }
 
       // Delete file from disk (skip for demo files)
-      if (fs.existsSync(material.filePath) && !material.filePath.includes('demo/')) {
+      if (
+        fs.existsSync(material.filePath) &&
+        !material.filePath.includes("demo/")
+      ) {
         try {
           fs.unlinkSync(material.filePath);
           console.log(`Deleted file: ${material.filePath}`);
         } catch (fileError) {
-          console.warn(`Could not delete file ${material.filePath}:`, fileError);
+          console.warn(
+            `Could not delete file ${material.filePath}:`,
+            fileError,
+          );
         }
       }
 
       const deleted = await storage.deleteMaterial(id);
       if (!deleted) {
-        return res.status(404).json({ message: "Material not found in database" });
+        return res
+          .status(404)
+          .json({ message: "Material not found in database" });
       }
       res.status(204).send();
     } catch (error) {
       console.error("Material deletion error:", error);
-      res.status(500).json({ message: "Failed to delete material", error: error instanceof Error ? error.message : "Unknown error" });
+      res
+        .status(500)
+        .json({
+          message: "Failed to delete material",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
@@ -972,31 +1059,40 @@ console.log('Portfolio loaded successfully!');`);
       const allUsers = await storage.getAllUsers();
       const allCourses = await storage.getCourses();
       const allEnrollments = await db.select().from(enrollmentsTable);
-      
-      const enrichedEnrollments = allEnrollments.map(enrollment => {
-        const student = allUsers.find(u => u.id === enrollment.studentId);
-        const course = allCourses.find(c => c.id === enrollment.courseId);
-        
+
+      const enrichedEnrollments = allEnrollments.map((enrollment) => {
+        const student = allUsers.find((u) => u.id === enrollment.studentId);
+        const course = allCourses.find((c) => c.id === enrollment.courseId);
+
         return {
           ...enrollment,
-          student: student ? {
-            id: student.id,
-            username: student.username,
-            email: student.email,
-            role: student.role
-          } : null,
-          course: course ? {
-            id: course.id,
-            title: course.title,
-            status: course.status
-          } : null
+          student: student
+            ? {
+                id: student.id,
+                username: student.username,
+                email: student.email,
+                role: student.role,
+              }
+            : null,
+          course: course
+            ? {
+                id: course.id,
+                title: course.title,
+                status: course.status,
+              }
+            : null,
         };
       });
-      
+
       res.json(enrichedEnrollments);
     } catch (error) {
       console.error("Enrollments API error:", error);
-      res.status(500).json({ message: "Failed to fetch enrollments", error: error instanceof Error ? error.message : "Unknown error" });
+      res
+        .status(500)
+        .json({
+          message: "Failed to fetch enrollments",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
@@ -1035,7 +1131,7 @@ console.log('Portfolio loaded successfully!');`);
     try {
       const progressData = insertStudentProgressSchema.parse(req.body);
       const progress = await storage.updateStudentProgress(progressData);
-      
+
       // If lesson was completed, check if course should be marked as complete
       if (progressData.completed) {
         const lesson = await storage.getLesson(progressData.lessonId);
@@ -1044,21 +1140,32 @@ console.log('Portfolio loaded successfully!');`);
           const chapter = await storage.getChapter(lesson.chapterId);
           if (chapter) {
             const courseId = chapter.courseId;
-            
+
             // Get all lessons in the course
             const course = await storage.getCourseWithChapters(courseId);
             if (course) {
-              const allLessons = course.chapters.flatMap(chap => chap.lessons);
-              const completedLessons = await storage.getStudentProgressByCourse(progressData.studentId, courseId);
-              const completedLessonIds = completedLessons.filter(p => p.completed).map(p => p.lessonId);
-              
+              const allLessons = course.chapters.flatMap(
+                (chap) => chap.lessons,
+              );
+              const completedLessons = await storage.getStudentProgressByCourse(
+                progressData.studentId,
+                courseId,
+              );
+              const completedLessonIds = completedLessons
+                .filter((p) => p.completed)
+                .map((p) => p.lessonId);
+
               // Calculate completion percentage
-              const completionPercentage = (completedLessonIds.length / allLessons.length) * 100;
-              
+              const completionPercentage =
+                (completedLessonIds.length / allLessons.length) * 100;
+
               // Update or create enrollment progress
-              const enrollments = await storage.getEnrollmentsByCourse(courseId);
-              let enrollment = enrollments.find(e => e.studentId === progressData.studentId);
-              
+              const enrollments =
+                await storage.getEnrollmentsByCourse(courseId);
+              let enrollment = enrollments.find(
+                (e) => e.studentId === progressData.studentId,
+              );
+
               if (!enrollment) {
                 // Create enrollment for anonymous users or users who haven't enrolled yet
                 enrollment = await storage.createEnrollment({
@@ -1067,22 +1174,23 @@ console.log('Portfolio loaded successfully!');`);
                   progress: 0,
                 });
               }
-              
+
               if (enrollment) {
-                await storage.updateEnrollmentProgress(enrollment.id, completionPercentage);
+                await storage.updateEnrollmentProgress(
+                  enrollment.id,
+                  completionPercentage,
+                );
               }
             }
           }
         }
       }
-      
+
       res.json(progress);
     } catch (error) {
       res.status(400).json({ message: "Invalid progress data" });
     }
   });
-
-
 
   // Export functionality
   app.get("/api/courses/:id/export", async (req, res) => {
@@ -1103,9 +1211,9 @@ console.log('Portfolio loaded successfully!');`);
       courseContent += `## Table of Contents\n\n`;
 
       for (const chapter of course.chapters) {
-        courseContent += `- [${chapter.title}](#${chapter.title.toLowerCase().replace(/\s+/g, '-')})\n`;
+        courseContent += `- [${chapter.title}](#${chapter.title.toLowerCase().replace(/\s+/g, "-")})\n`;
         for (const lesson of chapter.lessons) {
-          courseContent += `  - [${lesson.title}](#${lesson.title.toLowerCase().replace(/\s+/g, '-')})\n`;
+          courseContent += `  - [${lesson.title}](#${lesson.title.toLowerCase().replace(/\s+/g, "-")})\n`;
         }
       }
 
@@ -1113,8 +1221,8 @@ console.log('Portfolio loaded successfully!');`);
 
       // Create chapter directories and files
       for (const chapter of course.chapters) {
-        const chapterDir = `${chapter.orderIndex + 1}-${chapter.title.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        
+        const chapterDir = `${chapter.orderIndex + 1}-${chapter.title.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
         let chapterContent = `# ${chapter.title}\n\n`;
         if (chapter.description) {
           chapterContent += `${chapter.description}\n\n`;
@@ -1124,10 +1232,10 @@ console.log('Portfolio loaded successfully!');`);
 
         // Create lesson files
         for (const lesson of chapter.lessons) {
-          const lessonFile = `${lesson.orderIndex + 1}-${lesson.title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
-          
+          const lessonFile = `${lesson.orderIndex + 1}-${lesson.title.replace(/[^a-zA-Z0-9]/g, "_")}.md`;
+
           let lessonContent = `# ${lesson.title}\n\n`;
-          
+
           if (lesson.videoUrl) {
             lessonContent += `## Video\n\n[Watch on YouTube](${lesson.videoUrl})\n\n`;
           }
@@ -1137,7 +1245,7 @@ console.log('Portfolio loaded successfully!');`);
           }
 
           if (lesson.codeExample) {
-            lessonContent += `## Code Example\n\n\`\`\`${lesson.codeLanguage || 'javascript'}\n${lesson.codeExample}\n\`\`\`\n\n`;
+            lessonContent += `## Code Example\n\n\`\`\`${lesson.codeLanguage || "javascript"}\n${lesson.codeExample}\n\`\`\`\n\n`;
           }
 
           // Add questions
@@ -1149,13 +1257,14 @@ console.log('Portfolio loaded successfully!');`);
               const options = question.options as string[];
               options.forEach((option, optIndex) => {
                 const letter = String.fromCharCode(65 + optIndex);
-                const isCorrect = optIndex === question.correctAnswer ? ' ✓' : '';
+                const isCorrect =
+                  optIndex === question.correctAnswer ? " ✓" : "";
                 lessonContent += `${letter}. ${option}${isCorrect}\n`;
               });
               if (question.explanation) {
                 lessonContent += `\n**Explanation:** ${question.explanation}\n\n`;
               }
-              lessonContent += '\n';
+              lessonContent += "\n";
             });
           }
 
@@ -1167,7 +1276,7 @@ console.log('Portfolio loaded successfully!');`);
           const materials = await storage.getMaterialsByLesson(lesson.id);
           if (materials.length > 0) {
             lessonContent += `## Materials\n\n`;
-            materials.forEach(material => {
+            materials.forEach((material) => {
               lessonContent += `- [${material.title}](../materials/${material.fileName})\n`;
             });
           }
@@ -1187,13 +1296,15 @@ console.log('Portfolio loaded successfully!');`);
       }
 
       const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-      
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', `attachment; filename="${course.title.replace(/[^a-zA-Z0-9]/g, '_')}.zip"`);
-      res.send(zipBuffer);
 
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${course.title.replace(/[^a-zA-Z0-9]/g, "_")}.zip"`,
+      );
+      res.send(zipBuffer);
     } catch (error) {
-      console.error('Export error:', error);
+      console.error("Export error:", error);
       res.status(500).json({ message: "Failed to export course" });
     }
   });
@@ -1204,22 +1315,27 @@ console.log('Portfolio loaded successfully!');`);
       const courses = await storage.getCourses();
       const materials = await storage.getMaterials();
       const allUsers = await storage.getAllUsers();
-      
+
       const totalCourses = courses.length;
-      
+
       // Count all active learners including anonymous users
       const activeStudents = await storage.getActiveLearners();
       // Total enrolled students across all courses
-      const totalEnrollments = courses.reduce((sum, course) => sum + course.studentsCount, 0);
+      const totalEnrollments = courses.reduce(
+        (sum, course) => sum + course.studentsCount,
+        0,
+      );
       const totalMaterials = materials.length;
-      
+
       // Calculate assignments count by getting all lessons with assignments
       let assignmentsCount = 0;
       for (const course of courses) {
         const chapters = await storage.getChaptersByCourse(course.id);
         for (const chapter of chapters) {
           const lessons = await storage.getLessonsByChapter(chapter.id);
-          assignmentsCount += lessons.filter(lesson => lesson.assignment && lesson.assignment.trim() !== '').length;
+          assignmentsCount += lessons.filter(
+            (lesson) => lesson.assignment && lesson.assignment.trim() !== "",
+          ).length;
         }
       }
 
@@ -1230,7 +1346,7 @@ console.log('Portfolio loaded successfully!');`);
         materials: totalMaterials,
       });
     } catch (error) {
-      console.error('Dashboard stats error:', error);
+      console.error("Dashboard stats error:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });

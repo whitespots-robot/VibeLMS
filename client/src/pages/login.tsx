@@ -41,16 +41,19 @@ export default function Login() {
   }, [isAuthenticated, user, setLocation]);
 
   const onSubmit = async (data: LoginForm) => {
-    loginMutation.mutate(data, {
-      onSuccess: (response) => {
-        if (response.user.role === "student") {
-          setLocation("/learning");
-        } else {
-          setLocation("/dashboard");
-        }
-      }
-    });
+    loginMutation.mutate(data);
   };
+  
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "student") {
+        setLocation("/learning");
+      } else {
+        setLocation("/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
