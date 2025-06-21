@@ -74,15 +74,13 @@ export default function PublicCourses() {
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
+  const { login, register, isLoginPending, isRegisterPending } = useAuth();
+
+  const handleLogin = async (data: LoginForm) => {
+    try {
+      const result = await login(data);
       setIsLoginOpen(false);
-      if (data.user.role === "instructor") {
+      if (result.user.role === "teacher") {
         setLocation("/dashboard");
       } else {
         setLocation("/learning");
@@ -91,48 +89,42 @@ export default function PublicCourses() {
         title: "Success",
         description: "Logged in successfully",
       });
-    },
-    onError: (error: any) => {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Login failed",
+        description: error instanceof Error ? error.message : "Login failed",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterForm) => {
+  const handleRegister = async (data: RegisterForm) => {
+    try {
       if (!registrationAllowed) {
         throw new Error("Student registration is currently disabled");
       }
-      const response = await apiRequest("POST", "/api/auth/register", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      await register(data);
       setIsRegisterOpen(false);
       setLocation("/learning");
       toast({
         title: "Success",
         description: "Account created successfully",
       });
-    },
-    onError: (error: any) => {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Registration failed",
+        description: error instanceof Error ? error.message : "Registration failed",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
   const onLogin = (data: LoginForm) => {
-    loginMutation.mutate(data);
+    handleLogin(data);
   };
 
   const onRegister = (data: RegisterForm) => {
-    registerMutation.mutate(data);
+    handleRegister(data);
   };
 
   // Filter courses based on search query
@@ -324,9 +316,9 @@ export default function PublicCourses() {
                 <Button 
                   type="submit" 
                   className="w-full btn-primary" 
-                  disabled={loginMutation.isPending}
+                  disabled={isLoginPending}
                 >
-                  {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                  {isLoginPending ? "Signing in..." : "Sign In"}
                 </Button>
                 <div className="text-center text-sm text-neutral-600">
                   Don't have an account?{" "}
@@ -413,9 +405,9 @@ export default function PublicCourses() {
                   <Button 
                     type="submit" 
                     className="w-full btn-primary" 
-                    disabled={registerMutation.isPending}
+                    disabled={isRegisterPending}
                   >
-                    {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                    {isRegisterPending ? "Creating account..." : "Create Account"}
                   </Button>
                   <div className="text-center text-sm text-neutral-600">
                     Already have an account?{" "}

@@ -15,6 +15,11 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    refetchOnMount: "always",
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const loginMutation = useMutation({
@@ -89,9 +94,9 @@ export function useAuth() {
   });
 
   return {
-    user: (user as any)?.user as User | undefined,
+    user: user ? (user as any).user as User : undefined,
     isLoading,
-    isAuthenticated: !!(user as any)?.user,
+    isAuthenticated: !!(user && (user as any).user),
     error,
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
