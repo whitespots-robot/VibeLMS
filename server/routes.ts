@@ -171,6 +171,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/users/bulk", async (req, res) => {
+    try {
+      const { userIds } = req.body;
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "User IDs array is required" });
+      }
+
+      const deletedCount = await storage.deleteUsers(userIds);
+      res.json({ message: `Successfully deleted ${deletedCount} users`, deletedCount });
+    } catch (error) {
+      console.error("Bulk user deletion error:", error);
+      res.status(500).json({ message: "Failed to delete users" });
+    }
+  });
+
   app.post("/api/anonymous-user", async (req, res) => {
     try {
       // Create a unique anonymous user for this session

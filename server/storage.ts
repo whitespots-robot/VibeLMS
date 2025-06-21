@@ -18,6 +18,7 @@ export interface IStorage {
   updateUserPassword(id: number, hashedPassword: string): Promise<User | undefined>;
   authenticateUser(username: string, password: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  deleteUsers(userIds: number[]): Promise<number>;
 
   // Course operations
   getCourses(status?: string): Promise<CourseWithStats[]>;
@@ -224,6 +225,17 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async deleteUsers(userIds: number[]): Promise<number> {
+    const result = await db.delete(users).where(
+      userIds.length === 1 
+        ? eq(users.id, userIds[0])
+        : userIds.reduce((acc, id, index) => 
+            index === 0 ? eq(users.id, id) : acc.or(eq(users.id, id))
+          , eq(users.id, userIds[0]))
+    );
+    return result.rowCount || 0;
   }
 
   async getCourses(status?: string): Promise<CourseWithStats[]> {
