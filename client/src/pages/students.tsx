@@ -12,9 +12,16 @@ export default function Students() {
     queryKey: ['/api/enrollments'],
   });
 
+  const { data: courses } = useQuery({
+    queryKey: ['/api/courses'],
+  });
+
   const totalStudents = (dashboardStats as any)?.activeStudents || 0;
   const activeEnrollments = (enrollments as any)?.length || 0;
-  const avgProgress = (dashboardStats as any)?.assignments || 0;
+  // Calculate average progress from courses data
+  const avgProgress = courses && courses.length > 0 
+    ? Math.round(courses.reduce((sum: number, course: any) => sum + (course.averageProgress || 0), 0) / courses.length)
+    : 0;
 
   return (
     <>
