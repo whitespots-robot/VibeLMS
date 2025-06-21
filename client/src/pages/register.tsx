@@ -54,16 +54,19 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterForm) => {
     const { confirmPassword, ...registerData } = data;
-    registerMutation.mutate(registerData, {
-      onSuccess: (response) => {
-        if (response.user.role === "student") {
-          setLocation("/learning");
-        } else {
-          setLocation("/dashboard");
-        }
-      }
-    });
+    registerMutation.mutate(registerData);
   };
+  
+  // Handle redirect after successful registration
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "student") {
+        setLocation("/learning");
+      } else {
+        setLocation("/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
