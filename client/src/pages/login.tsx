@@ -42,8 +42,8 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     loginMutation.mutate(data, {
-      onSuccess: (user) => {
-        if (user.role === "student") {
+      onSuccess: (response) => {
+        if (response.user.role === "student") {
           setLocation("/learning");
         } else {
           setLocation("/dashboard");

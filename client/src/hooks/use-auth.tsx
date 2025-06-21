@@ -12,9 +12,9 @@ type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
+  loginMutation: UseMutationResult<{ token: string; user: SelectUser }, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  registerMutation: UseMutationResult<{ token: string; user: SelectUser }, Error, InsertUser>;
   isAuthenticated: boolean;
 };
 
@@ -102,10 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('auth_token', data.token);
       }
       
-      return data.user;
+      return data;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/auth/verify"], user);
+    onSuccess: (data: { token: string; user: SelectUser }) => {
+      queryClient.setQueryData(["/api/auth/verify"], data.user);
       setIsAuthenticated(true);
       refetchUser();
     },
@@ -128,10 +128,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('auth_token', data.token);
       }
       
-      return data.user;
+      return data;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/auth/verify"], user);
+    onSuccess: (data: { token: string; user: SelectUser }) => {
+      queryClient.setQueryData(["/api/auth/verify"], data.user);
       setIsAuthenticated(true);
       refetchUser();
     },

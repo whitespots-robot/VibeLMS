@@ -55,8 +55,8 @@ export default function Register() {
   const onSubmit = async (data: RegisterForm) => {
     const { confirmPassword, ...registerData } = data;
     registerMutation.mutate(registerData, {
-      onSuccess: (user) => {
-        if (user.role === "student") {
+      onSuccess: (response) => {
+        if (response.user.role === "student") {
           setLocation("/learning");
         } else {
           setLocation("/dashboard");
