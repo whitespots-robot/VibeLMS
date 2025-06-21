@@ -1,73 +1,129 @@
-# Docker Deployment Guide for Vibe LMS
+# Vibe LMS Deployment Guide
 
-## Fixed Issues
+## Docker Deployment (Recommended)
 
-1. **Build Dependencies**: Fixed Dockerfile to install all dependencies (including dev dependencies) needed for the build process
-2. **Docker Compose Version**: Removed obsolete `version` attribute to eliminate warnings
-3. **Health Check**: Added `/api/health` endpoint for container monitoring
+### Quick Start
+```bash
+# Clone the repository and navigate to project directory
+git clone <your-repo-url>
+cd vibe-lms
 
-## Quick Deployment
+# Start the application
+docker compose up -d --build
 
-1. **Stop any existing containers**:
-   ```bash
-   docker compose down
-   ```
-
-2. **Create environment file**:
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Generate secure secrets**:
-   ```bash
-   # PostgreSQL password
-   echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env
-   
-   # JWT session secret
-   echo "SESSION_SECRET=$(openssl rand -base64 64)" >> .env
-   ```
-
-4. **Deploy with rebuild**:
-   ```bash
-   docker compose up -d --build
-   ```
-
-5. **Check status**:
-   ```bash
-   docker compose ps
-   docker compose logs -f app
-   ```
-
-## Manual Environment Setup
-
-Edit your `.env` file:
-
-```env
-# Required: PostgreSQL password (use a strong password)
-POSTGRES_PASSWORD=your_secure_password_here
-
-# Required: JWT session secret (32+ characters)
-SESSION_SECRET=your_jwt_secret_key_minimum_32_characters_long
+# Check status
+docker compose ps
 ```
 
-## Verification
+### Environment Configuration
+The `.env` file is included with secure defaults:
+```env
+POSTGRES_PASSWORD=VibelmsSecurePass2024
+SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
+```
 
-- Application: http://localhost
-- Health check: http://localhost/api/health
-- Database logs: `docker compose logs postgres`
-- App logs: `docker compose logs app`
+**Production Security**: Update these values before deployment:
+- Use a strong database password (alphanumeric only, avoid `/`, `@`, `:`)
+- Generate a random 32+ character session secret
 
-## Troubleshooting
+### Application Access
+- **Application**: http://localhost (port 80)
+- **Health Check**: http://localhost/api/health
 
-**Build fails**: Ensure you have the latest Docker version and sufficient disk space.
+### Architecture
+- **Frontend**: React with Vite build system
+- **Backend**: Express.js with TypeScript
+- **Database**: PostgreSQL 15 with automatic initialization
+- **Authentication**: JWT with secure HTTP-only cookies
 
-**Container won't start**: Check logs with `docker compose logs app` and verify your `.env` file has all required variables.
+### Container Services
+1. **app**: Main application server (Node.js + TypeScript)
+2. **postgres**: PostgreSQL database with health checks
 
-**Database connection issues**: Wait for PostgreSQL to fully initialize (check with `docker compose logs postgres`).
+### Troubleshooting
+
+#### Container Issues
+```bash
+# View all logs
+docker compose logs
+
+# View specific service logs
+docker compose logs app
+docker compose logs postgres
+
+# Check container status
+docker compose ps
+
+# Restart services
+docker compose restart
+```
+
+#### Database Connection Errors
+- Verify `.env` file exists with valid `POSTGRES_PASSWORD`
+- Ensure password contains only URL-safe characters
+- Check PostgreSQL container health: `docker compose ps`
+
+#### Authentication Problems
+- Verify `SESSION_SECRET` is at least 32 characters
+- Clear browser cookies and retry
+- Check browser developer tools for cookie issues
+
+## Manual Development Setup
+
+### Prerequisites
+- Node.js 18+ with npm
+- PostgreSQL database
+- Environment variables configured
+
+### Installation
+```bash
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run database migrations
+npm run db:push
+
+# Start development server
+npm run dev
+```
+
+### Production Build
+```bash
+# Build frontend assets
+npm run build
+
+# Start production server
+npm start
+```
 
 ## Production Considerations
 
-- Use a reverse proxy (nginx) for SSL
-- Set up automated backups for PostgreSQL data
-- Monitor container health and resource usage
-- Keep JWT session secrets secure and rotate periodically
+### Security
+- Use strong, unique passwords for database and session secret
+- Enable HTTPS/TLS termination (reverse proxy recommended)
+- Configure proper firewall rules
+- Regular security updates for base images
+
+### Performance
+- Monitor container resource usage
+- Configure database connection pooling
+- Implement CDN for static assets
+- Set up proper logging and monitoring
+
+### Backup Strategy
+- Regular PostgreSQL database backups
+- Backup uploaded files volume (`./uploads`)
+- Store backups securely offsite
+
+### Scaling
+- Use container orchestration (Kubernetes, Docker Swarm)
+- Implement load balancing for multiple app instances
+- Consider database clustering for high availability
+- Monitor performance metrics and scale accordingly
+
+## Support
+For deployment issues, check logs first and verify environment configuration. The application includes comprehensive error handling and logging to help diagnose problems.
