@@ -3,8 +3,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Courses from "@/pages/courses";
@@ -26,24 +24,24 @@ import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
   
   useEffect(() => {
-    if (!isAuthenticated || !user) {
-      // Don't redirect to "/" since it's public courses, let the router handle it
+    if (!currentUser) {
+      setLocation("/");
       return;
     }
-    // Redirect students away from dashboard to learning
-    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
+    // Redirect students away from dashboard to learning, but don't redirect instructors
+    if (currentUser && currentUser.role === "student" && (location === "/dashboard" || location === "/")) {
       setLocation("/learning");
     }
     // Redirect instructors from root to dashboard
-    if (user && user.role === "instructor" && location === "/") {
+    if (currentUser && currentUser.role === "instructor" && location === "/") {
       setLocation("/dashboard");
     }
-  }, [user, isAuthenticated, location, setLocation]);
+  }, [currentUser, location, setLocation]);
 
-  if (!isAuthenticated || !user) {
+  if (!currentUser) {
     return null;
   }
 
@@ -53,10 +51,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   const [location] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 
   // Public routes that don't need authentication
-  if (!isAuthenticated && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
+  if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
     return (
       <Switch>
         <Route path="/login" component={Login} />
@@ -112,21 +110,13 @@ function Router() {
   );
 }
 
-function AppContent() {
-  return (
-    <TooltipProvider>
-      <Toaster />
-      <Router />
-    </TooltipProvider>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

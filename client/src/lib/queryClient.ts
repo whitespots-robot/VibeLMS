@@ -2,22 +2,9 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    // Clear auth token on authentication errors
-    if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem('auth_token');
-    }
-    
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
-}
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    return { 'Authorization': `Bearer ${token}` };
-  }
-  return {};
 }
 
 export async function apiRequest(
@@ -25,18 +12,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const headers: Record<string, string> = {};
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  const authHeaders = getAuthHeaders();
-  Object.assign(headers, authHeaders);
-
   const res = await fetch(url, {
     method,
-    headers,
+    headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -52,17 +30,11 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
-      headers: getAuthHeaders(),
       credentials: "include",
     });
 
-    if (res.status === 401) {
-      // Clear invalid token when unauthorized
-      localStorage.removeItem('auth_token');
-      
-      if (unauthorizedBehavior === "returnNull") {
-        return null;
-      }
+    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      return null;
     }
 
     await throwIfResNotOk(res);
@@ -75,7 +47,7 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: Infinity,
       retry: false,
     },
     mutations: {

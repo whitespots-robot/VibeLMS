@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { UserPlus, LogIn } from "lucide-react";
-import { useEffect } from "react";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -29,7 +30,8 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const [, setLocation] = useLocation();
-  const { registerMutation, user, isAuthenticated } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -41,35 +43,37 @@ export default function Register() {
     },
   });
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === "student") {
+  const onSubmit = async (data: RegisterForm) => {
+    setIsLoading(true);
+    try {
+      const { confirmPassword, ...registerData } = data;
+      const response = await apiRequest("POST", "/api/auth/register", registerData);
+      const result = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem("currentUser", JSON.stringify(result.user));
+        toast({
+          title: "Registration Successful",
+          description: `Welcome to Vibe LMS, ${result.user.username}!`,
+        });
         setLocation("/learning");
       } else {
-        setLocation("/dashboard");
+        toast({
+          title: "Registration Failed",
+          description: result.message || "Failed to create account",
+          variant: "destructive",
+        });
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to register. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, user, setLocation]);
-
-  const onSubmit = async (data: RegisterForm) => {
-    const { confirmPassword, ...registerData } = data;
-    registerMutation.mutate(registerData);
   };
-  
-  // Handle redirect after successful registration
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // Force immediate redirect
-      setTimeout(() => {
-        if (user.role === "student") {
-          setLocation("/learning");
-        } else {
-          setLocation("/dashboard");
-        }
-      }, 100);
-    }
-  }, [isAuthenticated, user, setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
@@ -153,9 +157,9 @@ export default function Register() {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={registerMutation.isPending}
+                disabled={isLoading}
               >
-                {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </Form>

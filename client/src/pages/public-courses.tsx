@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { BookOpen, Users, Clock, Eye, X, Search } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
 import type { CourseWithStats } from "@shared/schema";
 
 const loginSchema = z.object({
@@ -41,10 +40,10 @@ export default function PublicCourses() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
-  const { user: currentUser } = useAuth();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 
   const handleLogout = () => {
-    localStorage.removeItem("auth_token");
+    localStorage.removeItem("currentUser");
     window.location.reload();
   };
 

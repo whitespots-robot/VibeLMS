@@ -195,6 +195,3 @@ export type LessonWithDetails = Lesson & {
   questions: Question[];
   materials: Material[];
 };
-
-// Safe user type without password for API responses
-export type SafeUser = Omit<User, 'password'>;
