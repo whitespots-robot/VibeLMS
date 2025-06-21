@@ -121,14 +121,40 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Force demo data creation for production
+  async forceCreateDemoData() {
+    console.log("Force creating demo data for production...");
+    try {
+      // Always ensure database is initialized first
+      if (!this.initialized) {
+        await this.ensureInitialized();
+      }
+      
+      // Check if teacher exists
+      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
+      if (teacherUser.length === 0) {
+        console.log("Teacher user not found, creating all demo data...");
+        await this.createDemoData();
+        console.log("Demo data creation completed successfully");
+      } else {
+        console.log("Teacher user already exists, skipping demo data creation");
+      }
+    } catch (error) {
+      console.error("Failed to force create demo data:", error);
+    }
+  }
+
   private async createDemoData() {
+    console.log("Creating demo data - starting user creation");
     const [teacher] = await db.insert(users).values({
       username: "teacher",
       password: this.hashPassword("teacher"),
       email: "teacher@example.com",
       role: "instructor",
     }).returning();
+    console.log("Demo user created:", teacher.id, teacher.username);
 
+    console.log("Creating demo course...");
     const [course] = await db.insert(courses).values({
       title: "🎯 Complete Web Development Bootcamp",
       description: "Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.",
@@ -137,6 +163,7 @@ export class DatabaseStorage implements IStorage {
       isPublic: true,
       allowRegistration: true,
     }).returning();
+    console.log("Demo course created:", course.id, course.title);
 
     const [chapter] = await db.insert(chapters).values({
       title: "Introduction to Web Development",
