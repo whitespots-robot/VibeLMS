@@ -26,35 +26,36 @@ async function waitForDatabase(maxRetries = 30, delay = 2000) {
 
 
 
-// Force ensure demo data exists every time
+// Ensure demo data exists only if missing
 async function ensureDemoData() {
   try {
-    log("Ensuring demo data exists...");
+    log("Checking for missing demo data...");
     const { pool } = await import("./db");
+    let changesCount = 0;
     
-    // Always check and create if missing
+    // Check teacher user
     const teacherCheck = await pool.query("SELECT id FROM users WHERE username = 'teacher' LIMIT 1");
     let teacherId;
     
     if (teacherCheck.rows.length === 0) {
-      log("Creating teacher user...");
+      log("Teacher user missing - creating...");
       const teacherResult = await pool.query(`
         INSERT INTO users (username, password, email, role, created_at)
         VALUES ($1, $2, $3, $4, NOW())
         RETURNING id
       `, ['teacher', '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044', 'teacher@example.com', 'instructor']);
       teacherId = teacherResult.rows[0].id;
+      changesCount++;
       log("Teacher user created");
     } else {
       teacherId = teacherCheck.rows[0].id;
-      log("Teacher user exists");
     }
     
-    // Always check and create course if missing
+    // Check demo course
     const courseCheck = await pool.query("SELECT id FROM courses WHERE title = '🎯 Complete Web Development Bootcamp' LIMIT 1");
     
     if (courseCheck.rows.length === 0) {
-      log("Creating demo course...");
+      log("Demo course missing - creating...");
       const courseResult = await pool.query(`
         INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, NOW())
@@ -62,38 +63,49 @@ async function ensureDemoData() {
       `, ['🎯 Complete Web Development Bootcamp', 'Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.', teacherId, 'published', true, true]);
       
       const courseId = courseResult.rows[0].id;
-      log(`Demo course created with ID: ${courseId}`);
+      changesCount++;
       
-      // Create basic chapter and lesson
+      // Create chapter
       const chapterResult = await pool.query(`
         INSERT INTO chapters (title, description, course_id, order_index, created_at)
         VALUES ($1, $2, $3, $4, NOW())
         RETURNING id
       `, ['Getting Started', 'Introduction to web development', courseId, 1]);
       
+      // Create lesson
       await pool.query(`
         INSERT INTO lessons (title, description, content, chapter_id, order_index, lesson_type, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, NOW())
       `, ['Welcome', 'Welcome to the course!', '<h2>Welcome!</h2><p>Let\'s start learning web development.</p>', chapterResult.rows[0].id, 1, 'text']);
       
-      log("Demo chapter and lesson created");
-    } else {
-      log("Demo course already exists");
+      log("Demo course with content created");
     }
     
-    // Always ensure system settings
-    await pool.query(`
-      INSERT INTO system_settings (key, value)
-      VALUES 
-        ('allow_student_registration', 'true'),
-        ('platform_name', 'Vibe LMS'),
-        ('welcome_message', 'Welcome to your learning journey!')
-      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-    `);
+    // Check system settings
+    const settingsCheck = await pool.query("SELECT COUNT(*) as count FROM system_settings WHERE key IN ('allow_student_registration', 'platform_name', 'welcome_message')");
+    
+    if (settingsCheck.rows[0].count < 3) {
+      log("System settings missing - creating...");
+      await pool.query(`
+        INSERT INTO system_settings (key, value)
+        VALUES 
+          ('allow_student_registration', 'true'),
+          ('platform_name', 'Vibe LMS'),
+          ('welcome_message', 'Welcome to your learning journey!')
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+      `);
+      changesCount++;
+    }
+    
+    if (changesCount > 0) {
+      log(`Demo data initialization completed - ${changesCount} changes made`);
+    } else {
+      log("All demo data already exists - no changes needed");
+    }
     
     // Final verification
-    const finalCheck = await pool.query("SELECT COUNT(*) as count FROM courses WHERE is_public = true AND status = 'published'");
-    log(`Final check: ${finalCheck.rows[0].count} public courses available`);
+    const publicCoursesCount = await pool.query("SELECT COUNT(*) as count FROM courses WHERE is_public = true AND status = 'published'");
+    log(`Public courses available: ${publicCoursesCount.rows[0].count}`);
     
   } catch (error) {
     log(`Demo data error: ${error}`, "demo");
