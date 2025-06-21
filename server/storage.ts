@@ -239,7 +239,6 @@ export class DatabaseStorage implements IStorage {
       if (enrollmentsList.length > 0) {
         const totalProgress = enrollmentsList.reduce((sum, enrollment) => sum + (enrollment.progress || 0), 0);
         averageProgress = Math.round(totalProgress / enrollmentsList.length);
-        console.log(`Course ${course.id}: ${enrollmentsList.length} enrollments, total progress: ${totalProgress}, average: ${averageProgress}`);
       }
       
       coursesWithStats.push({
