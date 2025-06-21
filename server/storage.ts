@@ -228,18 +228,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUsers(userIds: number[]): Promise<number> {
-    // Use a transaction to ensure all deletions succeed or fail together
-    return await db.transaction(async (tx) => {
-      // First, delete student progress records
-      await tx.delete(studentProgress).where(inArray(studentProgress.studentId, userIds));
-      
-      // Then delete enrollments  
-      await tx.delete(enrollments).where(inArray(enrollments.studentId, userIds));
-      
-      // Finally delete the users
-      const result = await tx.delete(users).where(inArray(users.id, userIds));
-      return result.rowCount || 0;
-    });
+    let deletedCount = 0;
+    
+    // Delete each user individually to handle constraints properly
+    for (const userId of userIds) {
+      try {
+        await db.transaction(async (tx) => {
+          // Delete student progress records
+          await tx.delete(studentProgress).where(eq(studentProgress.studentId, userId));
+          
+          // Delete enrollments
+          await tx.delete(enrollments).where(eq(enrollments.studentId, userId));
+          
+          // Delete the user
+          const result = await tx.delete(users).where(eq(users.id, userId));
+          if (result.rowCount && result.rowCount > 0) {
+            deletedCount++;
+          }
+        });
+      } catch (error) {
+        console.error(`Failed to delete user ${userId}:`, error);
+        // Continue with next user even if one fails
+      }
+    }
+    
+    return deletedCount;
   }
 
   async getCourses(status?: string): Promise<CourseWithStats[]> {
