@@ -8,7 +8,7 @@ import {
   type CourseWithStats, type ChapterWithLessons, type LessonWithDetails
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, inArray, like } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -18,8 +18,6 @@ export interface IStorage {
   updateUserPassword(id: number, hashedPassword: string): Promise<User | undefined>;
   authenticateUser(username: string, password: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
-  bulkDeleteUsers(userIds: number[]): Promise<number>;
-  deleteAnonymousUsers(): Promise<number>;
 
   // Course operations
   getCourses(status?: string): Promise<CourseWithStats[]>;
@@ -226,70 +224,6 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
-  }
-
-  async bulkDeleteUsers(userIds: number[]): Promise<number> {
-    try {
-      let deletedCount = 0;
-      
-      // Delete users one by one to ensure proper cleanup
-      for (const userId of userIds) {
-        try {
-          // Delete student progress
-          await db.delete(studentProgress).where(eq(studentProgress.studentId, userId));
-          // Delete enrollments
-          await db.delete(enrollments).where(eq(enrollments.studentId, userId));
-          // Delete user
-          const deleteResult = await db.delete(users).where(eq(users.id, userId));
-          if (deleteResult.rowCount && deleteResult.rowCount > 0) {
-            deletedCount++;
-          }
-        } catch (userError) {
-          console.error(`Error deleting user ${userId}:`, userError);
-        }
-      }
-      
-      return deletedCount;
-    } catch (error) {
-      console.error('Error in bulk delete users:', error);
-      return 0;
-    }
-  }
-
-  async deleteAnonymousUsers(): Promise<number> {
-    try {
-      // Get all anonymous users
-      const allUsers = await db.select().from(users);
-      const anonymousUsers = allUsers.filter((user: User) => 
-        user.username === 'anonymous' || user.username.startsWith('anonymous_')
-      );
-      
-      const anonymousUserIds = anonymousUsers.map(user => user.id);
-      
-      if (anonymousUserIds.length === 0) {
-        return 0;
-      }
-      
-      // Delete related data first
-      for (const userId of anonymousUserIds) {
-        await db.delete(studentProgress).where(eq(studentProgress.studentId, userId));
-        await db.delete(enrollments).where(eq(enrollments.studentId, userId));
-      }
-      
-      // Delete anonymous users
-      let deletedCount = 0;
-      for (const userId of anonymousUserIds) {
-        const deleteResult = await db.delete(users).where(eq(users.id, userId));
-        if (deleteResult.rowCount && deleteResult.rowCount > 0) {
-          deletedCount++;
-        }
-      }
-      
-      return deletedCount;
-    } catch (error) {
-      console.error('Error deleting anonymous users:', error);
-      return 0;
-    }
   }
 
   async getCourses(status?: string): Promise<CourseWithStats[]> {

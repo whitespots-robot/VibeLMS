@@ -171,20 +171,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const user = await storage.getUser(id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
   app.post("/api/anonymous-user", async (req, res) => {
     try {
       // Create a unique anonymous user for this session
@@ -204,40 +190,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Anonymous user creation error:", error);
       res.status(500).json({ message: "Failed to create anonymous user" });
-    }
-  });
-
-  app.delete("/api/users/bulk", async (req, res) => {
-    try {
-      const { userIds } = req.body;
-      if (!Array.isArray(userIds) || userIds.length === 0) {
-        return res.status(400).json({ message: "userIds must be a non-empty array" });
-      }
-      
-      // Prevent deletion of instructors
-      const users = await storage.getAllUsers();
-      const instructorIds = users.filter(user => user.role === 'instructor').map(user => user.id);
-      const safeUserIds = userIds.filter(id => !instructorIds.includes(id));
-      
-      if (safeUserIds.length === 0) {
-        return res.status(400).json({ message: "Cannot delete instructor accounts" });
-      }
-      
-      const deleted = await storage.bulkDeleteUsers(safeUserIds);
-      res.json({ deleted, message: `${deleted} users deleted successfully` });
-    } catch (error) {
-      console.error("Bulk delete error:", error);
-      res.status(500).json({ message: "Failed to delete users" });
-    }
-  });
-
-  app.delete("/api/users/anonymous", async (req, res) => {
-    try {
-      const deleted = await storage.deleteAnonymousUsers();
-      res.json({ deleted, message: `${deleted} anonymous users deleted successfully` });
-    } catch (error) {
-      console.error("Delete anonymous users error:", error);
-      res.status(500).json({ message: "Failed to delete anonymous users" });
     }
   });
 
@@ -952,12 +904,7 @@ console.log('Portfolio loaded successfully!');`);
       
       res.json(progress);
     } catch (error) {
-      console.error("Progress API error:", error);
-      res.status(400).json({ 
-        message: "Invalid progress data",
-        error: error instanceof Error ? error.message : "Unknown error",
-        received: req.body
-      });
+      res.status(400).json({ message: "Invalid progress data" });
     }
   });
 
