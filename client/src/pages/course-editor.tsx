@@ -356,7 +356,11 @@ export default function CourseEditor() {
   const deleteLessonMutation = useMutation({
     mutationFn: async (lessonId: number) => {
       const response = await apiRequest("DELETE", `/api/lessons/${lessonId}`, {});
-      return response.json();
+      // DELETE requests return 204 No Content, so no JSON to parse
+      if (response.ok) {
+        return { success: true };
+      }
+      throw new Error('Failed to delete lesson');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
@@ -377,7 +381,11 @@ export default function CourseEditor() {
   const deleteChapterMutation = useMutation({
     mutationFn: async (chapterId: number) => {
       const response = await apiRequest("DELETE", `/api/chapters/${chapterId}`, {});
-      return response.json();
+      // DELETE requests return 204 No Content, so no JSON to parse
+      if (response.ok) {
+        return { success: true };
+      }
+      throw new Error('Failed to delete chapter');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
