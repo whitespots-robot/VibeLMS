@@ -15,8 +15,9 @@ import {
   Link as LinkIcon, Image as ImageIcon, List, ListOrdered,
   Quote, Code, Minus, Undo, Redo, Palette, Highlighter
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import TurndownService from 'turndown'
+import { marked } from 'marked'
 
 interface RichTextEditorProps {
   content: string
@@ -30,6 +31,29 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
   const [imageUrl, setImageUrl] = useState('')
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
+
+  // Initialize turndown service for HTML to markdown conversion
+  const turndownService = useMemo(() => new TurndownService({
+    headingStyle: 'atx',
+    bulletListMarker: '-',
+    codeBlockStyle: 'fenced',
+    fence: '```',
+    emDelimiter: '*',
+    strongDelimiter: '**',
+    linkStyle: 'inlined',
+    linkReferenceStyle: 'full'
+  }), [])
+
+  // Convert markdown to HTML for editor initialization
+  const initialHtmlContent = useMemo(() => {
+    if (!content) return ''
+    // If content looks like HTML, use it directly
+    if (content.includes('<') && content.includes('>')) {
+      return content
+    }
+    // Otherwise convert markdown to HTML
+    return marked(content) as string
+  }, [content])
 
   const editor = useEditor({
     extensions: [
@@ -61,9 +85,11 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
       }),
       Underline,
     ],
-    content,
+    content: initialHtmlContent,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      const html = editor.getHTML()
+      const markdown = turndownService.turndown(html)
+      onChange(markdown)
     },
     editorProps: {
       attributes: {
