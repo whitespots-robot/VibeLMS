@@ -109,9 +109,9 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Logout - Fixed at bottom */}
       {currentUser && (
-        <div className="border-t border-slate-700 p-4">
+        <div className="mt-auto border-t border-slate-700 p-4">
           <Button
             onClick={handleLogout}
             variant="ghost"
@@ -195,9 +195,9 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
               })}
             </nav>
 
-            {/* Mobile Logout */}
+            {/* Mobile Logout - Fixed at bottom */}
             {currentUser && (
-              <div className="border-t border-slate-700 p-4">
+              <div className="mt-auto border-t border-slate-700 p-4">
                 <Button
                   onClick={handleLogout}
                   variant="ghost"
