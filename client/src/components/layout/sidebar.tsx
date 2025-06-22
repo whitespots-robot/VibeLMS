@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const getNavigation = (userRole: string | null) => {
   if (userRole === 'instructor') {
@@ -31,20 +32,27 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
 }) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, logout } = useAuth();
   
-  // Get current user from localStorage
-  const currentUserData = localStorage.getItem("currentUser");
-  const currentUser = currentUserData && currentUserData !== "undefined" ? JSON.parse(currentUserData) : null;
+  const currentUser = user;
   const navigation = getNavigation(currentUser?.role || null);
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-    setLocation("/login");
-    setIsMobileOpen?.(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      setLocation("/");
+      setIsMobileOpen?.(false);
+    } catch (error) {
+      toast({
+        title: "Logout Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleNavClick = () => {
