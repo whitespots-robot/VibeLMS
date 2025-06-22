@@ -33,12 +33,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies plus vite and tsx (needed for static serving and TS execution)
-RUN npm ci --only=production && npm install vite tsx && npm cache clean --force
+RUN npm ci --only=production && npm install vite tsx pg bcrypt && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/shared ./shared
+COPY --from=builder --chown=nextjs:nodejs /app/createdata.js ./createdata.js
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
