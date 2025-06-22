@@ -35,8 +35,10 @@ async function runMigrations() {
     log("Database migrations completed successfully");
   } catch (error) {
     log(`Migration error: ${error}`, "migration");
-    // Don't exit on migration errors in production - database might already be set up
-    if (process.env.NODE_ENV !== "production") {
+    // In production, try to continue without migrations as DB might be already set up
+    if (process.env.NODE_ENV === "production") {
+      log("Continuing without migrations in production mode");
+    } else {
       process.exit(1);
     }
   }
