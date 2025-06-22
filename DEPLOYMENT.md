@@ -36,6 +36,108 @@ Demo data is created automatically on first startup:
 - **Password**: teacher
 - **Role**: instructor
 
+### User Management Commands
+
+#### Creating Users via Database
+Connect to the database and create users directly:
+
+```bash
+# Connect to database container
+docker compose exec postgres psql -U vibelms -d vibelms
+
+# Create instructor user
+INSERT INTO users (username, password, email, role, created_at)
+VALUES (
+  'your_username',
+  '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044',
+  'your_email@example.com',
+  'instructor',
+  NOW()
+);
+
+# Create student user
+INSERT INTO users (username, password, email, role, created_at)
+VALUES (
+  'student_username',
+  '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044',
+  'student@example.com',
+  'student',
+  NOW()
+);
+```
+
+**Note**: The password hash above corresponds to "teacher" - replace with your own hashed password.
+
+#### Password Hashing
+To generate a password hash for a new user:
+
+```bash
+# Generate password hash using Node.js
+docker compose exec app node -e "
+const crypto = require('crypto');
+const password = 'your_new_password';
+const salt = 'vibelms_salt_2024';
+const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+console.log('Password hash:', hash);
+"
+```
+
+#### Creating Users via API
+You can also create users through the registration endpoint:
+
+```bash
+# Create new user via API
+curl -X POST http://localhost/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "password": "your_password",
+    "email": "your_email@example.com"
+  }'
+```
+
+**Note**: New users created via API have "student" role by default. To create instructors, use the database method above.
+
+#### Quick User Creation Examples
+
+```bash
+# Example 1: Create instructor "admin" with password "admin123"
+docker compose exec postgres psql -U vibelms -d vibelms -c "
+INSERT INTO users (username, password, email, role, created_at)
+VALUES (
+  'admin',
+  '$(docker compose exec app node -e "
+const crypto = require('crypto');
+console.log(crypto.pbkdf2Sync('admin123', 'vibelms_salt_2024', 10000, 64, 'sha512').toString('hex'));
+" | tr -d '\n\r')',
+  'admin@yourdomain.com',
+  'instructor',
+  NOW()
+);"
+
+# Example 2: Create student "john" with password "password123"
+curl -X POST http://localhost/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "john",
+    "password": "password123", 
+    "email": "john@yourdomain.com"
+  }'
+```
+
+#### User Roles
+- **instructor**: Can create and manage courses, view analytics
+- **student**: Can enroll in courses and track progress
+
+#### Checking Existing Users
+```bash
+# List all users
+docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT id, username, email, role, created_at FROM users ORDER BY created_at;"
+
+# Check specific user
+docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT * FROM users WHERE username = 'your_username';"
+```
+
 ### Demo Course
 The system includes a complete demo course:
 - **Title**: "Complete Web Development Bootcamp"
