@@ -2,6 +2,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import { getYouTubeEmbedUrl } from "@/lib/utils";
 import { X, Play, FileText, Code, BookOpen, Eye, HelpCircle, CheckCircle2 } from "lucide-react";
 import type { Lesson, LessonWithDetails } from "@shared/schema";
