@@ -74,14 +74,24 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
       {/* User Info */}
       {currentUser && (
         <div className="px-4 py-3 border-b border-slate-700">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-white">{currentUser.username}</p>
+                <p className="text-xs text-slate-300 capitalize">{currentUser.role}</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-white">{currentUser.username}</p>
-              <p className="text-xs text-slate-300 capitalize">{currentUser.role}</p>
-            </div>
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="text-slate-300 hover:text-white hover:bg-slate-700 p-1"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -109,19 +119,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
         })}
       </nav>
 
-      {/* Logout - Fixed at bottom */}
-      {currentUser && (
-        <div className="mt-auto border-t border-slate-700 p-4">
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
-          >
-            <LogOut className="mr-3 w-4 h-4" />
-            Logout
-          </Button>
-        </div>
-      )}
+
     </>
   );
 
@@ -160,14 +158,24 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
             {/* Mobile User Info */}
             {currentUser && (
               <div className="px-4 py-3 border-b border-slate-700">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-white">{currentUser.username}</p>
+                      <p className="text-xs text-slate-300 capitalize">{currentUser.role}</p>
+                    </div>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-white">{currentUser.username}</p>
-                    <p className="text-xs text-slate-300 capitalize">{currentUser.role}</p>
-                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-300 hover:text-white hover:bg-slate-700 p-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             )}
@@ -195,19 +203,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
               })}
             </nav>
 
-            {/* Mobile Logout - Fixed at bottom */}
-            {currentUser && (
-              <div className="mt-auto border-t border-slate-700 p-4">
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
-                >
-                  <LogOut className="mr-3 w-4 h-4" />
-                  Logout
-                </Button>
-              </div>
-            )}
+
           </div>
         </div>
       )}
