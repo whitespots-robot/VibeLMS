@@ -38,6 +38,23 @@ Demo data is created automatically on first startup:
 
 ### User Management Commands
 
+#### Console Script (Recommended)
+Use the interactive console script like Django's `manage.py createuser`:
+
+```bash
+# For local development
+node scripts/createuser.mjs
+
+# For Docker deployment
+docker compose exec app bash scripts/createuser-docker.sh
+```
+
+The script will prompt you for:
+- Username
+- Email address  
+- Password
+- Role (student/instructor)
+
 #### Creating Users via Database
 Connect to the database and create users directly:
 
@@ -101,21 +118,13 @@ curl -X POST http://localhost/api/auth/register \
 #### Quick User Creation Examples
 
 ```bash
-# Example 1: Create instructor "admin" with password "admin123"
-docker compose exec postgres psql -U vibelms -d vibelms -c "
-INSERT INTO users (username, password, email, role, created_at)
-VALUES (
-  'admin',
-  '$(docker compose exec app node -e "
-const crypto = require('crypto');
-console.log(crypto.pbkdf2Sync('admin123', 'vibelms_salt_2024', 10000, 64, 'sha512').toString('hex'));
-" | tr -d '\n\r')',
-  'admin@yourdomain.com',
-  'instructor',
-  NOW()
-);"
+# Example 1: Using console script (recommended)
+echo -e "admin\nadmin@yourdomain.com\nadmin123\ninstructor" | node scripts/createuser.mjs
 
-# Example 2: Create student "john" with password "password123"
+# Example 2: Using Docker script
+echo -e "admin\nadmin@yourdomain.com\nadmin123\ninstructor" | docker compose exec -T app bash scripts/createuser-docker.sh
+
+# Example 3: Create student via API
 curl -X POST http://localhost/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
