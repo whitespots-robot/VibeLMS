@@ -11,16 +11,15 @@ export interface User {
 export function useAuth() {
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
-    gcTime: Infinity,
-    enabled: false, // Disable automatic fetching
+    gcTime: 10 * 60 * 1000,
   });
 
   const loginMutation = useMutation({

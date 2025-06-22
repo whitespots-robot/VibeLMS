@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 
 const getNavigation = (userRole: string | null) => {
   if (userRole === 'instructor') {
@@ -32,20 +32,34 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
 }) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, logout } = useAuth();
   
-  const currentUser = user;
+  const { data: userResponse } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+  
+  const currentUser = userResponse?.user;
   const navigation = getNavigation(currentUser?.role || null);
 
   const handleLogout = async () => {
     try {
-      await logout();
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
-      setLocation("/");
-      setIsMobileOpen?.(false);
+      
+      if (response.ok) {
+        toast({
+          title: "Logged Out",
+          description: "You have been successfully logged out.",
+        });
+        setLocation("/");
+        setIsMobileOpen?.(false);
+        // Force page reload to clear all state
+        window.location.href = "/";
+      }
     } catch (error) {
       toast({
         title: "Logout Error",
