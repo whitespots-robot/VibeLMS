@@ -77,11 +77,11 @@ curl -X POST http://localhost/api/auth/register \
 #### Examples
 
 ```bash
-# Create instructor
-docker compose exec app node createuser.cjs admin admin@example.com admin123 instructor
+# Create instructor (local PostgreSQL)
+docker compose exec app node createuser-local.cjs admin admin@example.com admin123 instructor
 
-# Create student  
-docker compose exec app node createuser.cjs student1 student@example.com pass123 student
+# Create student (local PostgreSQL)
+docker compose exec app node createuser-local.cjs student1 student@example.com pass123 student
 
 # Student via API (web registration)
 curl -X POST http://localhost/api/auth/register \
