@@ -5,8 +5,15 @@
 ### Quick Start
 ```bash
 # Clone the repository and navigate to project directory
-git clone <your-repo-url>
-cd vibe-lms
+git clone git@github.com:whitespots-robot/VibeLMS.git
+cd VibeLMS
+
+### Environment Configuration
+The `.env` file is included with secure defaults:
+```env
+POSTGRES_PASSWORD=VibelmsSecurePass2024
+SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
+```
 
 # Start the application
 docker compose up -d --build
@@ -15,12 +22,6 @@ docker compose up -d --build
 docker compose ps
 ```
 
-### Environment Configuration
-The `.env` file is included with secure defaults:
-```env
-POSTGRES_PASSWORD=VibelmsSecurePass2024
-SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
-```
 
 **Production Security**: Update these values before deployment:
 - Use a strong database password (alphanumeric only, avoid `/`, `@`, `:`)
@@ -39,7 +40,7 @@ Demo data is created automatically on first startup:
 ### User Management
 
 #### Creating Users (Recommended)
-Use the interactive console script like Django's `manage.py createuser`:
+Use the interactive console script
 
 ```bash
 # For local development
