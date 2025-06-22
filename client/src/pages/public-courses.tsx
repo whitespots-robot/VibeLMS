@@ -40,10 +40,22 @@ export default function PublicCourses() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
-  const handleLogout = () => {
-    window.location.href = "/api/auth/logout";
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Logout Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const { data: courses = [], isLoading } = useQuery<CourseWithStats[]>({
