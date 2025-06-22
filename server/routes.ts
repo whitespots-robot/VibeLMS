@@ -118,18 +118,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req: AuthenticatedRequest, res) => {
     try {
+      console.log("Registration attempt with data:", JSON.stringify(req.body, null, 2));
+      
       // Check if student registration is allowed globally
       const allowRegistration = await storage.getSystemSetting("allow_student_registration");
+      console.log("Registration setting:", allowRegistration);
+      
       if (allowRegistration === "false") {
+        console.log("Registration disabled by system setting");
         return res.status(403).json({ message: "Student registration is currently disabled" });
       }
 
+      console.log("Validating user data with schema...");
       const userData = insertUserSchema.parse(req.body);
+      console.log("Schema validation passed");
+      
+      console.log("Checking for existing user:", userData.username);
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
+        console.log("Username already exists");
         return res.status(400).json({ message: "Username already exists" });
       }
+      
+      console.log("Creating new user...");
       const user = await storage.createUser(userData);
+      console.log("User created successfully:", user.id);
       
       // Upgrade the session from anonymous to authenticated
       upgradeSession(req, res, user);
@@ -138,10 +151,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ user: userWithoutPassword, message: "Registration successful" });
     } catch (error) {
       console.error("Registration error:", error);
-      if (error instanceof Error && error.message.includes("validation")) {
+      
+      // Handle Zod validation errors
+      if (error && typeof error === 'object' && 'issues' in error) {
+        const validationError = error as any;
+        const errorMessages = validationError.issues.map((issue: any) => 
+          `${issue.path.join('.')}: ${issue.message}`
+        );
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: errorMessages 
+        });
+      }
+      
+      // Handle database constraint violations
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key value') || error.message.includes('unique constraint')) {
+          if (error.message.includes('username')) {
+            return res.status(400).json({ message: "Username already exists" });
+          }
+          if (error.message.includes('email')) {
+            return res.status(400).json({ message: "Email already exists" });
+          }
+        }
         return res.status(400).json({ message: error.message });
       }
-      res.status(400).json({ message: "Invalid user data" });
+      
+      res.status(400).json({ message: "Registration failed" });
     }
   });
 
