@@ -19,15 +19,42 @@ export function serveStatic(app: Express) {
   const distPath = path.resolve(currentDir, "dist", "public");
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    log(`Build directory not found: ${distPath}, creating fallback`);
+    // Create a basic index.html if dist doesn't exist
+    fs.mkdirSync(distPath, { recursive: true });
+    const fallbackHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Vibe LMS</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div id="root">Loading...</div>
+  <script>window.location.reload();</script>
+</body>
+</html>`;
+    fs.writeFileSync(path.join(distPath, "index.html"), fallbackHtml);
   }
 
-  app.use(express.static(distPath));
+  // Serve static files with proper headers
+  app.use(express.static(distPath, {
+    maxAge: '1d',
+    etag: true,
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
+  }));
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Application not built yet');
+    }
   });
 }

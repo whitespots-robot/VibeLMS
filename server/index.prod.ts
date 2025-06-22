@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./vite.prod";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { WebSocketServer } from "ws";
 
 const execAsync = promisify(exec);
 
@@ -45,6 +46,23 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
+
+// Add CORS and proxy headers for Docker environment
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Trust proxy for Docker environment
+app.set('trust proxy', true);
 
 app.use((req, res, next) => {
   const colorCodes = {
@@ -92,6 +110,31 @@ app.use((req, res, next) => {
   
   const server = await registerRoutes(app);
 
+  // Setup WebSocket server for production
+  const wss = new WebSocketServer({ server });
+  
+  wss.on('connection', (ws) => {
+    log('WebSocket connection established');
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        // Handle WebSocket messages if needed
+        log(`WebSocket message: ${data.type || 'unknown'}`);
+      } catch (error) {
+        log('Invalid WebSocket message format');
+      }
+    });
+    
+    ws.on('close', () => {
+      log('WebSocket connection closed');
+    });
+    
+    ws.on('error', (error) => {
+      log(`WebSocket error: ${error.message}`);
+    });
+  });
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -106,5 +149,6 @@ app.use((req, res, next) => {
   const PORT = parseInt(process.env.PORT || "5000", 10);
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
+    log('WebSocket server ready for connections');
   });
 })();
