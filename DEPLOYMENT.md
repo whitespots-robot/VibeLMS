@@ -40,17 +40,20 @@ Demo data is created automatically on first startup:
 ### User Management
 
 #### Creating Users (Recommended)
-Use the interactive console script like Django's `manage.py createuser`:
+Use the console scripts like Django's `manage.py createuser`:
 
 ```bash
-# For local development
+# For local development (interactive)
 node scripts/createuser.mjs
 
-# For Docker deployment  
-docker compose exec app bash scripts/createuser-docker.sh
+# For Docker deployment (simple)
+docker compose exec app node scripts/createuser-simple.js username email password role
+
+# For Docker deployment (interactive)
+docker compose exec app sh scripts/createuser-docker.sh
 ```
 
-The script will interactively prompt you for:
+Interactive scripts will prompt you for:
 - Username
 - Email address  
 - Password
@@ -74,15 +77,11 @@ curl -X POST http://localhost/api/auth/register \
 #### Examples
 
 ```bash
-# Interactive user creation (recommended)
+# Interactive user creation (local)
 node scripts/createuser.mjs
-# Will prompt for: username, email, password, role
 
-# Automated user creation
-echo -e "admin\nadmin@yourdomain.com\nadmin123\ninstructor" | node scripts/createuser.mjs
-
-# Docker environment
-docker compose exec app bash scripts/createuser-docker.sh
+# Simple Docker command
+docker compose exec app node scripts/createuser-simple.js admin admin@example.com admin123 instructor
 
 # Student via API
 curl -X POST http://localhost/api/auth/register \

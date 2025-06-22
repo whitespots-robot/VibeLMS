@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # User creation script for Docker deployment
-# Usage: docker compose exec app bash scripts/createuser-docker.sh
+# Usage: docker compose exec app sh scripts/createuser-docker.sh
 
 set -e
 
