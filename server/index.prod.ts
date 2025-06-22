@@ -113,15 +113,17 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   // Setup WebSocket server for production
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({ 
+    server,
+    path: '/ws'
+  });
   
-  wss.on('connection', (ws) => {
-    log('WebSocket connection established');
+  wss.on('connection', (ws, req) => {
+    log(`WebSocket connection established from ${req.socket.remoteAddress}`);
     
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
-        // Handle WebSocket messages if needed
         log(`WebSocket message: ${data.type || 'unknown'}`);
       } catch (error) {
         log('Invalid WebSocket message format');
@@ -151,6 +153,6 @@ app.use((req, res, next) => {
   const PORT = parseInt(process.env.PORT || "5000", 10);
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
-    log('WebSocket server ready for connections');
+    log(`WebSocket server ready for connections on ws://localhost:${PORT}/ws`);
   });
 })();
