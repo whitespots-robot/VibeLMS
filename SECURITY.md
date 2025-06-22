@@ -13,7 +13,7 @@ You may find merge requests with comments about discovered issues
 
 ### Authentication System
 - Uses JWT tokens stored in httpOnly cookies
-- Anonymous sessions generated for non-authenticated users
+- Anonymous sessions generated for non-authenticated users  
 - Session upgrade mechanism when users log in
 - Password hashing with bcrypt (10 salt rounds)
 - Session middleware validates tokens on protected routes
