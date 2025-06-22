@@ -10,12 +10,12 @@ async function createTestData() {
   });
 
   try {
-    console.log('🚀 Создание тестовых данных...');
+    console.log('🚀 Creating test data...');
 
-    // Хэшируем пароль
+    // Hash the password
     const hashedPassword = bcrypt.hashSync('teacher', 10);
 
-    // Создаем пользователя teacher с ролью instructor
+    // Create teacher user with instructor role
     const userResult = await pool.query(`
       INSERT INTO users (username, email, password, role)
       VALUES ($1, $2, $3, $4)
@@ -27,17 +27,17 @@ async function createTestData() {
     `, ['teacher', 'teacher@example.com', hashedPassword, 'instructor']);
 
     const teacherId = userResult.rows[0].id;
-    console.log(`✅ Создан пользователь: ${userResult.rows[0].username} (ID: ${teacherId}, роль: ${userResult.rows[0].role})`);
+    console.log(`✅ Created user: ${userResult.rows[0].username} (ID: ${teacherId}, role: ${userResult.rows[0].role})`);
 
-    // Создаем тестовый курс
+    // Create test course
     const courseResult = await pool.query(`
       INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT DO NOTHING
       RETURNING id, title
     `, [
-      '🎓 Основы программирования',
-      'Полный курс по основам программирования для начинающих. Изучите переменные, циклы, функции и объектно-ориентированное программирование.',
+      '🎓 Programming Fundamentals',
+      'Complete course on programming fundamentals for beginners. Learn variables, loops, functions and object-oriented programming.',
       teacherId,
       'published',
       true,
@@ -46,15 +46,15 @@ async function createTestData() {
 
     if (courseResult.rows.length > 0) {
       const courseId = courseResult.rows[0].id;
-      console.log(`✅ Создан курс: ${courseResult.rows[0].title} (ID: ${courseId})`);
+      console.log(`✅ Created course: ${courseResult.rows[0].title} (ID: ${courseId})`);
 
-      // Создаем главы курса
+      // Create course chapters
       const chapters = [
-        { title: '📚 Введение в программирование', order: 1 },
-        { title: '🔤 Переменные и типы данных', order: 2 },
-        { title: '🔄 Циклы и условия', order: 3 },
-        { title: '⚙️ Функции', order: 4 },
-        { title: '🏗️ Объектно-ориентированное программирование', order: 5 }
+        { title: '📚 Introduction to Programming', order: 1 },
+        { title: '🔤 Variables and Data Types', order: 2 },
+        { title: '🔄 Loops and Conditions', order: 3 },
+        { title: '⚙️ Functions', order: 4 },
+        { title: '🏗️ Object-Oriented Programming', order: 5 }
       ];
 
       for (const chapter of chapters) {
@@ -67,9 +67,9 @@ async function createTestData() {
 
         if (chapterResult.rows.length > 0) {
           const chapterId = chapterResult.rows[0].id;
-          console.log(`  ✅ Создана глава: ${chapterResult.rows[0].title}`);
+          console.log(`  ✅ Created chapter: ${chapterResult.rows[0].title}`);
 
-          // Создаем уроки для каждой главы
+          // Create lessons for each chapter
           const lessons = getLessonsForChapter(chapter.order);
           
           for (let i = 0; i < lessons.length; i++) {
@@ -82,24 +82,24 @@ async function createTestData() {
             `, [lesson.title, lesson.content, chapterId, i + 1]);
 
             if (lessonResult.rows.length > 0) {
-              console.log(`    ✅ Создан урок: ${lessonResult.rows[0].title}`);
+              console.log(`    ✅ Created lesson: ${lessonResult.rows[0].title}`);
             }
           }
         }
       }
     } else {
-      console.log('ℹ️ Курс уже существует, пропускаем создание');
+      console.log('ℹ️ Course already exists, skipping creation');
     }
 
-    console.log('🎉 Тестовые данные успешно созданы!');
+    console.log('🎉 Test data created successfully!');
     console.log('');
-    console.log('📋 Данные для входа:');
-    console.log('   Логин: teacher');
-    console.log('   Пароль: teacher');
-    console.log('   Роль: instructor');
+    console.log('📋 Login credentials:');
+    console.log('   Username: teacher');
+    console.log('   Password: teacher');
+    console.log('   Role: instructor');
 
   } catch (error) {
-    console.error('❌ Ошибка при создании тестовых данных:', error);
+    console.error('❌ Error creating test data:', error);
     process.exit(1);
   } finally {
     await pool.end();
@@ -108,14 +108,14 @@ async function createTestData() {
 
 function getLessonsForChapter(chapterOrder) {
   const lessonsMap = {
-    1: [ // Введение в программирование
+    1: [ // Introduction to Programming
       {
-        title: 'Что такое программирование?',
-        content: '# Что такое программирование?\n\nПрограммирование - это процесс создания инструкций для компьютера. В этом уроке мы изучим основные концепции и термины.'
+        title: 'What is Programming?',
+        content: '# What is Programming?\n\nProgramming is the process of creating instructions for a computer. In this lesson we will learn basic concepts and terminology.'
       },
       {
-        title: 'История развития языков программирования',
-        content: '# История развития языков программирования\n\nОт машинного кода до современных высокоуровневых языков - путешествие через историю программирования.'
+        title: 'History of Programming Languages',
+        content: '# History of Programming Languages\n\nFrom machine code to modern high-level languages - a journey through programming history.'
       }
     ],
     2: [ // Переменные и типы данных
