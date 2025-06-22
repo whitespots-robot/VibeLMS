@@ -297,33 +297,33 @@ export class DatabaseStorage implements IStorage {
   async getCourses(status?: string): Promise<CourseWithStats[]> {
     await this.ensureInitialized();
     try {
-    const coursesData = await db.select().from(courses);
-    
-    const coursesWithStats: CourseWithStats[] = [];
-    for (const course of coursesData) {
-      const chaptersCount = await db.select().from(chapters).where(eq(chapters.courseId, course.id));
-      const lessonsCount = await db.select().from(lessons)
-        .innerJoin(chapters, eq(lessons.chapterId, chapters.id))
-        .where(eq(chapters.courseId, course.id));
-      const enrollmentsList = await db.select().from(enrollments).where(eq(enrollments.courseId, course.id));
+      const coursesData = await db.select().from(courses);
       
-      // Calculate average progress across all enrollments
-      let averageProgress = 0;
-      if (enrollmentsList.length > 0) {
-        const totalProgress = enrollmentsList.reduce((sum, enrollment) => sum + (enrollment.progress || 0), 0);
-        averageProgress = Math.round(totalProgress / enrollmentsList.length);
+      const coursesWithStats: CourseWithStats[] = [];
+      for (const course of coursesData) {
+        const chaptersCount = await db.select().from(chapters).where(eq(chapters.courseId, course.id));
+        const lessonsCount = await db.select().from(lessons)
+          .innerJoin(chapters, eq(lessons.chapterId, chapters.id))
+          .where(eq(chapters.courseId, course.id));
+        const enrollmentsList = await db.select().from(enrollments).where(eq(enrollments.courseId, course.id));
+        
+        // Calculate average progress across all enrollments
+        let averageProgress = 0;
+        if (enrollmentsList.length > 0) {
+          const totalProgress = enrollmentsList.reduce((sum, enrollment) => sum + (enrollment.progress || 0), 0);
+          averageProgress = Math.round(totalProgress / enrollmentsList.length);
+        }
+        
+        coursesWithStats.push({
+          ...course,
+          chaptersCount: chaptersCount.length,
+          lessonsCount: lessonsCount.length,
+          studentsCount: enrollmentsList.length,
+          averageProgress,
+        });
       }
       
-      coursesWithStats.push({
-        ...course,
-        chaptersCount: chaptersCount.length,
-        lessonsCount: lessonsCount.length,
-        studentsCount: enrollmentsList.length,
-        averageProgress,
-      });
-    }
-    
-    return status ? coursesWithStats.filter(c => c.status === status) : coursesWithStats;
+      return status ? coursesWithStats.filter(c => c.status === status) : coursesWithStats;
     } catch (error) {
       console.error("Error fetching courses:", error);
       return [];
