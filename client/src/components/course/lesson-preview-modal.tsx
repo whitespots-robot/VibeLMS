@@ -90,14 +90,25 @@ export default function LessonPreviewModal({ lesson, isOpen, onClose }: LessonPr
             <div className="space-y-4">
               <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-lg border border-slate-200/60">
                 <div className="prose prose-lg max-w-none text-slate-700">
-                  <div 
-                    className="lesson-content"
-                    dangerouslySetInnerHTML={{ __html: lesson.content }}
-                    style={{
-                      color: '#374151',
-                      lineHeight: '1.75',
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{
+                      h1: ({...props}) => <h1 className="text-3xl font-bold text-slate-900 mb-4" {...props} />,
+                      h2: ({...props}) => <h2 className="text-2xl font-semibold text-slate-800 mb-3 mt-6" {...props} />,
+                      h3: ({...props}) => <h3 className="text-xl font-medium text-slate-700 mb-2 mt-4" {...props} />,
+                      p: ({...props}) => <p className="text-slate-700 mb-4 leading-relaxed" {...props} />,
+                      code: ({...props}) => <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800" {...props} />,
+                      pre: ({...props}) => <pre className="bg-slate-200 text-slate-800 p-4 rounded-lg overflow-x-auto mb-4 shadow-inner" {...props} />,
+                      ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-2 text-slate-700" {...props} />,
+                      ol: ({...props}) => <ol className="list-decimal list-inside mb-4 space-y-2 text-slate-700" {...props} />,
+                      li: ({...props}) => <li className="text-slate-700" {...props} />,
+                      strong: ({...props}) => <strong className="font-semibold text-slate-900" {...props} />,
+                      blockquote: ({...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-600 my-4" {...props} />,
                     }}
-                  />
+                  >
+                    {lesson.content}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>

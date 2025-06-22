@@ -5,8 +5,14 @@
 ### Quick Start
 ```bash
 # Clone the repository and navigate to project directory
-git clone https://github.com/whitespots-robot/VibeLMS.git
-cd VibeLMS
+git clone <your-repo-url>
+cd vibe-lms
+
+# Start the application
+docker compose up -d --build
+
+# Check status
+docker compose ps
 ```
 
 ### Environment Configuration
@@ -16,16 +22,9 @@ POSTGRES_PASSWORD=VibelmsSecurePass2024
 SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
 ```
 
-# Start the application
-`docker compose up -d --build`
-
-# Check status
-`docker compose ps`
-
 **Production Security**: Update these values before deployment:
 - Use a strong database password (alphanumeric only, avoid `/`, `@`, `:`)
 - Generate a random 32+ character session secret
-- **Change default credentials** after the first login (admin:admin123)
 
 ### Application Access
 - **Application**: http://localhost (port 80)
