@@ -31,7 +31,7 @@ async function createTestData() {
 
     // Создаем тестовый курс
     const courseResult = await pool.query(`
-      INSERT INTO courses (title, description, instructor_id, status, difficulty, estimated_hours)
+      INSERT INTO courses (title, description, instructor_id, status, is_public, allow_registration)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT DO NOTHING
       RETURNING id, title
@@ -40,8 +40,8 @@ async function createTestData() {
       'Полный курс по основам программирования для начинающих. Изучите переменные, циклы, функции и объектно-ориентированное программирование.',
       teacherId,
       'published',
-      'beginner',
-      40
+      true,
+      true
     ]);
 
     if (courseResult.rows.length > 0) {
@@ -59,7 +59,7 @@ async function createTestData() {
 
       for (const chapter of chapters) {
         const chapterResult = await pool.query(`
-          INSERT INTO chapters (title, course_id, "order")
+          INSERT INTO chapters (title, course_id, order_index)
           VALUES ($1, $2, $3)
           ON CONFLICT DO NOTHING
           RETURNING id, title
@@ -75,11 +75,11 @@ async function createTestData() {
           for (let i = 0; i < lessons.length; i++) {
             const lesson = lessons[i];
             const lessonResult = await pool.query(`
-              INSERT INTO lessons (title, content, chapter_id, "order", type, duration)
-              VALUES ($1, $2, $3, $4, $5, $6)
+              INSERT INTO lessons (title, content, chapter_id, order_index)
+              VALUES ($1, $2, $3, $4)
               ON CONFLICT DO NOTHING
               RETURNING id, title
-            `, [lesson.title, lesson.content, chapterId, i + 1, lesson.type, lesson.duration]);
+            `, [lesson.title, lesson.content, chapterId, i + 1]);
 
             if (lessonResult.rows.length > 0) {
               console.log(`    ✅ Создан урок: ${lessonResult.rows[0].title}`);
@@ -111,71 +111,51 @@ function getLessonsForChapter(chapterOrder) {
     1: [ // Введение в программирование
       {
         title: 'Что такое программирование?',
-        content: '# Что такое программирование?\n\nПрограммирование - это процесс создания инструкций для компьютера. В этом уроке мы изучим основные концепции и термины.',
-        type: 'text',
-        duration: 15
+        content: '# Что такое программирование?\n\nПрограммирование - это процесс создания инструкций для компьютера. В этом уроке мы изучим основные концепции и термины.'
       },
       {
         title: 'История развития языков программирования',
-        content: '# История развития языков программирования\n\nОт машинного кода до современных высокоуровневых языков - путешествие через историю программирования.',
-        type: 'text',
-        duration: 20
+        content: '# История развития языков программирования\n\nОт машинного кода до современных высокоуровневых языков - путешествие через историю программирования.'
       }
     ],
     2: [ // Переменные и типы данных
       {
         title: 'Переменные: что это и зачем нужны',
-        content: '# Переменные\n\nПеременные - это контейнеры для хранения данных. Изучим как их создавать и использовать.\n\n```javascript\nlet name = "Иван";\nlet age = 25;\nconsole.log(name, age);\n```',
-        type: 'text',
-        duration: 25
+        content: '# Переменные\n\nПеременные - это контейнеры для хранения данных. Изучим как их создавать и использовать.\n\n```javascript\nlet name = "Иван";\nlet age = 25;\nconsole.log(name, age);\n```'
       },
       {
         title: 'Типы данных: числа, строки, булевы значения',
-        content: '# Типы данных\n\nОсновные типы данных в программировании:\n\n- **Числа**: 42, 3.14\n- **Строки**: "Привет, мир!"\n- **Булевы**: true, false',
-        type: 'text',
-        duration: 30
+        content: '# Типы данных\n\nОсновные типы данных в программировании:\n\n- **Числа**: 42, 3.14\n- **Строки**: "Привет, мир!"\n- **Булевы**: true, false'
       }
     ],
     3: [ // Циклы и условия
       {
         title: 'Условные конструкции if/else',
-        content: '# Условные конструкции\n\nУсловия позволяют программе принимать решения:\n\n```javascript\nif (age >= 18) {\n  console.log("Совершеннолетний");\n} else {\n  console.log("Несовершеннолетний");\n}\n```',
-        type: 'text',
-        duration: 35
+        content: '# Условные конструкции\n\nУсловия позволяют программе принимать решения:\n\n```javascript\nif (age >= 18) {\n  console.log("Совершеннолетний");\n} else {\n  console.log("Несовершеннолетний");\n}\n```'
       },
       {
         title: 'Циклы: for и while',
-        content: '# Циклы\n\nЦиклы позволяют повторять код:\n\n```javascript\n// Цикл for\nfor (let i = 0; i < 5; i++) {\n  console.log(i);\n}\n\n// Цикл while\nlet count = 0;\nwhile (count < 3) {\n  console.log(count);\n  count++;\n}\n```',
-        type: 'text',
-        duration: 40
+        content: '# Циклы\n\nЦиклы позволяют повторять код:\n\n```javascript\n// Цикл for\nfor (let i = 0; i < 5; i++) {\n  console.log(i);\n}\n\n// Цикл while\nlet count = 0;\nwhile (count < 3) {\n  console.log(count);\n  count++;\n}\n```'
       }
     ],
     4: [ // Функции
       {
         title: 'Создание и вызов функций',
-        content: '# Функции\n\nФункции - это блоки кода, которые можно переиспользовать:\n\n```javascript\nfunction greet(name) {\n  return "Привет, " + name + "!";\n}\n\nconsole.log(greet("Анна"));\n```',
-        type: 'text',
-        duration: 30
+        content: '# Функции\n\nФункции - это блоки кода, которые можно переиспользовать:\n\n```javascript\nfunction greet(name) {\n  return "Привет, " + name + "!";\n}\n\nconsole.log(greet("Анна"));\n```'
       },
       {
         title: 'Параметры и возвращаемые значения',
-        content: '# Параметры и возвращаемые значения\n\nФункции могут принимать параметры и возвращать результат:\n\n```javascript\nfunction add(a, b) {\n  return a + b;\n}\n\nlet result = add(5, 3);\nconsole.log(result); // 8\n```',
-        type: 'text',
-        duration: 25
+        content: '# Параметры и возвращаемые значения\n\nФункции могут принимать параметры и возвращать результат:\n\n```javascript\nfunction add(a, b) {\n  return a + b;\n}\n\nlet result = add(5, 3);\nconsole.log(result); // 8\n```'
       }
     ],
     5: [ // ООП
       {
         title: 'Основы объектно-ориентированного программирования',
-        content: '# ООП: Основы\n\nОбъектно-ориентированное программирование (ООП) - это парадигма программирования, основанная на концепции объектов.\n\n## Основные принципы:\n- Инкапсуляция\n- Наследование\n- Полиморфизм',
-        type: 'text',
-        duration: 45
+        content: '# ООП: Основы\n\nОбъектно-ориентированное программирование (ООП) - это парадигма программирования, основанная на концепции объектов.\n\n## Основные принципы:\n- Инкапсуляция\n- Наследование\n- Полиморфизм'
       },
       {
         title: 'Классы и объекты',
-        content: '# Классы и объекты\n\nКлассы - это шаблоны для создания объектов:\n\n```javascript\nclass Person {\n  constructor(name, age) {\n    this.name = name;\n    this.age = age;\n  }\n  \n  greet() {\n    return `Привет, меня зовут ${this.name}`;\n  }\n}\n\nlet person = new Person("Петр", 30);\nconsole.log(person.greet());\n```',
-        type: 'text',
-        duration: 50
+        content: '# Классы и объекты\n\nКлассы - это шаблоны для создания объектов:\n\n```javascript\nclass Person {\n  constructor(name, age) {\n    this.name = name;\n    this.age = age;\n  }\n  \n  greet() {\n    return `Привет, меня зовут ${this.name}`;\n  }\n}\n\nlet person = new Person("Петр", 30);\nconsole.log(person.greet());\n```'
       }
     ]
   };
