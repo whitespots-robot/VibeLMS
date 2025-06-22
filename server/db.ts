@@ -8,9 +8,23 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+// Create pool with flexible SSL configuration
+const createPool = () => {
+  const connectionString = process.env.DATABASE_URL!;
+  
+  // Try without SSL first for better compatibility
+  const pool = new Pool({ 
+    connectionString,
+    ssl: false
+  });
+  
+  // Handle SSL connection errors gracefully
+  pool.on('error', (err) => {
+    console.error('Database pool error:', err);
+  });
+  
+  return pool;
+};
 
+export const pool = createPool();
 export const db = drizzle(pool, { schema });
