@@ -99,7 +99,7 @@ export default function LessonPreviewModal({ lesson, isOpen, onClose }: LessonPr
                       h3: ({...props}) => <h3 className="text-xl font-medium text-slate-700 mb-2 mt-4" {...props} />,
                       p: ({...props}) => <p className="text-slate-700 mb-4 leading-relaxed" {...props} />,
                       code: ({...props}) => <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800" {...props} />,
-                      pre: ({...props}) => <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto mb-4" {...props} />,
+                      pre: ({...props}) => <pre className="bg-slate-200 text-slate-800 p-4 rounded-lg overflow-x-auto mb-4 shadow-inner" {...props} />,
                       ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-2 text-slate-700" {...props} />,
                       ol: ({...props}) => <ol className="list-decimal list-inside mb-4 space-y-2 text-slate-700" {...props} />,
                       li: ({...props}) => <li className="text-slate-700" {...props} />,
