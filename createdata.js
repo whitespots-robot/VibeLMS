@@ -118,44 +118,44 @@ function getLessonsForChapter(chapterOrder) {
         content: '# History of Programming Languages\n\nFrom machine code to modern high-level languages - a journey through programming history.'
       }
     ],
-    2: [ // Переменные и типы данных
+    2: [ // Variables and Data Types
       {
-        title: 'Переменные: что это и зачем нужны',
-        content: '# Переменные\n\nПеременные - это контейнеры для хранения данных. Изучим как их создавать и использовать.\n\n```javascript\nlet name = "Иван";\nlet age = 25;\nconsole.log(name, age);\n```'
+        title: 'Variables: What They Are and Why We Need Them',
+        content: '# Variables\n\nVariables are containers for storing data. Let\'s learn how to create and use them.\n\n```javascript\nlet name = "John";\nlet age = 25;\nconsole.log(name, age);\n```'
       },
       {
-        title: 'Типы данных: числа, строки, булевы значения',
-        content: '# Типы данных\n\nОсновные типы данных в программировании:\n\n- **Числа**: 42, 3.14\n- **Строки**: "Привет, мир!"\n- **Булевы**: true, false'
+        title: 'Data Types: Numbers, Strings, Booleans',
+        content: '# Data Types\n\nBasic data types in programming:\n\n- **Numbers**: 42, 3.14\n- **Strings**: "Hello, World!"\n- **Booleans**: true, false'
       }
     ],
-    3: [ // Циклы и условия
+    3: [ // Loops and Conditions
       {
-        title: 'Условные конструкции if/else',
-        content: '# Условные конструкции\n\nУсловия позволяют программе принимать решения:\n\n```javascript\nif (age >= 18) {\n  console.log("Совершеннолетний");\n} else {\n  console.log("Несовершеннолетний");\n}\n```'
+        title: 'Conditional Statements if/else',
+        content: '# Conditional Statements\n\nConditions allow programs to make decisions:\n\n```javascript\nif (age >= 18) {\n  console.log("Adult");\n} else {\n  console.log("Minor");\n}\n```'
       },
       {
-        title: 'Циклы: for и while',
-        content: '# Циклы\n\nЦиклы позволяют повторять код:\n\n```javascript\n// Цикл for\nfor (let i = 0; i < 5; i++) {\n  console.log(i);\n}\n\n// Цикл while\nlet count = 0;\nwhile (count < 3) {\n  console.log(count);\n  count++;\n}\n```'
+        title: 'Loops: for and while',
+        content: '# Loops\n\nLoops allow you to repeat code:\n\n```javascript\n// For loop\nfor (let i = 0; i < 5; i++) {\n  console.log(i);\n}\n\n// While loop\nlet count = 0;\nwhile (count < 3) {\n  console.log(count);\n  count++;\n}\n```'
       }
     ],
-    4: [ // Функции
+    4: [ // Functions
       {
-        title: 'Создание и вызов функций',
-        content: '# Функции\n\nФункции - это блоки кода, которые можно переиспользовать:\n\n```javascript\nfunction greet(name) {\n  return "Привет, " + name + "!";\n}\n\nconsole.log(greet("Анна"));\n```'
+        title: 'Creating and Calling Functions',
+        content: '# Functions\n\nFunctions are reusable blocks of code:\n\n```javascript\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\n\nconsole.log(greet("Anna"));\n```'
       },
       {
-        title: 'Параметры и возвращаемые значения',
-        content: '# Параметры и возвращаемые значения\n\nФункции могут принимать параметры и возвращать результат:\n\n```javascript\nfunction add(a, b) {\n  return a + b;\n}\n\nlet result = add(5, 3);\nconsole.log(result); // 8\n```'
+        title: 'Parameters and Return Values',
+        content: '# Parameters and Return Values\n\nFunctions can accept parameters and return results:\n\n```javascript\nfunction add(a, b) {\n  return a + b;\n}\n\nlet result = add(5, 3);\nconsole.log(result); // 8\n```'
       }
     ],
-    5: [ // ООП
+    5: [ // OOP
       {
-        title: 'Основы объектно-ориентированного программирования',
-        content: '# ООП: Основы\n\nОбъектно-ориентированное программирование (ООП) - это парадигма программирования, основанная на концепции объектов.\n\n## Основные принципы:\n- Инкапсуляция\n- Наследование\n- Полиморфизм'
+        title: 'Object-Oriented Programming Basics',
+        content: '# OOP: Basics\n\nObject-Oriented Programming (OOP) is a programming paradigm based on the concept of objects.\n\n## Core Principles:\n- Encapsulation\n- Inheritance\n- Polymorphism'
       },
       {
-        title: 'Классы и объекты',
-        content: '# Классы и объекты\n\nКлассы - это шаблоны для создания объектов:\n\n```javascript\nclass Person {\n  constructor(name, age) {\n    this.name = name;\n    this.age = age;\n  }\n  \n  greet() {\n    return `Привет, меня зовут ${this.name}`;\n  }\n}\n\nlet person = new Person("Петр", 30);\nconsole.log(person.greet());\n```'
+        title: 'Classes and Objects',
+        content: '# Classes and Objects\n\nClasses are templates for creating objects:\n\n```javascript\nclass Person {\n  constructor(name, age) {\n    this.name = name;\n    this.age = age;\n  }\n  \n  greet() {\n    return `Hello, my name is ${this.name}`;\n  }\n}\n\nlet person = new Person("Peter", 30);\nconsole.log(person.greet());\n```'
       }
     ]
   };
