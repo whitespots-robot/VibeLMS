@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github.css";
 import Topbar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -421,10 +425,29 @@ export default function CourseLearning() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div 
-                        className="prose prose-lg max-w-none text-slate-700"
-                        dangerouslySetInnerHTML={{ __html: currentLesson.content }}
-                      />
+                      <div className="prose prose-lg max-w-none text-slate-700">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            h1: ({...props}) => <h1 className="text-3xl font-bold text-slate-900 mb-4" {...props} />,
+                            h2: ({...props}) => <h2 className="text-2xl font-semibold text-slate-800 mb-3 mt-6" {...props} />,
+                            h3: ({...props}) => <h3 className="text-xl font-medium text-slate-700 mb-2 mt-4" {...props} />,
+                            h4: ({...props}) => <h4 className="text-lg font-medium text-slate-700 mb-2 mt-3" {...props} />,
+                            p: ({...props}) => <p className="text-slate-700 mb-4 leading-relaxed" {...props} />,
+                            code: ({...props}) => <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800" {...props} />,
+                            pre: ({...props}) => <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto mb-4" {...props} />,
+                            ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-2 text-slate-700" {...props} />,
+                            ol: ({...props}) => <ol className="list-decimal list-inside mb-4 space-y-2 text-slate-700" {...props} />,
+                            li: ({...props}) => <li className="text-slate-700" {...props} />,
+                            strong: ({...props}) => <strong className="font-semibold text-slate-900" {...props} />,
+                            em: ({...props}) => <em className="italic text-slate-700" {...props} />,
+                            blockquote: ({...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-600 my-4" {...props} />,
+                          }}
+                        >
+                          {currentLesson.content}
+                        </ReactMarkdown>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
