@@ -103,6 +103,7 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error("Failed to initialize database:", error);
+      // Don't throw - allow the app to continue running even if demo data creation fails
     }
   }
 
@@ -206,7 +207,7 @@ export class DatabaseStorage implements IStorage {
     await db.insert(systemSettings).values({
       key: "allow_student_registration",
       value: "true",
-    });
+    }).onConflictDoNothing();
   }
 
   private hashPassword(password: string): string {
@@ -295,6 +296,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCourses(status?: string): Promise<CourseWithStats[]> {
     await this.ensureInitialized();
+    try {
     const coursesData = await db.select().from(courses);
     
     const coursesWithStats: CourseWithStats[] = [];
@@ -322,11 +324,21 @@ export class DatabaseStorage implements IStorage {
     }
     
     return status ? coursesWithStats.filter(c => c.status === status) : coursesWithStats;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      return [];
+    }
   }
 
   async getPublicCourses(): Promise<CourseWithStats[]> {
-    const allCourses = await this.getCourses();
-    return allCourses.filter(course => course.status === "published" && course.isPublic);
+    await this.ensureInitialized();
+    try {
+      const allCourses = await this.getCourses();
+      return allCourses.filter(course => course.status === "published" && course.isPublic);
+    } catch (error) {
+      console.error("Error fetching public courses:", error);
+      return [];
+    }
   }
 
   async getCourse(id: number): Promise<Course | undefined> {
@@ -646,8 +658,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSystemSetting(key: string): Promise<string | undefined> {
-    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
-    return setting?.value || undefined;
+    await this.ensureInitialized();
+    try {
+      const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+      return setting?.value || undefined;
+    } catch (error) {
+      console.error(`Error getting system setting ${key}:`, error);
+      return undefined;
+    }
   }
 
   async setSystemSetting(key: string, value: string): Promise<void> {
