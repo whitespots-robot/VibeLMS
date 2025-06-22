@@ -4,7 +4,10 @@
  */
 
 const crypto = require('crypto');
-const { Pool } = require('@neondatabase/serverless');
+const { Pool, neonConfig } = require('@neondatabase/serverless');
+const ws = require('ws');
+
+neonConfig.webSocketConstructor = ws;
 
 async function createUser() {
   try {
