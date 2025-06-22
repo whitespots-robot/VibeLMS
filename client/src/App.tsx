@@ -24,46 +24,31 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [location, setLocation] = useLocation();
   const { user, isLoading, isAuthenticated } = useAuth();
   
-  useEffect(() => {
-    if (isLoading) return;
-    
-    if (!isAuthenticated) {
-      setLocation("/");
-      return;
-    }
-    
-    // Redirect students away from dashboard to learning, but don't redirect instructors
-    if (user && user.role === "student" && (location === "/dashboard" || location === "/")) {
-      setLocation("/learning");
-    }
-    // Redirect instructors from root to dashboard
-    if (user && (user.role === "instructor" || user.role === "teacher") && location === "/") {
-      setLocation("/dashboard");
-    }
-  }, [user, isAuthenticated, isLoading, location, setLocation]);
-
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    return null;
+    return <PublicCourses />;
   }
 
   return <>{children}</>;
 }
 
 function Router() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const storedUser = localStorage.getItem("currentUser");
-  const currentUser = storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
+  const { user, isAuthenticated, isLoading } = useAuth();
 
-  // Public routes that don't need authentication
-  if (!currentUser && (location === "/login" || location === "/register" || location === "/public" || location === "/" || location.startsWith("/courses/") && location.includes("/preview"))) {
+  // Show loading while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  // Public routes - always accessible
+  if (location === "/login" || location === "/register" || location === "/public" || (location === "/" && !isAuthenticated) || (location.startsWith("/courses/") && location.includes("/preview"))) {
     return (
       <Switch>
         <Route path="/login" component={Login} />
@@ -73,6 +58,17 @@ function Router() {
         <Route path="/courses/:id/preview" component={CourseLearning} />
       </Switch>
     );
+  }
+
+  // Redirect root for authenticated users based on role
+  if (isAuthenticated && location === "/") {
+    if (user?.role === "student") {
+      setLocation("/learning");
+      return null;
+    } else if (user?.role === "instructor" || user?.role === "teacher") {
+      setLocation("/dashboard");
+      return null;
+    }
   }
 
   return (

@@ -14,12 +14,13 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
-    staleTime: Infinity, // Cache indefinitely until manually invalidated
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchInterval: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
     gcTime: Infinity,
+    enabled: false, // Disable automatic fetching
   });
 
   const loginMutation = useMutation({
