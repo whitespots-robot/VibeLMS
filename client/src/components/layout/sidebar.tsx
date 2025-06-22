@@ -40,7 +40,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: {
     refetchOnWindowFocus: false,
   });
   
-  const currentUser = userResponse?.user;
+  const currentUser = (userResponse as any)?.user || null;
   const navigation = getNavigation(currentUser?.role || null);
 
   const handleLogout = async () => {
