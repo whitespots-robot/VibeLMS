@@ -20,6 +20,25 @@ import {
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Course, Chapter, Lesson, ChapterWithLessons } from "@shared/schema";
 
 export default function CourseEditor() {
@@ -124,6 +143,48 @@ export default function CourseEditor() {
     },
   });
 
+  const deleteLessonMutation = useMutation({
+    mutationFn: async (lessonId: number) => {
+      const response = await apiRequest("DELETE", `/api/lessons/${lessonId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      toast({
+        title: "Success",
+        description: "Lesson deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete lesson",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteChapterMutation = useMutation({
+    mutationFn: async (chapterId: number) => {
+      const response = await apiRequest("DELETE", `/api/chapters/${chapterId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+      toast({
+        title: "Success",
+        description: "Chapter deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete chapter",
+        variant: "destructive",
+      });
+    },
+  });
+
   const toggleChapter = (chapterId: number) => {
     const newExpanded = new Set(expandedChapters);
     if (newExpanded.has(chapterId)) {
@@ -163,6 +224,107 @@ export default function CourseEditor() {
     });
   };
 
+  const handleDeleteLesson = (lessonId: number) => {
+    if (window.confirm('Are you sure you want to delete this lesson?')) {
+      deleteLessonMutation.mutate(lessonId);
+    }
+  };
+
+  const handleDeleteChapter = (chapterId: number) => {
+    if (window.confirm('Are you sure you want to delete this chapter and all its lessons?')) {
+      deleteChapterMutation.mutate(chapterId);
+    }
+  };
+
+  // Mutations for reordering
+  const updateLessonOrderMutation = useMutation({
+    mutationFn: async ({ lessonId, orderIndex }: { lessonId: number, orderIndex: number }) => {
+      const response = await apiRequest("PUT", `/api/lessons/${lessonId}`, { orderIndex });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+    },
+  });
+
+  const updateChapterOrderMutation = useMutation({
+    mutationFn: async ({ chapterId, orderIndex }: { chapterId: number, orderIndex: number }) => {
+      const response = await apiRequest("PUT", `/api/chapters/${chapterId}`, { orderIndex });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    // Handle lesson reordering
+    if (active.id.toString().startsWith('lesson-') && over.id.toString().startsWith('lesson-')) {
+      const activeLessonId = parseInt(active.id.toString().replace('lesson-', ''));
+      const overLessonId = parseInt(over.id.toString().replace('lesson-', ''));
+      
+      // Find the chapter containing these lessons
+      let targetChapter = null;
+      for (const chapter of course?.chapters || []) {
+        if (chapter.lessons.some(l => l.id === activeLessonId || l.id === overLessonId)) {
+          targetChapter = chapter;
+          break;
+        }
+      }
+
+      if (targetChapter) {
+        const lessons = [...targetChapter.lessons];
+        const oldIndex = lessons.findIndex(l => l.id === activeLessonId);
+        const newIndex = lessons.findIndex(l => l.id === overLessonId);
+        
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const reorderedLessons = arrayMove(lessons, oldIndex, newIndex);
+          
+          // Update order indices for all affected lessons
+          reorderedLessons.forEach((lesson, index) => {
+            if (lesson.orderIndex !== index) {
+              updateLessonOrderMutation.mutate({ lessonId: lesson.id, orderIndex: index });
+            }
+          });
+        }
+      }
+    }
+
+    // Handle chapter reordering
+    if (active.id.toString().startsWith('chapter-') && over.id.toString().startsWith('chapter-')) {
+      const activeChapterId = parseInt(active.id.toString().replace('chapter-', ''));
+      const overChapterId = parseInt(over.id.toString().replace('chapter-', ''));
+      
+      const chapters = [...(course?.chapters || [])];
+      const oldIndex = chapters.findIndex(c => c.id === activeChapterId);
+      const newIndex = chapters.findIndex(c => c.id === overChapterId);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedChapters = arrayMove(chapters, oldIndex, newIndex);
+        
+        // Update order indices for all affected chapters
+        reorderedChapters.forEach((chapter, index) => {
+          if (chapter.orderIndex !== index) {
+            updateChapterOrderMutation.mutate({ chapterId: chapter.id, orderIndex: index });
+          }
+        });
+      }
+    }
+  };
+
   const getContentTypeBadges = (lesson: Lesson) => {
     const badges = [];
     if (lesson.videoUrl) badges.push({ label: "Video", color: "bg-blue-100 text-blue-800" });
@@ -178,6 +340,170 @@ export default function CourseEditor() {
     if (lesson.codeExample) return <Code className="w-4 h-4 text-orange-500" />;
     return <FileText className="w-4 h-4 text-neutral-500" />;
   };
+
+  // Sortable Lesson Component
+  function SortableLesson({ lesson }: { lesson: Lesson }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+    } = useSortable({ id: `lesson-${lesson.id}` });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="flex items-center p-2 bg-white border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
+      >
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="w-4 h-4 mr-2 text-neutral-400" />
+        </div>
+        {getLessonIcon(lesson)}
+        <div className="ml-3 flex-1">
+          <span className="text-sm font-medium text-neutral-700">{lesson.title}</span>
+          <div className="flex items-center space-x-1 mt-1">
+            {getContentTypeBadges(lesson).map((badge, index) => (
+              <Badge key={index} className={`text-xs ${badge.color}`}>
+                {badge.label}
+              </Badge>
+            ))}
+            {(!lesson.content && !lesson.videoUrl && !lesson.codeExample) && (
+              <Badge variant="outline" className="text-xs text-orange-600 bg-orange-50">
+                Empty - Click Edit to add content
+              </Badge>
+            )}
+          </div>
+          {lesson.content && (
+            <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
+              {lesson.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
+            </p>
+          )}
+        </div>
+        <div className="flex items-center space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost"
+            onClick={() => setEditingLesson(lesson)}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost"
+            onClick={() => setPreviewingLesson(lesson)}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost"
+            onClick={() => handleDeleteLesson(lesson.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Sortable Chapter Component
+  function SortableChapter({ chapter }: { chapter: ChapterWithLessons }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+    } = useSortable({ id: `chapter-${chapter.id}` });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    const isExpanded = expandedChapters.has(chapter.id);
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="border border-neutral-200 rounded-lg bg-white"
+      >
+        <div className="flex items-center p-4 hover:bg-neutral-50 transition-colors">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2">
+            <GripVertical className="w-4 h-4 text-neutral-400" />
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleChapter(chapter.id)}
+            className="mr-3"
+          >
+            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </Button>
+          <Book className="w-5 h-5 text-primary mr-3" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-neutral-800">{chapter.title}</h3>
+            {chapter.description && (
+              <p className="text-sm text-neutral-600 mt-1">{chapter.description}</p>
+            )}
+            <div className="flex items-center space-x-4 mt-2">
+              <span className="text-xs text-neutral-500">
+                {chapter.lessons.length} lesson{chapter.lessons.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleCreateLesson(chapter.id)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add Lesson
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleDeleteChapter(chapter.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {isExpanded && chapter.lessons.length > 0 && (
+          <div className="px-4 pb-4">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={chapter.lessons.map(l => `lesson-${l.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2 ml-6">
+                  {chapter.lessons
+                    .sort((a, b) => a.orderIndex - b.orderIndex)
+                    .map((lesson) => (
+                      <SortableLesson key={lesson.id} lesson={lesson} />
+                    ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (!match || !courseId) {
     return <div>Course not found</div>;
@@ -308,7 +634,11 @@ export default function CourseEditor() {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button size="sm" variant="ghost">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => handleDeleteLesson(lesson.id)}
+                                >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
