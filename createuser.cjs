@@ -1,6 +1,6 @@
 /**
  * Simple user creation script for Docker containers
- * Usage: node createuser.js username email password role
+ * Usage: node createuser.cjs username email password role
  */
 
 const crypto = require('crypto');
@@ -11,7 +11,7 @@ async function createUser() {
     const [username, email, password, role = 'student'] = process.argv.slice(2);
     
     if (!username || !email || !password) {
-      console.log('Usage: node createuser.js <username> <email> <password> [role]');
+      console.log('Usage: node createuser.cjs <username> <email> <password> [role]');
       console.log('Role defaults to "student", can be "instructor"');
       process.exit(1);
     }

@@ -44,10 +44,10 @@ Use the simple createuser script:
 
 ```bash
 # For Docker deployment
-docker compose exec app node createuser.js username email password role
+docker compose exec app node createuser.cjs username email password role
 
 # For local development
-node createuser.js username email password role
+node createuser.cjs username email password role
 ```
 
 Parameters:
@@ -75,10 +75,10 @@ curl -X POST http://localhost/api/auth/register \
 
 ```bash
 # Create instructor
-docker compose exec app node createuser.js admin admin@example.com admin123 instructor
+docker compose exec app node createuser.cjs admin admin@example.com admin123 instructor
 
 # Create student  
-docker compose exec app node createuser.js student1 student@example.com pass123 student
+docker compose exec app node createuser.cjs student1 student@example.com pass123 student
 
 # Student via API (web registration)
 curl -X POST http://localhost/api/auth/register \
