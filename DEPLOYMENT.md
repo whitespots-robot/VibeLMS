@@ -39,25 +39,22 @@ Demo data is created automatically on first startup:
 
 ### User Management
 
-#### Creating Users (Recommended)
-Use the console scripts like Django's `manage.py createuser`:
+#### Creating Users
+Use the simple createuser script:
 
 ```bash
-# For local development (interactive)
-node scripts/createuser.mjs
+# For Docker deployment
+docker compose exec app node createuser.js username email password role
 
-# For Docker deployment (simple)
-docker compose exec app node scripts/createuser-simple.js username email password role
-
-# For Docker deployment (interactive)
-docker compose exec app sh scripts/createuser-docker.sh
+# For local development
+node createuser.js username email password role
 ```
 
-Interactive scripts will prompt you for:
-- Username
-- Email address  
-- Password
-- Role (student/instructor)
+Parameters:
+- username: unique username
+- email: user email address  
+- password: user password
+- role: "student" or "instructor" (defaults to "student")
 
 #### Creating Users via API
 For student accounts only, you can use the registration endpoint:
@@ -77,16 +74,16 @@ curl -X POST http://localhost/api/auth/register \
 #### Examples
 
 ```bash
-# Interactive user creation (local)
-node scripts/createuser.mjs
+# Create instructor
+docker compose exec app node createuser.js admin admin@example.com admin123 instructor
 
-# Simple Docker command
-docker compose exec app node scripts/createuser-simple.js admin admin@example.com admin123 instructor
+# Create student  
+docker compose exec app node createuser.js student1 student@example.com pass123 student
 
-# Student via API
+# Student via API (web registration)
 curl -X POST http://localhost/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "student1", "password": "password123", "email": "student@example.com"}'
+  -d '{"username": "student2", "password": "password123", "email": "student2@example.com"}'
 ```
 
 #### User Roles
