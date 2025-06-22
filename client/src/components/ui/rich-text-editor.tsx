@@ -16,6 +16,7 @@ import {
   Quote, Code, Minus, Undo, Redo, Palette, Highlighter
 } from 'lucide-react'
 import { useState } from 'react'
+import TurndownService from 'turndown'
 
 interface RichTextEditorProps {
   content: string
