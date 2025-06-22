@@ -36,115 +36,67 @@ Demo data is created automatically on first startup:
 - **Password**: teacher
 - **Role**: instructor
 
-### User Management Commands
+### User Management
 
-#### Console Script (Recommended)
+#### Creating Users (Recommended)
 Use the interactive console script like Django's `manage.py createuser`:
 
 ```bash
 # For local development
 node scripts/createuser.mjs
 
-# For Docker deployment
+# For Docker deployment  
 docker compose exec app bash scripts/createuser-docker.sh
 ```
 
-The script will prompt you for:
+The script will interactively prompt you for:
 - Username
 - Email address  
 - Password
 - Role (student/instructor)
 
-#### Creating Users via Database
-Connect to the database and create users directly:
-
-```bash
-# Connect to database container
-docker compose exec postgres psql -U vibelms -d vibelms
-
-# Create instructor user
-INSERT INTO users (username, password, email, role, created_at)
-VALUES (
-  'your_username',
-  '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044',
-  'your_email@example.com',
-  'instructor',
-  NOW()
-);
-
-# Create student user
-INSERT INTO users (username, password, email, role, created_at)
-VALUES (
-  'student_username',
-  '78509d9eaba5a4677c412ec1a06ba37cd8a315386903cb5265fe7ed677c3106a2eef1d7d5e18c34bb4390ab300aa8ebceaae8fd9ed4e14657647816910e17044',
-  'student@example.com',
-  'student',
-  NOW()
-);
-```
-
-**Note**: The password hash above corresponds to "teacher" - replace with your own hashed password.
-
-#### Password Hashing
-To generate a password hash for a new user:
-
-```bash
-# Generate password hash using Node.js
-docker compose exec app node -e "
-const crypto = require('crypto');
-const password = 'your_new_password';
-const salt = 'vibelms_salt_2024';
-const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-console.log('Password hash:', hash);
-"
-```
-
 #### Creating Users via API
-You can also create users through the registration endpoint:
+For student accounts only, you can use the registration endpoint:
 
 ```bash
-# Create new user via API
 curl -X POST http://localhost/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "your_username",
-    "password": "your_password",
-    "email": "your_email@example.com"
+    "username": "student_name",
+    "password": "student_password",
+    "email": "student@example.com"
   }'
 ```
 
-**Note**: New users created via API have "student" role by default. To create instructors, use the database method above.
+**Note**: API registration creates "student" role by default. Use the console script to create instructors.
 
-#### Quick User Creation Examples
+#### Examples
 
 ```bash
-# Example 1: Using console script (recommended)
+# Interactive user creation (recommended)
+node scripts/createuser.mjs
+# Will prompt for: username, email, password, role
+
+# Automated user creation
 echo -e "admin\nadmin@yourdomain.com\nadmin123\ninstructor" | node scripts/createuser.mjs
 
-# Example 2: Using Docker script
-echo -e "admin\nadmin@yourdomain.com\nadmin123\ninstructor" | docker compose exec -T app bash scripts/createuser-docker.sh
+# Docker environment
+docker compose exec app bash scripts/createuser-docker.sh
 
-# Example 3: Create student via API
+# Student via API
 curl -X POST http://localhost/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "john",
-    "password": "password123", 
-    "email": "john@yourdomain.com"
-  }'
+  -d '{"username": "student1", "password": "password123", "email": "student@example.com"}'
 ```
 
 #### User Roles
-- **instructor**: Can create and manage courses, view analytics
-- **student**: Can enroll in courses and track progress
+- **instructor**: Create and manage courses, view analytics
+- **student**: Enroll in courses and track progress
 
-#### Checking Existing Users
+#### List Users
 ```bash
-# List all users
-docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT id, username, email, role, created_at FROM users ORDER BY created_at;"
-
-# Check specific user
-docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT * FROM users WHERE username = 'your_username';"
+# View all users
+docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT username, email, role FROM users;"
 ```
 
 ### Demo Course
