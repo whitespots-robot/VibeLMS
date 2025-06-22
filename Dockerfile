@@ -19,8 +19,8 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine AS production
 
-# Install dumb-init and postgresql-client for proper signal handling and SQL migrations
-RUN apk add --no-cache dumb-init postgresql-client
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
 
 # Create app user for security
 RUN addgroup -g 1001 -S nodejs
@@ -39,10 +39,6 @@ RUN npm ci --only=production && npm install vite tsx && npm cache clean --force
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/shared ./shared
-COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
-COPY --from=builder --chown=nextjs:nodejs /app/createuser.cjs ./createuser.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/createuser-pg.cjs ./createuser-pg.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/createuser-local.cjs ./createuser-local.cjs
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 

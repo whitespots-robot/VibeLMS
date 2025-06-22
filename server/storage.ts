@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray } from "drizzle-orm";
+import * as crypto from "crypto";
 
 export interface IStorage {
   // User operations
@@ -94,10 +95,10 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeDatabase() {
     try {
-      // Check if teacher user exists specifically
-      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
-      if (teacherUser.length === 0) {
-        console.log("Creating demo data - teacher user not found");
+      // Check if admin user exists specifically
+      const adminUser = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
+      if (adminUser.length === 0) {
+        console.log("Creating demo data - admin user not found");
         await this.createDemoData();
       }
     } catch (error) {
@@ -108,9 +109,9 @@ export class DatabaseStorage implements IStorage {
   // Public method to ensure demo data exists
   async ensureDemoData() {
     try {
-      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
-      if (teacherUser.length === 0) {
-        console.log("Ensuring demo data exists - creating teacher user");
+      const adminUser = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
+      if (adminUser.length === 0) {
+        console.log("Ensuring demo data exists - creating admin user");
         await this.createDemoData();
         return true;
       }
@@ -121,49 +122,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Force demo data creation for production
-  async forceCreateDemoData() {
-    console.log("Force creating demo data for production...");
-    try {
-      // Always ensure database is initialized first
-      if (!this.initialized) {
-        await this.ensureInitialized();
-      }
-      
-      // Check if teacher exists
-      const teacherUser = await db.select().from(users).where(eq(users.username, 'teacher')).limit(1);
-      if (teacherUser.length === 0) {
-        console.log("Teacher user not found, creating all demo data...");
-        await this.createDemoData();
-        console.log("Demo data creation completed successfully");
-      } else {
-        console.log("Teacher user already exists, skipping demo data creation");
-      }
-    } catch (error) {
-      console.error("Failed to force create demo data:", error);
-    }
-  }
-
   private async createDemoData() {
-    console.log("Creating demo data - starting user creation");
-    const [teacher] = await db.insert(users).values({
-      username: "teacher",
-      password: this.hashPassword("teacher"),
-      email: "teacher@example.com",
+    const [instructor] = await db.insert(users).values({
+      username: "admin",
+      password: this.hashPassword("admin123"),
+      email: "admin@vibelms.com",
       role: "instructor",
     }).returning();
-    console.log("Demo user created:", teacher.id, teacher.username);
 
-    console.log("Creating demo course...");
     const [course] = await db.insert(courses).values({
       title: "🎯 Complete Web Development Bootcamp",
       description: "Master web development from scratch! Learn HTML, CSS, JavaScript, and build real projects. Perfect for beginners who want to become professional web developers.",
-      instructorId: teacher.id,
+      instructorId: instructor.id,
       status: "published",
       isPublic: true,
       allowRegistration: true,
     }).returning();
-    console.log("Demo course created:", course.id, course.title);
 
     const [chapter] = await db.insert(chapters).values({
       title: "Introduction to Web Development",
@@ -221,7 +195,7 @@ export class DatabaseStorage implements IStorage {
       filePath: "uploads/web-dev-cheatsheet.pdf",
       fileSize: 1024000,
       fileType: "application/pdf",
-      uploadedBy: teacher.id,
+      uploadedBy: instructor.id,
     }).returning();
 
     await db.insert(lessonMaterials).values({
@@ -237,7 +211,6 @@ export class DatabaseStorage implements IStorage {
 
   private hashPassword(password: string): string {
     // Use crypto for proper password hashing in production
-    const crypto = require('crypto');
     const salt = 'vibelms_salt_2024'; // In production, use random salt per user
     return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   }

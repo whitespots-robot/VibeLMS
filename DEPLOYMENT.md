@@ -5,8 +5,14 @@
 ### Quick Start
 ```bash
 # Clone the repository and navigate to project directory
-git clone git@github.com:whitespots-robot/VibeLMS.git
-cd VibeLMS
+git clone <your-repo-url>
+cd vibe-lms
+
+# Start the application
+docker compose up -d --build
+
+# Check status
+docker compose ps
 ```
 
 ### Environment Configuration
@@ -15,13 +21,6 @@ The `.env` file is included with secure defaults:
 POSTGRES_PASSWORD=VibelmsSecurePass2024
 SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_string
 ```
-
-# Start the application
-`docker compose up -d --build`
-
-# Check status
-`docker compose ps`
-
 
 **Production Security**: Update these values before deployment:
 - Use a strong database password (alphanumeric only, avoid `/`, `@`, `:`)
@@ -33,71 +32,9 @@ SESSION_SECRET=vibelms_jwt_secret_key_minimum_32_characters_long_secure_random_s
 
 ### Default Login Credentials
 Demo data is created automatically on first startup:
-- **Username**: teacher
-- **Password**: teacher
+- **Username**: admin
+- **Password**: admin123
 - **Role**: instructor
-
-### User Management
-
-#### Creating Users
-Use the simple createuser script:
-
-```bash
-# For Docker deployment
-docker compose exec app node createuser.cjs username email password role
-
-# Example
-docker compose exec app node createuser.cjs teacher teacher@teacher.com teacher instructor
-
-# For local development
-node createuser.cjs username email password role
-```
-
-Parameters:
-- username: unique username
-- email: user email address  
-- password: user password
-- role: "student" or "instructor" (defaults to "student")
-
-#### Creating Users via API
-For student accounts only, you can use the registration endpoint:
-
-```bash
-curl -X POST http://localhost/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "student_name",
-    "password": "student_password",
-    "email": "student@example.com"
-  }'
-```
-
-**Note**: API registration creates "student" role by default. Use the console script to create instructors.
-
-#### Examples
-
-```bash
-# Create instructor (local PostgreSQL)
-docker compose exec app node createuser-local.cjs admin admin@example.com admin123 instructor
-
-# Create student (local PostgreSQL)
-docker compose exec app node createuser-local.cjs student1 student@example.com pass123 student
-
-# Student via API (web registration)
-curl -X POST http://localhost/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username": "student2", "password": "password123", "email": "student2@example.com"}'
-```
-
-#### User Roles
-- **instructor**: Create and manage courses, view analytics
-- **student**: Enroll in courses and track progress
-
-#### List Users
-```bash
-# View all users
-docker compose exec postgres psql -U vibelms -d vibelms -c "SELECT username, email, role FROM users;"
-```
 
 ### Demo Course
 The system includes a complete demo course:
