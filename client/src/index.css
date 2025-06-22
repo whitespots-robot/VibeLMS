@@ -148,6 +148,63 @@
   @apply prose prose-sm max-w-none;
 }
 
+/* Lesson content preview styles */
+.lesson-content {
+  @apply prose prose-lg max-w-none;
+}
+
+.lesson-content h1 {
+  @apply text-3xl font-bold text-slate-900 mb-4 mt-0;
+}
+
+.lesson-content h2 {
+  @apply text-2xl font-semibold text-slate-800 mb-3 mt-6;
+}
+
+.lesson-content h3 {
+  @apply text-xl font-medium text-slate-700 mb-2 mt-4;
+}
+
+.lesson-content p {
+  @apply text-slate-700 mb-4 leading-relaxed;
+}
+
+.lesson-content strong {
+  @apply font-semibold text-slate-900;
+}
+
+.lesson-content em {
+  @apply italic text-slate-700;
+}
+
+.lesson-content ul {
+  @apply list-disc list-inside mb-4 space-y-2 text-slate-700;
+}
+
+.lesson-content ol {
+  @apply list-decimal list-inside mb-4 space-y-2 text-slate-700;
+}
+
+.lesson-content li {
+  @apply text-slate-700;
+}
+
+.lesson-content blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic text-slate-600 my-4;
+}
+
+.lesson-content code {
+  @apply bg-slate-100 px-2 py-1 rounded text-sm font-mono text-slate-800;
+}
+
+.lesson-content pre {
+  @apply bg-slate-200 text-slate-800 p-4 rounded-lg overflow-x-auto mb-4 shadow-inner;
+}
+
+.lesson-content a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
 .rich-text-content h1,
 .rich-text-content h2,
 .rich-text-content h3 {
