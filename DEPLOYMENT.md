@@ -46,6 +46,9 @@ Use the simple createuser script:
 # For Docker deployment
 docker compose exec app node createuser.cjs username email password role
 
+# Example
+docker compose exec app node createuser.cjs teacher teacher@teacher.com teacher instructor
+
 # For local development
 node createuser.cjs username email password role
 ```
