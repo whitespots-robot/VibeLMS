@@ -41,6 +41,216 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { Course, Chapter, Lesson, ChapterWithLessons } from "@shared/schema";
 
+// Sortable Lesson Component
+function SortableLesson({ 
+  lesson, 
+  onEdit, 
+  onPreview, 
+  onDelete, 
+  getContentTypeBadges, 
+  getLessonIcon 
+}: { 
+  lesson: Lesson;
+  onEdit: (lesson: Lesson) => void;
+  onPreview: (lesson: Lesson) => void;
+  onDelete: (lessonId: number) => void;
+  getContentTypeBadges: (lesson: Lesson) => any[];
+  getLessonIcon: (lesson: Lesson) => React.ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: `lesson-${lesson.id}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center p-2 bg-white border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4 mr-2 text-neutral-400" />
+      </div>
+      {getLessonIcon(lesson)}
+      <div className="ml-3 flex-1">
+        <span className="text-sm font-medium text-neutral-700">{lesson.title}</span>
+        <div className="flex items-center space-x-1 mt-1">
+          {getContentTypeBadges(lesson).map((badge, index) => (
+            <Badge key={index} className={`text-xs ${badge.color}`}>
+              {badge.label}
+            </Badge>
+          ))}
+          {(!lesson.content && !lesson.videoUrl && !lesson.codeExample) && (
+            <Badge variant="outline" className="text-xs text-orange-600 bg-orange-50">
+              Empty - Click Edit to add content
+            </Badge>
+          )}
+        </div>
+        {lesson.content && (
+          <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
+            {lesson.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
+          </p>
+        )}
+      </div>
+      <div className="flex items-center space-x-1">
+        <Button 
+          size="sm" 
+          variant="ghost"
+          onClick={() => onEdit(lesson)}
+        >
+          <Edit className="w-4 h-4" />
+        </Button>
+        <Button 
+          size="sm" 
+          variant="ghost"
+          onClick={() => onPreview(lesson)}
+        >
+          <Eye className="w-4 h-4" />
+        </Button>
+        <Button 
+          size="sm" 
+          variant="ghost"
+          onClick={() => onDelete(lesson.id)}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Sortable Chapter Component
+function SortableChapter({ 
+  chapter, 
+  isExpanded, 
+  onToggle, 
+  onCreateLesson, 
+  onDelete,
+  onEdit,
+  onPreview,
+  onDeleteLesson,
+  getContentTypeBadges,
+  getLessonIcon,
+  sensors,
+  handleDragEnd
+}: { 
+  chapter: ChapterWithLessons;
+  isExpanded: boolean;
+  onToggle: (chapterId: number) => void;
+  onCreateLesson: (chapterId: number) => void;
+  onDelete: (chapterId: number) => void;
+  onEdit: (lesson: Lesson) => void;
+  onPreview: (lesson: Lesson) => void;
+  onDeleteLesson: (lessonId: number) => void;
+  getContentTypeBadges: (lesson: Lesson) => any[];
+  getLessonIcon: (lesson: Lesson) => React.ReactNode;
+  sensors: any;
+  handleDragEnd: (event: DragEndEvent) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: `chapter-${chapter.id}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border border-neutral-200 rounded-lg bg-white"
+    >
+      <div className="flex items-center p-4 hover:bg-neutral-50 transition-colors">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2">
+          <GripVertical className="w-4 h-4 text-neutral-400" />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggle(chapter.id)}
+          className="mr-3"
+        >
+          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </Button>
+        <Book className="w-5 h-5 text-primary mr-3" />
+        <div className="flex-1">
+          <h3 className="font-semibold text-neutral-800">{chapter.title}</h3>
+          {chapter.description && (
+            <p className="text-sm text-neutral-600 mt-1">{chapter.description}</p>
+          )}
+          <div className="flex items-center space-x-4 mt-2">
+            <span className="text-xs text-neutral-500">
+              {chapter.lessons.length} lesson{chapter.lessons.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onCreateLesson(chapter.id)}
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Lesson
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDelete(chapter.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {isExpanded && chapter.lessons.length > 0 && (
+        <div className="px-4 pb-4">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={chapter.lessons.map(l => `lesson-${l.id}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2 ml-6">
+                {chapter.lessons
+                  .sort((a, b) => a.orderIndex - b.orderIndex)
+                  .map((lesson) => (
+                    <SortableLesson 
+                      key={lesson.id} 
+                      lesson={lesson}
+                      onEdit={onEdit}
+                      onPreview={onPreview}
+                      onDelete={onDeleteLesson}
+                      getContentTypeBadges={getContentTypeBadges}
+                      getLessonIcon={getLessonIcon}
+                    />
+                  ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CourseEditor() {
   const [match, params] = useRoute("/courses/:id/edit");
   const courseId = params?.id ? parseInt(params.id) : null;
@@ -341,169 +551,7 @@ export default function CourseEditor() {
     return <FileText className="w-4 h-4 text-neutral-500" />;
   };
 
-  // Sortable Lesson Component
-  function SortableLesson({ lesson }: { lesson: Lesson }) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-    } = useSortable({ id: `lesson-${lesson.id}` });
 
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    };
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="flex items-center p-2 bg-white border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
-      >
-        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-4 h-4 mr-2 text-neutral-400" />
-        </div>
-        {getLessonIcon(lesson)}
-        <div className="ml-3 flex-1">
-          <span className="text-sm font-medium text-neutral-700">{lesson.title}</span>
-          <div className="flex items-center space-x-1 mt-1">
-            {getContentTypeBadges(lesson).map((badge, index) => (
-              <Badge key={index} className={`text-xs ${badge.color}`}>
-                {badge.label}
-              </Badge>
-            ))}
-            {(!lesson.content && !lesson.videoUrl && !lesson.codeExample) && (
-              <Badge variant="outline" className="text-xs text-orange-600 bg-orange-50">
-                Empty - Click Edit to add content
-              </Badge>
-            )}
-          </div>
-          {lesson.content && (
-            <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
-              {lesson.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
-            </p>
-          )}
-        </div>
-        <div className="flex items-center space-x-1">
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={() => setEditingLesson(lesson)}
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={() => setPreviewingLesson(lesson)}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={() => handleDeleteLesson(lesson.id)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Sortable Chapter Component
-  function SortableChapter({ chapter }: { chapter: ChapterWithLessons }) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-    } = useSortable({ id: `chapter-${chapter.id}` });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    };
-
-    const isExpanded = expandedChapters.has(chapter.id);
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="border border-neutral-200 rounded-lg bg-white"
-      >
-        <div className="flex items-center p-4 hover:bg-neutral-50 transition-colors">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mr-2">
-            <GripVertical className="w-4 h-4 text-neutral-400" />
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => toggleChapter(chapter.id)}
-            className="mr-3"
-          >
-            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </Button>
-          <Book className="w-5 h-5 text-primary mr-3" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-neutral-800">{chapter.title}</h3>
-            {chapter.description && (
-              <p className="text-sm text-neutral-600 mt-1">{chapter.description}</p>
-            )}
-            <div className="flex items-center space-x-4 mt-2">
-              <span className="text-xs text-neutral-500">
-                {chapter.lessons.length} lesson{chapter.lessons.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleCreateLesson(chapter.id)}
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Lesson
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleDeleteChapter(chapter.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {isExpanded && chapter.lessons.length > 0 && (
-          <div className="px-4 pb-4">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={chapter.lessons.map(l => `lesson-${l.id}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2 ml-6">
-                  {chapter.lessons
-                    .sort((a, b) => a.orderIndex - b.orderIndex)
-                    .map((lesson) => (
-                      <SortableLesson key={lesson.id} lesson={lesson} />
-                    ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   if (!match || !courseId) {
     return <div>Course not found</div>;
@@ -562,92 +610,36 @@ export default function CourseEditor() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {course.chapters?.map((chapter) => (
-                    <div key={chapter.id} className="border rounded-lg">
-                      <div className="flex items-center justify-between p-4 bg-neutral-50">
-                        <div className="flex items-center">
-                          <button 
-                            onClick={() => toggleChapter(chapter.id)}
-                            className="mr-2"
-                          >
-                            {expandedChapters.has(chapter.id) ? 
-                              <ChevronDown className="w-4 h-4" /> : 
-                              <ChevronRight className="w-4 h-4" />
-                            }
-                          </button>
-                          <FolderOpen className="w-4 h-4 mr-2 text-accent" />
-                          <div>
-                            <h3 className="font-medium text-neutral-800">{chapter.title}</h3>
-                            <p className="text-sm text-neutral-600">{chapter.lessons.length} lessons</p>
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleCreateLesson(chapter.id)}
-                          className="btn-success"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add Lesson
-                        </Button>
-                      </div>
-                      
-                      {expandedChapters.has(chapter.id) && (
-                        <div className="p-4 space-y-2 border-t">
-                          {chapter.lessons.map((lesson) => (
-                            <div key={lesson.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                              <div className="flex items-center">
-                                <GripVertical className="w-4 h-4 mr-2 text-neutral-400" />
-                                {getLessonIcon(lesson)}
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-neutral-700">{lesson.title}</span>
-                                  <div className="flex items-center space-x-1 mt-1">
-                                    {getContentTypeBadges(lesson).map((badge, index) => (
-                                      <Badge key={index} className={`text-xs ${badge.color}`}>
-                                        {badge.label}
-                                      </Badge>
-                                    ))}
-                                    {(!lesson.content && !lesson.videoUrl && !lesson.codeExample) && (
-                                      <Badge variant="outline" className="text-xs text-orange-600 bg-orange-50">
-                                        Empty - Click Edit to add content
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {lesson.content && (
-                                    <p className="text-xs text-neutral-500 mt-1 truncate max-w-md">
-                                      {lesson.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => setEditingLesson(lesson)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => setPreviewingLesson(lesson)}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => handleDeleteLesson(lesson.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={course.chapters?.map(c => `chapter-${c.id}`) || []}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {course.chapters
+                        ?.sort((a, b) => a.orderIndex - b.orderIndex)
+                        .map((chapter) => (
+                          <SortableChapter
+                            key={chapter.id}
+                            chapter={chapter}
+                            isExpanded={expandedChapters.has(chapter.id)}
+                            onToggle={toggleChapter}
+                            onCreateLesson={handleCreateLesson}
+                            onDelete={handleDeleteChapter}
+                            onEdit={setEditingLesson}
+                            onPreview={setPreviewingLesson}
+                            onDeleteLesson={handleDeleteLesson}
+                            getContentTypeBadges={getContentTypeBadges}
+                            getLessonIcon={getLessonIcon}
+                            sensors={sensors}
+                            handleDragEnd={handleDragEnd}
+                          />
+                        ))}
+                    </SortableContext>
+                  </DndContext>
                   
                   {(!course.chapters || course.chapters.length === 0) && (
                     <div className="text-center py-8 text-neutral-500">
